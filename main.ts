@@ -22,7 +22,74 @@ class Card {
 		res.row = r;
 		return res;
 	}
+	
+	static parsePoints(s: string) {
+		return parseInt(s[0]);
+	}
+
+	static parsePrice(s: string) {
+		let res: ValVector = [0, 0, 0, 0, 0, 0];
+		for (let i: number = 0; i < 5; i++)
+			res[i] = parseInt(s[i+2]);
+		return res;
+	}
+
+	static getCardStr(i: number, r:number, c: Color, s: string): Card {
+		let res = new Card();
+		res.id = i;
+		res.row = r;
+		res.color = c;
+		res.points = this.parsePoints(s);
+		res.price = this.parsePrice(s);
+		return res;
+	}
+	
+	static getSet(arr: string[][]): Card[] {
+		let res: Card[] = [];
+		let total = 1;
+		
+		for (let ri = 0; ri < 3; ri++) {
+			const r = 3 - ri;
+			const subset = arr[ri];
+			for (let ci = 0; ci < subset.length; ci++) {
+				res.push(Card.getCardStr(total, r, (ci % 5) as Color, subset[ci]));
+				total++;
+			}
+		}
+		
+		return res;
+	}
 }
+
+const cardStringList = [
+// Color     W     		B     	   G     	  R     	 K
+// row 3
+	[  		"5:30007", "5:73000", "5:07300", "5:00730", "5:00073", 	
+			"4:00007", "4:70000", "4:07000", "4:00700", "4:00070",
+			"4:30036", "4:63003", "4:36300", "4:03630", "4:00363",
+			"3:03353", "3:30335", "3:53033", "3:35303", "3:33530",
+	],
+// row 2
+	[  		"3:60000", "3:06000", "3:00600", "3:00060", "3:00006", 	
+			"2:00053", "2:53000", "2:05300", "2:30005", "2:00530",
+			"2:00050", "2:05000", "2:00500", "2:00005", "2:50000",
+			"2:00142", "2:20014", "2:42001", "2:14200", "2:01420",
+			"1:23030", "1:02303", "1:30230", "1:03023", "1:30302",
+			"1:00322", "1:02230", "1:23002", "1:20023", "1:32200",
+	],
+// row 1
+	[  		"1:00400", "1:00040", "1:00004", "1:40000", "1:04000", 	
+			"0:31001", "0:01310", "0:13100", "0:10013", "0:00131",
+			"0:03000", "0:00003", "0:00030", "0:30000", "0:00300",
+			"0:02201", "0:10220", "0:01022", "0:20102", "0:22010",
+			"0:02002", "0:00202", "0:02020", "0:20020", "0:20200",
+			"0:01211", "0:10121", "0:11012", "0:21101", "0:12110",
+			"0:00021", "0:10002", "0:21000", "0:02100", "0:00210",
+			"0:01111", "0:10111", "0:11011", "0:11101", "0:11110",
+	]
+];
+
+const CARD_SET = Card.getSet(cardStringList);
 
 type NobleId = number;
 
@@ -88,3 +155,7 @@ let game = new Game(2);
 
 console.log(game);
 console.log(game.table);
+const c0: Card = Card.getCardStr(9, 2, Color.GREEN, "3:20201");
+
+console.log(c0);
+console.log(CARD_SET);
