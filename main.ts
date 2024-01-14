@@ -133,21 +133,31 @@ class Player {
 }
 
 class Table {
-	nobles: Noble[] = [];
+	nobles: (Noble|null)[] = [];
 	stacks: Card[][] = [[], [], []];
-	rows: Card[][] = [[], [], []];	
+	rows: (Card|null)[][] = [[], [], []];	
 	tokens: ValVector = [0, 0, 0, 0, 0, 0];
 	
 	constructor(n: number) {
 		if (n < 2 || n > 4) throw new Error("Wrong num of players");
-		//this.nobles.push(null);
+		
+		const CARDS_PERM = permute(CARD_SET, permutation(90, randSeq(90)));
+		const NOBLES_PERM = permute(NOBLES, permutation(10, randSeq(10)));
+		
+		for (let r = 0; r < 3; r++) {
+			this.stacks[r] = CARDS_PERM.filter((c: Card) => c.row == r+1);
+		}
 		
 		for (let i: number = 0; i < 3; i++) {
 			for (let j: number = 0; j < 4; j++) {
-				this.rows[i][j] = Card.getCard(j + 10, i); // TMP
+				this.rows[i][j] = this.stacks[i].shift()!;
 			}
 		}
 		
+		for (let i = 0; i <= n; i++) {
+			this.nobles[i] = NOBLES_PERM.shift()!;
+		}
+				
 		const nToks = [0, 0, 4, 5, 7][n];
 		for (let i: Color = Color.WHITE; i < Color.YELLOW; i++) {
 			this.tokens[i] = nToks;
@@ -170,6 +180,41 @@ class Game {
 	}
 }
 
+function permutation(n: number, seq: number[]): number[] {
+	let res: number[] = [];
+	let temp: number[] = [];
+	for (let i = 0; i < n; i++) {
+		temp[i] = i;
+	}
+	
+	for (let i = 0; i < n; i++) {
+		res[i] = temp[seq[i]];
+		temp[seq[i]] = temp[n-1-i];
+	}
+
+	return res;
+}
+
+function permute<T>(arr: T[], seq: number[]): T[] {
+	let res: T[] = [];
+	for (const k of seq)
+	res.push(arr[k]);	
+	
+	return res;
+}	
+
+function randSeq(n: number): number[] {
+	let range = n;
+	let res: number[] = [];
+	
+	for (let i = 0; i < n; i++) {
+		res[i] = Math.round(Math.random() * 1000000000) % range--;
+	}
+	
+	return res;
+}
+
+
 console.log("just begining");
 
 //let v: ValVector = [0, 1, 1, 0, 0, 0];
@@ -182,12 +227,12 @@ let game = new Game(2);
 
 //console.log(game);
 console.log(game.table);
+console.log(game.table.rows);
+console.log(game.table.nobles);
 //const c0: Card = Card.getCardStr(9, 2, Color.GREEN, "3:20201");
 
 //console.log(c0);
 //console.log(CARD_SET);
 
-console.log(CARDS_1);
-console.log(CARDS_2);
-console.log(CARDS_3);
-console.log(NOBLES);
+//console.log(permutation(40, randSeq(40)));
+//console.log(permute(CARDS_3, [0, 3, 4, 1, 2, 5]));
