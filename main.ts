@@ -90,13 +90,40 @@ const cardStringList = [
 ];
 
 const CARD_SET = Card.getSet(cardStringList);
+const CARDS_1 = CARD_SET.filter((c: Card) => c.row == 1);
+const CARDS_2 = CARD_SET.filter((c: Card) => c.row == 2);
+const CARDS_3 = CARD_SET.filter((c: Card) => c.row == 3);
 
 type NobleId = number;
 
 class Noble {
 	id: NobleId = 0;
 	price: ValVector = [0, 0, 0, 0, 0, 0];
+	
+	static getNoble(id: number, s: string): Noble {
+		let res = new Noble();
+		res.id = id;
+		for (let i = 0; i < 5; i++)
+			res.price[i] = parseInt(s[i]);
+		return res;
+	}
+	
+	static getSet(arr: string[]): Noble[] {
+		let res: Noble[] = [];
+		for (let i = 0; i < arr.length; i++) {
+			res.push(this.getNoble(i + 1, arr[i]));
+		}
+		return res;
+	}
 }
+
+const nobleStringList = [
+	"00044", "00440", "04400", "44000", "40004",
+	"00333", "03330", "33300", "33003", "30033"
+];
+
+const NOBLES = Noble.getSet(nobleStringList);
+
 
 class Player {
 	tokens: ValVector = [0, 0, 0, 0, 0, 0];
@@ -153,9 +180,14 @@ console.log("just begining");
 
 let game = new Game(2);
 
-console.log(game);
+//console.log(game);
 console.log(game.table);
-const c0: Card = Card.getCardStr(9, 2, Color.GREEN, "3:20201");
+//const c0: Card = Card.getCardStr(9, 2, Color.GREEN, "3:20201");
 
-console.log(c0);
-console.log(CARD_SET);
+//console.log(c0);
+//console.log(CARD_SET);
+
+console.log(CARDS_1);
+console.log(CARDS_2);
+console.log(CARDS_3);
+console.log(NOBLES);
