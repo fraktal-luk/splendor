@@ -171,12 +171,22 @@ class Game {
 	players: Player[];
 	table: Table;
 	
+	turn: number;
+
 	constructor(n: number) {
 		this.nPlayers = n;
 		this.players = [];
 		for (let i: number = 0; i < n; i++)
 			this.players.push(new Player());
 		this.table = new Table(n);
+		
+		this.turn = 0;
+	}
+	
+	move(s: string): void {
+		
+		
+		this.turn = (this.turn+1) % this.nPlayers;
 	}
 }
 
@@ -214,25 +224,111 @@ function randSeq(n: number): number[] {
 	return res;
 }
 
+class Command {
+	
+};
+
+function parseMove(s: string): void {
+	let sFilt = s.split('').filter((s) => s != ' ');
+	sFilt.push('\n');
+		console.log(s);
+		console.log(sFilt);
+	
+	// Take:
+	// t wkb -2g n2  -> take white, black, blue; return green, green; if noble to get, choose 2.
+	// "t", tokenList, ["-", tokenList], [nobleSpec]
+	
+	// Buy:
+	// b 12 p 2r2k n1 -> buy row[1] col[2], if you have Yellow tokens pay 2 red + 2 black, if noble to get, choose 1.
+	// "b", cardLoc, ["p", tokenList], [nobleSpec]
+	
+	// b 01  -> Buy reserved card at slot 1
+	// b r1  -> the same
+	
+	// Reserve:
+	// r 30 -k n1        -> reserve row[3], 0 means stack; return 1 Black ; if noble to get, choose 1. 
+	// "r", cardLoc, ["-", tokenList], [nobleSpec]
+	
+	if (sFilt.length == 0) throw new Error("empty command");
+	
+	switch (sFilt[0]) {
+	case "t": 
+		parseTake(sFilt);
+	break;
+	case "b":
+		//parseBuy(sFilt);
+	break;
+	case "r":
+		//parseReserve(sFilt);
+	break;
+	default: throw new Error("Command wrong beginning");
+	}
+}
+
+function parseTake(s: string[]): Command {
+	s.shift(); // "t"
+	parseTokenList(s);
+	
+	if (s[0] == '-') {
+		s.shift();
+		parseTokenList(s);
+	}
+	
+	parseOptNoble(s);
+	
+	if (s[0] != '\n') throw new Error("Incorrect parse");
+	
+	return new Command();
+}
+
+function parseTokenList(s: string[]): void {
+	let numStr = '';
+	while ('0123456789wbgrky'.includes(s[0])) {
+		if ('0123456789'.includes(s[0])) {
+			if (numStr.length > 0) throw new Error("number after number!");
+			
+			numStr = s.shift()!;
+		}
+		else if ('wbgrky'.includes(s[0])) {			
+			const colorStr = s.shift()!;
+			
+			console.log("  Color: " + numStr + colorStr);
+
+			numStr = '';
+			
+		}
+		else {
+			return;
+		}
+	}
+	
+	return;
+}
+
+
+function parseOptNoble(s: string[]): void {
+	if (s[0] == 'n') {
+		s.shift();
+		if ('0123456789'.includes(s[0])) {
+			console.log("Nob num: " + s[0]);
+			s.shift();
+		}
+		else
+			throw new Error("no number for noble!");
+	}
+}
+
+
+
 
 console.log("just begining");
 
-//let v: ValVector = [0, 1, 1, 0, 0, 0];
-
-//console.log(v);
-//v[2]++;
-//console.log(v);
-
 let game = new Game(2);
 
-//console.log(game);
 console.log(game.table);
 console.log(game.table.rows);
 console.log(game.table.nobles);
-//const c0: Card = Card.getCardStr(9, 2, Color.GREEN, "3:20201");
 
-//console.log(c0);
-//console.log(CARD_SET);
+console.log(game.players[0]);
 
-//console.log(permutation(40, randSeq(40)));
-//console.log(permute(CARDS_3, [0, 3, 4, 1, 2, 5]));
+parseMove("t 1w 2k r- wwk n2");
