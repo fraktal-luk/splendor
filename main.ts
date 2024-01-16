@@ -256,16 +256,18 @@ function parseMove(s: string): void {
 		parseTake(sFilt);
 	break;
 	case "b":
-		//parseBuy(sFilt);
+		parseBuy(sFilt);
 	break;
 	case "r":
-		//parseReserve(sFilt);
+		parseReserve(sFilt);
 	break;
 	default: throw new Error("Command wrong beginning");
 	}
 }
 
 function parseTake(s: string[]): Command {
+		console.log("Take:");
+	
 	s.shift(); // "t"
 	parseTokenList(s);
 	
@@ -274,6 +276,45 @@ function parseTake(s: string[]): Command {
 		parseTokenList(s);
 	}
 	
+	parseOptNoble(s);
+	
+	if (s[0] != '\n') throw new Error("Incorrect parse");
+	
+	return new Command();
+}
+
+function parseBuy(s: string[]): Command {
+		console.log("Buy:");
+
+	
+	s.shift(); // "b"
+	parseLoc(s);
+	
+	if (s[0] == 'p') {
+		s.shift();
+		parseTokenList(s);
+	}
+
+	parseOptNoble(s);
+	
+	if (s[0] != '\n') throw new Error("Incorrect parse");
+	
+	return new Command();
+}
+
+
+function parseReserve(s: string[]): Command {
+		console.log("Reserve:");
+
+	
+	s.shift(); // "r"
+	parseLoc(s);
+	
+	if (s[0] == '-') {
+		s.shift();
+		parseTokenList(s);
+	}
+
 	parseOptNoble(s);
 	
 	if (s[0] != '\n') throw new Error("Incorrect parse");
@@ -305,6 +346,23 @@ function parseTokenList(s: string[]): void {
 	return;
 }
 
+function parseLoc(s: string[]): void {
+	let locStr = '';
+	
+	if ('0123r'.includes(s[0])) {
+		locStr += s.shift();
+	}
+	else
+		throw new Error('Wrong location');
+	
+	if ('01234'.includes(s[0])) {
+		locStr += s.shift();
+	}
+	else
+		throw new Error('Wrong location');
+	
+	console.log("Loc: " + locStr);
+}
 
 function parseOptNoble(s: string[]): void {
 	if (s[0] == 'n') {
@@ -332,3 +390,5 @@ console.log(game.table.nobles);
 console.log(game.players[0]);
 
 parseMove("t 1w 2k r- wwk n2");
+parseMove("b 11 ");
+parseMove("r 1 2 -b n3");
