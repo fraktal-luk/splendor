@@ -124,6 +124,21 @@ const nobleStringList = [
 
 const NOBLES = Noble.getSet(nobleStringList);
 
+function pointStr(n: number): string {
+	return n == 0 ? ' ' : n.toString();
+}
+
+function priceStrN(v: ValVector): string {
+	return v.slice(0, 5).join('').replaceAll('0', ' ');
+}
+
+function priceStrC(v: ValVector): string {
+	let res = 'WBGRK'.split('');
+	for (let i = 0; i < 5; i++) {
+		if (v[i] == 0) res[i] = ' ';
+	}
+	return res.join('');
+}
 
 class Player {
 	tokens: ValVector = [0, 0, 0, 0, 0, 0];
@@ -133,9 +148,9 @@ class Player {
 }
 
 class Table {
-	nobles: (Noble|null)[] = [];
+	nobles: (Noble|undefined)[] = [];
 	stacks: Card[][] = [[], [], []];
-	rows: (Card|null)[][] = [[], [], []];	
+	rows: (Card|undefined)[][] = [[], [], []];	
 	tokens: ValVector = [0, 0, 0, 0, 0, 0];
 	
 	constructor(n: number) {
@@ -164,7 +179,134 @@ class Table {
 		}
 		this.tokens[Color.YELLOW] = 5;
 	}
+	
+	
+	takeCard(loc: number[]): Card | undefined {
+		if (loc[0] < 1 || loc[0] > 3) throw new Error('Invalid row number');
+		if (loc[1] < 0 || loc[1] > 4) throw new Error('Invalid col number');
+		
+		if (loc[1] == 0)
+			return this.stacks[loc[0]-1].shift();
+		else {
+			const res = this.rows[loc[0]-1][loc[1]-1];
+			this.rows[loc[0]-1][loc[1]-1] = undefined;
+			this.rows[loc[0]-1][loc[1]-1] = this.stacks[loc[0]-1].shift();
+			return res;
+		}			
+	}
+
+	takeTokens(v: ValVector): boolean {
+		let sum = 0;
+		for (let i = 0; i < v.length; i++) {
+			sum += v[i];
+		}
+		
+		if (sum > 3) throw new Error('Can\'t take more than 3 tokens');
+		
+		for (let i = 0; i < v.length; i++) {
+			if (v[i] > 2) throw new Error('No more than 2 of a kind');
+			else if (v[i] == 2) {
+				if (sum > 2) throw new Error('If 2 same colors, can\'t take any more');
+				if (this.tokens[i] < 4) throw new Error('Can\'t take 2 if les than 4 on stack');
+			}
+			else {
+				
+			}
+		}
+		
+		// Now actually take
+		for (let i = 0; i < v.length; i++) {
+			this.tokens[i] -= v[i];
+		}
+
+		return true;
+	}
+
+	putTokens(v: ValVector): void {
+		for (let i = 0; i < v.length; i++) {
+			this.tokens[i] += v[i];
+		}
+	}
+
+	takeNoble(k: number): Noble | undefined {
+		
+		return undefined;
+	}	
+
+	nobleStr(): string {
+		/*
+		"|     -----     --A--     -----     -----     -----  ",
+		"|    |XXXXX|   |('_')|   |5 (G)|   |5 (G)|   |5 (G)| ",
+		"| 16 |XXXXX|   |/| |\|   |     |   |     |   |     | ",
+		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
+		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
+		"|     -----     -----     -----     -----     -----  ",
+		
+		*/
+		return '';
+	}
+
+	rowStr(row: number): string {
+		const template =
+		[
+		" --------------------------------------------------- ",
+		"|     -----     -----     -----     -----     -----  ",
+		"|    |XXXXX|   |5 (G)|   |5 (G)|   |5 (G)|   |5 (G)| ",
+		"| 16 |XXXXX|   |     |   |     |   |     |   |     | ",
+		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
+		"|     -----     -----     -----     -----     -----  ",
+		"|                                                    ",
+		"|     -----     -----     -----     -----     -----  ",
+		"|    |XXXXX|   |5 (G)|   |5 (G)|   |5 (G)|   |5 (G)| ",
+		"| 26 |XXXXX|   |     |   |     |   |     |   |     | ",
+		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
+		"|     -----     -----     -----     -----     -----  ",
+		"|                                                    ",
+		"|     -----     -----     -----     -----     -----  ",
+		"|    |XXXXX|   |5 (G)|   |5 (G)|   |5 (G)|   |5 (G)| ",
+		"| 36 |XXXXX|   |     |   |     |   |     |   |     | ",
+		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
+		"|     -----     -----     -----     -----     -----  ",
+		" --------------------------------------------------- ",
+		"|   (W)   (B)   (G)   (R)   (K)    (Y)               ",
+		"|    4     4     4     4     4      5                ",
+		" --------------------------------------------------- ",
+		].join('\n');
+
+		const hCardBorders =
+		"|     -----     -----     -----     -----     -----  ";
+		const valStripStart =
+		"|    |XXXXX|";
+		const valStripCont = 
+					"   |P (C)|";
+		let midStrip = 
+		"| NN |XXXXX|   |     |   |     |   |     |   |     | ";
+		
+		const priceStripStart =
+		"|    |XXXXX|";
+		const priceStripCont =
+					 "   |vvvvv|";
+
+		let valStrip = valStripStart;
+		let priceStripN = priceStripStart;
+		let priceStripC = priceStripStart;
+		
+		const r = row;
+		for (let i = 0; i < 4; i++) {
+			const card = this.rows[r][i]!;
+			valStrip += valStripCont.replace('P', pointStr(card.points)).replace('C', Color[card.color][0]);
+			
+			priceStripN += priceStripCont.replace('vvvvv', priceStrN(card.price));
+			priceStripC += priceStripCont.replace('vvvvv', priceStrC(card.price));
+		}
+		
+		midStrip = midStrip.replace('NN', (this.stacks[r].length + 100).toString().substr(1));
+		
+		return [hCardBorders, valStrip, midStrip, priceStripN, priceStripC, hCardBorders].join('\n');
+	}
+
 }
+
 
 class Game {
 	nPlayers: number;
@@ -438,3 +580,7 @@ console.log(game.players[0]);
 parseMove("t 1w 2k r- wwk n2");
 parseMove("b 11 ");
 parseMove("r 1 2 -b n3");
+
+console.log(game.table.rowStr(2));
+console.log(game.table.rowStr(1));
+console.log(game.table.rowStr(0));
