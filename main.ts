@@ -224,15 +224,22 @@ function randSeq(n: number): number[] {
 	return res;
 }
 
+type Kind = 'take' | 'buy' | 'reserve';
+
 class Command {
 	
+	kind: Kind = 'take';
+	loc?: number[];
+	take?: ValVector;
+	give?: ValVector;
+	noble?: number;
 };
 
 function parseMove(s: string): void {
 	let sFilt = s.split('').filter((s) => s != ' ');
 	sFilt.push('\n');
 		console.log(s);
-		console.log(sFilt);
+	//	console.log(sFilt);
 	
 	// Take:
 	// t wkb -2g n2  -> take white, black, blue; return green, green; if noble to get, choose 2.
@@ -265,64 +272,85 @@ function parseMove(s: string): void {
 	}
 }
 
+
+
 function parseTake(s: string[]): Command {
-		console.log("Take:");
+		//console.log("Take:");
+	
+	let res = new Command();
+	
+	res.kind = 'take';
 	
 	s.shift(); // "t"
-	parseTokenList(s);
+	res.take = parseTokenList(s);
 	
 	if (s[0] == '-') {
 		s.shift();
-		parseTokenList(s);
+		res.give = parseTokenList(s);
 	}
 	
-	parseOptNoble(s);
+	res.noble = parseOptNoble(s);
 	
 	if (s[0] != '\n') throw new Error("Incorrect parse");
 	
-	return new Command();
+	console.log(res);
+	
+	return res;
 }
 
 function parseBuy(s: string[]): Command {
-		console.log("Buy:");
-
+	//	console.log("Buy:");
+	let res = new Command();
+	
+	res.kind = 'buy';
 	
 	s.shift(); // "b"
-	parseLoc(s);
+	res.loc = parseLoc(s);
 	
 	if (s[0] == 'p') {
 		s.shift();
-		parseTokenList(s);
+		res.give = parseTokenList(s);
 	}
 
-	parseOptNoble(s);
+	res.noble = parseOptNoble(s);
 	
 	if (s[0] != '\n') throw new Error("Incorrect parse");
 	
-	return new Command();
+	console.log(res);
+	
+	return res;
 }
 
 
 function parseReserve(s: string[]): Command {
-		console.log("Reserve:");
-
+		//console.log("Reserve:");
+	let res = new Command();
+	
+	res.kind = 'reserve';
 	
 	s.shift(); // "r"
-	parseLoc(s);
+	res.loc = parseLoc(s);
 	
 	if (s[0] == '-') {
 		s.shift();
-		parseTokenList(s);
+		res.give = parseTokenList(s);
 	}
 
-	parseOptNoble(s);
+	res.noble = parseOptNoble(s);
 	
 	if (s[0] != '\n') throw new Error("Incorrect parse");
 	
-	return new Command();
+	console.log(res);
+	
+	return res;
 }
 
-function parseTokenList(s: string[]): void {
+function letter2color(s: string): Color {
+	return 'wbgrky'.indexOf(s[0]);
+}	
+
+function parseTokenList(s: string[]): ValVector {
+	let res: ValVector = [0, 0, 0, 0, 0, 0];
 	let numStr = '';
 	while ('0123456789wbgrky'.includes(s[0])) {
 		if ('0123456789'.includes(s[0])) {
@@ -333,20 +361,28 @@ function parseTokenList(s: string[]): void {
 		else if ('wbgrky'.includes(s[0])) {			
 			const colorStr = s.shift()!;
 			
-			console.log("  Color: " + numStr + colorStr);
+			//console.log("  Color: " + numStr + colorStr);
+			const num = numStr.length > 0 ? parseInt(numStr) : 1;
+			const color = letter2color(colorStr);
 
 			numStr = '';
 			
+			res[color] += num;
+			
 		}
 		else {
-			return;
+			//	console.log(res);
+
+			return res;
 		}
 	}
 	
-	return;
+		//console.log(res);
+	
+	return res;
 }
 
-function parseLoc(s: string[]): void {
+function parseLoc(s: string[]): number[] {
 	let locStr = '';
 	
 	if ('0123r'.includes(s[0])) {
@@ -361,19 +397,29 @@ function parseLoc(s: string[]): void {
 	else
 		throw new Error('Wrong location');
 	
-	console.log("Loc: " + locStr);
+	//console.log("Loc: " + locStr);
+	
+	let res = [0, 0];
+	if (locStr[0] == 'r') res[0] = 0;
+	else res[0] = parseInt(locStr[0]);
+	
+	res[1] = parseInt(locStr[1]);
+	
+	return res;
 }
 
-function parseOptNoble(s: string[]): void {
+function parseOptNoble(s: string[]): number | undefined {
 	if (s[0] == 'n') {
 		s.shift();
 		if ('0123456789'.includes(s[0])) {
-			console.log("Nob num: " + s[0]);
-			s.shift();
+			//console.log("Nob num: " + s[0]);
+			//s.shift();
+			return parseInt(s.shift()!);
 		}
 		else
 			throw new Error("no number for noble!");
 	}
+	return undefined;
 }
 
 
