@@ -142,9 +142,119 @@ function priceStrC(v: ValVector): string {
 
 class Player {
 	tokens: ValVector = [0, 0, 0, 0, 0, 0];
-	owned: Card[][] = [[], [], [], [], [], []];
+	owned: Card[][] = [[], [], [], [], []];
 	reserved: Card[] = [];
 	nobles: Noble[] = [];
+	
+
+	tokenCardStr(): string {
+		const lens = this.owned.map((ca: Card[]) => ca.length);
+		return '    W  B  G  R  K  Y' + '\n' + 'T:  ' + this.tokens.join('  ') + '\n' + 'C:  ' + lens.join('  ');
+	}
+	
+	ownedStr(): string {
+		let res = '';
+		
+		const lens = this.owned.map((ca: Card[]) => ca.length);
+		const maxLen = Math.max(...lens);
+		
+		//	console.log(lens);
+		//	console.log(maxLen);
+		
+		//res += '   ';
+		//res += lens.join('    ');
+		//res += '\n';
+		
+		for (let i = 0; i < maxLen; i++) {
+			for (let j = 0; j < 5; j++) {
+				if (this.owned[i].length > j)
+					res += ' [P  *]'.replace('P', this.owned[i][j].points.toString());
+				else
+					res += '        ';
+			}
+			res += '\n';
+		}
+		
+		return res;
+	}
+	
+	reservedStr(): string {
+		let hCardBorders =
+		"|";
+		const valStripStart =
+		"|";
+		const valStripCont = 
+					"   |P (C)|";
+		let midStrip = 
+		"|";
+		
+		const priceStripStart =
+		"|";
+		const priceStripCont =
+					 "   |vvvvv|";
+
+		let valStrip = valStripStart;
+		let priceStripN = priceStripStart;
+		let priceStripC = priceStripStart;
+		
+		//const r = row;
+		for (let i = 0; i < this.reserved.length; i++) {
+			const card = this.reserved[i];
+			hCardBorders += "    ----- ";
+			valStrip += valStripCont.replace('P', pointStr(card.points)).replace('C', Color[card.color][0]);
+			
+			priceStripN += priceStripCont.replace('vvvvv', priceStrN(card.price));
+			priceStripC += priceStripCont.replace('vvvvv', priceStrC(card.price));
+		}
+		
+		//midStrip = midStrip.replace('NN', (this.stacks[r].length + 100).toString().substr(1));
+		
+		return [hCardBorders, valStrip, midStrip, priceStripN, priceStripC, hCardBorders].join('\n');			
+	}
+
+	nobleStr(): string {
+		/*
+		"|   --A--     -----     -----     -----  ",
+		"|  |('_')|   |5 (G)|   |5 (G)|   |5 (G)| ",
+		"|  |/| |\|   |     |   |     |   |     | ",
+		"|  |.....|   |.....|   |.....|   |.....| ",
+		"|  |.....|   |.....|   |.....|   |.....| ",
+		"|   -----     -----     -----     -----  ",
+		
+		*/
+		
+		let border = '';
+		let costN = '';
+		let costC = '';
+		
+		for (let i = 0; i < this.nobles.length; i++) {
+			
+			//if (this.nobles[i] != undefined) {
+				border += "    ----- ";
+				costN += ('   |' + priceStrN(this.nobles[i]!.price) +'|');
+				costC += ('   |' + priceStrC(this.nobles[i]!.price) +'|');
+			//}
+			//else {
+			//	border +=  "          ";
+			//	costN +=  "          ";
+			//	costC +=  "          ";
+			//}
+		}
+		
+		
+		return [border, costN, costC, border].join('\n');
+	}
+	
+	str(k: number): string {
+		return  "-----------------------------------------\n" +
+				"------- Player " + k.toString() + " ------\n" +
+				this.nobleStr() + '\n' +
+				this.tokenCardStr() + '\n' +
+				this.ownedStr() + '\n' +
+				this.reservedStr() + '\n' +
+				"------- ------ --" + " ------\n" +
+				"------- ------ --" + " ------\n";
+	}
 }
 
 class Table {
@@ -233,17 +343,41 @@ class Table {
 		return undefined;
 	}	
 
+	tokenStr(): string {
+		return '\n' + '   W B G R K Y' + '\n' + '   ' + this.tokens.join(' ');
+	}
+
 	nobleStr(): string {
 		/*
-		"|     -----     --A--     -----     -----     -----  ",
-		"|    |XXXXX|   |('_')|   |5 (G)|   |5 (G)|   |5 (G)| ",
-		"| 16 |XXXXX|   |/| |\|   |     |   |     |   |     | ",
-		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
-		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
-		"|     -----     -----     -----     -----     -----  ",
+		"|   --A--     -----     -----     -----  ",
+		"|  |('_')|   |5 (G)|   |5 (G)|   |5 (G)| ",
+		"|  |/| |\|   |     |   |     |   |     | ",
+		"|  |.....|   |.....|   |.....|   |.....| ",
+		"|  |.....|   |.....|   |.....|   |.....| ",
+		"|   -----     -----     -----     -----  ",
 		
 		*/
-		return '';
+		
+		let border = '';
+		let costN = '';
+		let costC = '';
+		
+		for (let i = 0; i < this.nobles.length; i++) {
+			
+			if (this.nobles[i] != undefined) {
+				border += "    ----- ";
+				costN += ('   |' + priceStrN(this.nobles[i]!.price) +'|');
+				costC += ('   |' + priceStrC(this.nobles[i]!.price) +'|');
+			}
+			else {
+				border +=  "          ";
+				costN +=  "          ";
+				costC +=  "          ";
+			}
+		}
+		
+		
+		return [border, costN, costC, border].join('\n');
 	}
 
 	rowStr(row: number): string {
@@ -304,6 +438,19 @@ class Table {
 		
 		return [hCardBorders, valStrip, midStrip, priceStripN, priceStripC, hCardBorders].join('\n');
 	}
+	
+	str(): string {
+		return  "-----------------------------\n" +
+				"---------- Table ------------\n" +
+				this.nobleStr() + '\n' +
+				this.rowStr(2) + '\n' +
+				this.rowStr(1) + '\n' +
+				this.rowStr(0) + '\n' +
+				"--------------------------\n" +
+				this.tokenStr() + '\n' +
+				"--------------------------\n" +
+				"--------------------------\n";
+	}
 
 }
 
@@ -330,6 +477,12 @@ class Game {
 		
 		this.turn = (this.turn+1) % this.nPlayers;
 	}
+
+	movePlayer(k: number, s: string): void {
+		
+		
+	}
+
 }
 
 function permutation(n: number, seq: number[]): number[] {
@@ -581,6 +734,23 @@ parseMove("t 1w 2k r- wwk n2");
 parseMove("b 11 ");
 parseMove("r 1 2 -b n3");
 
+/*
+console.log(game.table.nobleStr());
 console.log(game.table.rowStr(2));
 console.log(game.table.rowStr(1));
 console.log(game.table.rowStr(0));
+console.log('------------------');
+console.log(game.table.tokenStr());
+*/
+
+console.log(game.table.str());
+console.log('');
+console.log('');
+/*
+console.log(game.players[0].nobleStr());
+console.log(game.players[0].tokenCardStr());
+console.log('');
+console.log(game.players[0].ownedStr());
+console.log(game.players[0].reservedStr());
+*/
+console.log(game.players[0].str(0));
