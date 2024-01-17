@@ -255,6 +255,32 @@ class Player {
 				"------- ------ --" + " ------\n" +
 				"------- ------ --" + " ------\n";
 	}
+	
+	
+	canGet(take: ValVector, give?: ValVector): boolean {
+		let newVec: ValVector = [...this.tokens];
+		if (give == undefined) give = [0, 0, 0, 0, 0, 0];
+		
+		let sum = 0; 
+		for (let i = 0; i < 6; i++ ) {
+			newVec[i] += take[i];
+			newVec[i] -= give[i];
+			sum += newVec[i];
+		}
+		
+		return sum <= 10;
+	}
+	
+	getTokens(take: ValVector, give?: ValVector): void {
+		//let newVec: ValVector = this.tokens;
+		if (give == undefined) give = [0, 0, 0, 0, 0, 0];
+		
+		for (let i = 0; i < 6; i++ ) {
+			this.tokens[i] += take[i];
+			this.tokens[i] -= give[i];
+		}
+	}
+	
 }
 
 class Table {
@@ -305,7 +331,19 @@ class Table {
 		}			
 	}
 
-	takeTokens(v: ValVector): boolean {
+	
+	canTake(v: ValVector): boolean {
+		for (let i = 0; i < 5; i++) {
+			if (v[i] == 2 && this.tokens[i] < 4) return false;
+			if (v[i] > this.tokens[i]) return false;
+		}
+		
+		return true;
+	}
+
+
+	takeTokens(v: ValVector): void {
+		/*
 		let sum = 0;
 		for (let i = 0; i < v.length; i++) {
 			sum += v[i];
@@ -317,20 +355,21 @@ class Table {
 			if (v[i] > 2) throw new Error('No more than 2 of a kind');
 			else if (v[i] == 2) {
 				if (sum > 2) throw new Error('If 2 same colors, can\'t take any more');
-				if (this.tokens[i] < 4) throw new Error('Can\'t take 2 if les than 4 on stack');
+				if (this.tokens[i] < 4) throw new Error('Can\'t take 2 if less than 4 on stack');
 			}
 			else {
 				
 			}
 		}
+		*/
 		
-		// Now actually take
 		for (let i = 0; i < v.length; i++) {
 			this.tokens[i] -= v[i];
 		}
 
-		return true;
+		//return true;
 	}
+
 
 	putTokens(v: ValVector): void {
 		for (let i = 0; i < v.length; i++) {
@@ -478,8 +517,49 @@ class Game {
 		this.turn = (this.turn+1) % this.nPlayers;
 	}
 
-	movePlayer(k: number, s: string): void {
+
+	moveTake(k: number, c: Command): void {
+		let player = this.players[k];
+		if (!validateTake(c.take!)) {
+			console.log('Incorrect Take');
+			return;
+		}
 		
+		if (!this.table.canTake(c.take!)) {
+			console.log('Not enough on table');
+			return;
+		}
+		
+		if (!player.canGet(c.take!, c.give)) {
+			console.log('Not enough on table');
+			return;
+		}
+	
+		this.table.takeTokens(c.take!);
+		if (c.give != undefined) this.table.putTokens(c.give!);
+	
+		player.getTokens(c.take!, c.give);
+	}
+	
+
+	movePlayer(k: number, s: string): void {
+		let player = this.players[k];
+		const command = parseMove(s);
+		
+				console.log(command);
+
+		
+		switch (command.kind) {
+		case 'take':
+			this.moveTake(k, command);
+		break;
+		case 'buy':
+		
+		break;
+		case 'reserve':
+		
+		break;
+		}
 		
 	}
 
@@ -530,10 +610,10 @@ class Command {
 	noble?: number;
 };
 
-function parseMove(s: string): void {
+function parseMove(s: string): Command {
 	let sFilt = s.split('').filter((s) => s != ' ');
 	sFilt.push('\n');
-		console.log(s);
+	//	console.log(s);
 	//	console.log(sFilt);
 	
 	// Take:
@@ -555,13 +635,13 @@ function parseMove(s: string): void {
 	
 	switch (sFilt[0]) {
 	case "t": 
-		parseTake(sFilt);
+		return parseTake(sFilt);
 	break;
 	case "b":
-		parseBuy(sFilt);
+		return parseBuy(sFilt);
 	break;
 	case "r":
-		parseReserve(sFilt);
+		return parseReserve(sFilt);
 	break;
 	default: throw new Error("Command wrong beginning");
 	}
@@ -588,7 +668,7 @@ function parseTake(s: string[]): Command {
 	
 	if (s[0] != '\n') throw new Error("Incorrect parse");
 	
-	console.log(res);
+	//console.log(res);
 	
 	return res;
 }
@@ -611,7 +691,7 @@ function parseBuy(s: string[]): Command {
 	
 	if (s[0] != '\n') throw new Error("Incorrect parse");
 	
-	console.log(res);
+	//console.log(res);
 	
 	return res;
 }
@@ -635,7 +715,7 @@ function parseReserve(s: string[]): Command {
 	
 	if (s[0] != '\n') throw new Error("Incorrect parse");
 	
-	console.log(res);
+	//console.log(res);
 	
 	return res;
 }
@@ -720,6 +800,32 @@ function parseOptNoble(s: string[]): number | undefined {
 
 
 
+function validateTake(v: ValVector): boolean {
+	let sum = 0;
+	for (let i = 0; i < v.length; i++) {
+		sum += v[i];
+	}
+	
+	if (sum > 3) return false;
+	
+	for (let i = 0; i < v.length; i++) {
+		if (v[i] < 0) return false;
+		
+		if (v[i] > 2) return false;
+		else if (v[i] == 2) {
+			if (sum > 2) return false;
+		}
+		else {
+			
+		}
+	}
+	if (v[5] > 0) return false;
+
+	return true;
+}
+
+
+
 console.log("just begining");
 
 let game = new Game(2);
@@ -753,4 +859,16 @@ console.log('');
 console.log(game.players[0].ownedStr());
 console.log(game.players[0].reservedStr());
 */
+console.log(game.players[0].str(0));
+
+game.movePlayer(0, "t wkr");
+
+console.log(game.table.str());
+console.log('');
+console.log(game.players[0].str(0));
+
+game.movePlayer(0, "t wwr");
+
+console.log(game.table.str());
+console.log('');
 console.log(game.players[0].str(0));
