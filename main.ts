@@ -173,10 +173,12 @@ class Player {
 		const lens = this.owned.map((ca: Card[]) => ca.length);
 		const maxLen = Math.max(...lens);
 
+		//	console.log('MAx len: ' + maxLen.toString());
+
 		for (let i = 0; i < maxLen; i++) {
 			for (let j = 0; j < 5; j++) {
-				if (this.owned[i].length > j)
-					res += ' [P  *]'.replace('P', this.owned[i][j].points.toString());
+				if (this.owned[j].length > i)
+					res += ' [P  *]'.replace('P', this.owned[j][i].points.toString());
 				else
 					res += '        ';
 			}
@@ -255,6 +257,12 @@ class Player {
 		return sum <= 10;
 	}
 	
+	canReserve(take: ValVector, give?: ValVector): boolean {
+		if (this.reserved.length >= 3) return false;
+		
+		return this.canGet(take, give);
+	}
+
 	getTokens(take: ValVector, give?: ValVector): void {
 		if (give == undefined) give = [0, 0, 0, 0, 0, 0];
 		
@@ -264,8 +272,19 @@ class Player {
 		}
 	}
 	
+	takeReserved(loc: number[]): Card {
+		const res = this.reserved[loc[1]-1]!;
+		this.reserved.splice(loc[1]-1, 1); // delete it
+		return res;
+	}
+	
 	addCard(c: Card): void {
+			console.log('added ' + c.color.toString());
 		this.owned[c.color].push(c);
+	}
+	
+	reserveCard(c: Card): void {
+		this.reserved.push(c);
 	}
 	
 }
@@ -490,7 +509,10 @@ class Game {
 	moveBuy(k: number, c: Command): void {
 		let player = this.players[k];
 	
-		const card = this.table.rows[c.loc![0]-1][c.loc![1]-1];
+		const fromReserve = (c.loc![0] == 0);
+	
+		const card = fromReserve ? 
+							player.reserved[c.loc![1]-1]	:	this.table.rows[c.loc![0]-1][c.loc![1]-1];
 		if (card == undefined) throw new Error('No card!');
 		
 		const realPrice = getRealPrice(card!.price, player.owned);
@@ -516,10 +538,35 @@ class Game {
 		player.getTokens([0, 0, 0, 0, 0, 0], pay);
 		this.table.putTokens(pay);
 		
-		const taken = this.table.takeCard(c.loc!)!;
+		const taken = fromReserve ? 
+							  player.takeReserved(c.loc!) : this.table.takeCard(c.loc!)!;
 		player.addCard(taken);
 	}
 
+	moveReserve(k: number, c: Command): void {
+		let player = this.players[k];
+
+		const card = (c.loc![1] == 0) ?
+					   this.table.stacks[c.loc![0]-1].at(-1)	: this.table.rows[c.loc![0]-1][c.loc![1]-1];
+
+		if (card == undefined) throw new Error('No card!');
+
+		const take: ValVector = (this.table.tokens[Color.YELLOW] > 0) ? [0, 0, 0, 0, 0, 1] : [0, 0, 0, 0, 0, 0];
+		
+		if (!player.canReserve(take, c.give)) {
+			console.log('Wrong number of tokens remaining on player or 3 reserved');
+			return;
+		}
+		
+		const taken = this.table.takeCard(c.loc!)!;
+		player.reserveCard(taken);
+
+		this.table.takeTokens(take);
+		if (c.give != undefined) this.table.putTokens(c.give!);
+	
+		player.getTokens(take, c.give);
+		
+	}
 
 	movePlayer(k: number, s: string): void {
 		let player = this.players[k];
@@ -536,7 +583,7 @@ class Game {
 			this.moveBuy(k, command);
 		break;
 		case 'reserve':
-		
+			this.moveReserve(k, command);
 		break;
 		}
 		
@@ -773,6 +820,10 @@ console.log(game.players[0].str(0));
 
 game.movePlayer(0, "b 11");
 
+game.movePlayer(0, "r 31");
+
 console.log(game.table.str());
 console.log('');
 console.log(game.players[0].str(0));
+
+game.movePlayer(0, "r 31");
