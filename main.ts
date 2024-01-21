@@ -162,10 +162,47 @@ class Player {
 	reserved: Card[] = [];
 	nobles: Noble[] = [];
 	
+	
+	points(): number {
+		let sum = 0;
+		for (const col of this.owned) {
+			for (const card of col)
+				sum += card.points;
+		}
+		return sum;
+	}
+
+	numCards(): number {
+		let sum = 0;
+		for (const col of this.owned) {
+			//for (const card of col)
+			sum += col.length;
+		}
+		return sum;
+	}
+	
+	bonuses(): ValVector {
+		let res: ValVector = [0, 0, 0, 0, 0, 0];
+		for (let i = 0; i < 5; i++) {
+			res[i] = this.owned[i].length;
+		}
+		return res;
+	}
+
+	
+	tcrStr(): string {
+		const tcS = this.tokenCardStr().split('\n');
+		const rS = this.reservedStr().split('\n');
+		
+		return  '                       ' + rS[0] + '\n' +
+				tcS[0] + rS[1] + '\n' + tcS[1] + rS[2] + '\n' + tcS[2] + rS[3] + '\n' +
+				'                       ' + rS[4] + '\n';
+	}
+	
 
 	tokenCardStr(): string {
 		const lens = this.owned.map((ca: Card[]) => ca.length);
-		return '    W  B  G  R  K  Y' + '\n' + 'T:  ' + this.tokens.join('  ') + '\n' + 'C:  ' + lens.join('  ');
+		return '    W  B  G  R  K  Y   ' + '\n' + 'T:  ' + this.tokens.join('  ') + '   ' + '\n' + 'C:  ' + lens.join('  ') + '   ' + '   ';
 	}
 	
 	ownedStr(): string {
@@ -238,7 +275,16 @@ class Player {
 				"------- ------ --" + " ------\n" +
 				"------- ------ --" + " ------\n";
 	}
-	
+
+	strSh(k: number): string {
+		return  "-----------------------------------------\n" +
+				"------- Player " + k.toString() + " ------\n" +
+				this.nobleStr() + '\n' +
+				this.tcrStr() + '\n' +
+				this.ownedStr() + '\n' +
+				"------- ------ --" + " ------\n";
+	}
+
 	// Checks whether limit of 10 won't be exceeded and the player won't overspend
 	canGet(take: ValVector, give?: ValVector): boolean {
 		let newVec: ValVector = [...this.tokens];
@@ -453,6 +499,27 @@ class Table {
 				this.tokenStr() + '\n' +
 				"--------------------------\n" +
 				"--------------------------\n";
+	}
+
+	strSh(): string {
+		return  "-----------------------------\n" +
+				"---------- Table ------------\n" +
+				this.rowStr(2) + '\n' +
+				this.rowStr(1) + '\n' +
+				this.rowStr(0) + '\n' +
+				"--------------------------\n" +
+				this.tnStr() + '\n' +
+				"--------------------------\n" +
+				"--------------------------\n";
+	}
+
+
+	tnStr(): string {
+		const tS = this.tokenStr().split('\n');
+		const nS = this.nobleStr().split('\n');
+		
+		return  '              ' + nS[0] + '\n' + tS[1] + nS[1] + '\n' + tS[2] + nS[2] + '\n' +
+				'              ' + nS[3];
 	}
 
 }
@@ -790,40 +857,25 @@ function validateTake(v: ValVector): boolean {
 
 let game = new Game(2);
 
+console.log(game.table.str());
 console.log(game.players[0]);
 
-parseMove("t 1w 2k r- wwk n2");
-parseMove("b 11 ");
-parseMove("r 1 2 -b n3");
 
+function handleInput(input: any): void {
+	if (input.toString()[0] == 'q') process.exit(0);
+	else {
+		//console.log(input.toString() + '{}');
+		game.movePlayer(0, input.toString());
+		
+		console.log(game.table.strSh());
+		//console.log(game.table.tnStr());
+		console.log('');
+		console.log(game.players[0].strSh(0));
+		
+		//console.log(game.players[0].tcrStr());
+			
+	}
+}
 
-
-console.log(game.table.str());
-console.log('');
-console.log('');
-
-console.log(game.players[0].str(0));
-
-game.movePlayer(0, "t wkr");
-game.movePlayer(0, "t bgr");
-game.movePlayer(0, "t wbg");
-
-console.log(game.table.str());
-console.log('');
-console.log(game.players[0].str(0));
-
-game.movePlayer(0, "t wwr");
-
-console.log(game.table.str());
-console.log('');
-console.log(game.players[0].str(0));
-
-game.movePlayer(0, "b 11");
-
-game.movePlayer(0, "r 31");
-
-console.log(game.table.str());
-console.log('');
-console.log(game.players[0].str(0));
-
-game.movePlayer(0, "r 31");
+process.stdin.on('data', handleInput
+);
