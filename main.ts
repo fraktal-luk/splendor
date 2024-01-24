@@ -139,10 +139,10 @@ class Noble {
 }
 
 const nobleStringList = [
-	//"00044", "00440", "04400", "44000", "40004",
-	//"00333", "03330", "33300", "33003", "30033"
-		"00022", "00220", "02200", "22000", "20002",
-		"00111", "01110", "11100", "11001", "10011"
+	"00044", "00440", "04400", "44000", "40004",
+	"00333", "03330", "33300", "33003", "30033"
+	//	"00022", "00220", "02200", "22000", "20002",
+	//	"00111", "01110", "11100", "11001", "10011"
 ];
 
 const NOBLES = Noble.getSet(nobleStringList);
@@ -176,7 +176,7 @@ class Player {
 			for (const card of col)
 				sum += card.points;
 		}
-		return sum;
+		return sum + 3*this.nobles.length;
 	}
 
 	numCards(): number {
@@ -324,7 +324,13 @@ class Player {
 			this.tokens[i] -= give[i];
 		}
 	}
-	
+
+	seeReserved(loc: number[]): Card {
+		const res = this.reserved[loc[1]-1]!;
+		//this.reserved.splice(loc[1]-1, 1); // delete it
+		return res;
+	}
+
 	takeReserved(loc: number[]): Card {
 		const res = this.reserved[loc[1]-1]!;
 		this.reserved.splice(loc[1]-1, 1); // delete it
@@ -338,6 +344,10 @@ class Player {
 	
 	reserveCard(c: Card): void {
 		this.reserved.push(c);
+	}
+	
+	addNoble(n: Noble): void {
+		this.nobles.push(n);
 	}
 	
 }
@@ -368,7 +378,22 @@ class Table {
 		this.tokens[Color.YELLOW] = 5;
 	}
 	
-	
+
+	seeCard(loc: number[]): Card | undefined {
+		if (loc[0] < 1 || loc[0] > 3) throw new Error('Invalid row number');
+		if (loc[1] < 0 || loc[1] > 4) throw new Error('Invalid col number');
+		
+		if (loc[1] == 0) return this.stacks[loc[0]-1].shift(); // Taking from stack
+		
+		const res = this.rows[loc[0]-1][loc[1]-1];
+		//this.rows[loc[0]-1][loc[1]-1] = undefined;
+		//this.rows[loc[0]-1][loc[1]-1] = this.stacks[loc[0]-1].shift();
+		
+		//	console.log('Taking card: ' + res);
+		
+		return res;
+	}
+
 	takeCard(loc: number[]): Card | undefined {
 		if (loc[0] < 1 || loc[0] > 3) throw new Error('Invalid row number');
 		if (loc[1] < 0 || loc[1] > 4) throw new Error('Invalid col number');
@@ -401,8 +426,11 @@ class Table {
 	}
 
 	takeNoble(k: number): Noble | undefined {
+		const res = this.nobles[k-1];
+		//return undefined;
+		this.nobles[k-1] = undefined;
 		
-		return undefined;
+		return res;
 	}	
 
 	tokenStr(): string {
@@ -578,11 +606,36 @@ class Game {
 	
 		// Check noble
 		//..
-	
+			let bonuses = player.bonuses();
+		
+			let availableNobs: number[] = []; 
+			for (let i = 0; i < this.table.nobles.length; i++) {
+				if (this.table.nobles[i] == undefined) continue;
+				if (satisfies(bonuses, this.table.nobles[i]!.price)) {
+					availableNobs.push(i+1);
+				}
+			}
+			
+			if (availableNobs.length > 0) console.log('Will afford nobles: ' + availableNobs);
+		
+			if (availableNobs.length != 0 && c.noble == undefined) {
+				console.log('Noble not specified!');
+				return false;
+			}
+			if (c.noble != undefined && !availableNobs.includes(c.noble!)) {
+				console.log('Incorrect noble specified!');
+				return false;
+			}
+
 		this.table.takeTokens(c.take!);
 		if (c.give != undefined) this.table.putTokens(c.give!);
 	
 		player.getTokens(c.take!, c.give);
+		
+			if (c.noble != undefined) {
+				const nob = this.table.takeNoble(c.noble!)!;
+				player.addNoble(nob);
+			}
 		
 		return true;
 	}
@@ -621,28 +674,45 @@ class Game {
 
 		// Check noble
 		//..
-		const taken = fromReserve ? 
-							  player.takeReserved(c.loc!) : this.table.takeCard(c.loc!)!;
+		const seen = fromReserve ? 
+							  player.seeReserved(c.loc!) : this.table.seeCard(c.loc!)!;
 							  
 			let bonuses = player.bonuses();
-			bonuses[taken.color]++;
+			bonuses[seen.color]++;
 		
 			let availableNobs: number[] = []; 
 			for (let i = 0; i < this.table.nobles.length; i++) {
 				if (this.table.nobles[i] == undefined) continue;
 				if (satisfies(bonuses, this.table.nobles[i]!.price)) {
-					availableNobs.push(i);
+					availableNobs.push(i+1);
 				}
 			}
 			
 			if (availableNobs.length > 0) console.log('Will afford nobles: ' + availableNobs);
 		
+			if (availableNobs.length != 0 && c.noble == undefined) {
+				console.log('Noble not specified!');
+				return false;
+			}
+			if (c.noble != undefined && !availableNobs.includes(c.noble!)) {
+				console.log('Incorrect noble specified!');
+				return false;
+			}
+
+		const taken = fromReserve ? 
+							  player.takeReserved(c.loc!) : this.table.takeCard(c.loc!)!;
+							  
 
 		player.getTokens([0, 0, 0, 0, 0, 0], pay);
 		this.table.putTokens(pay);
 		
 
 		player.addCard(taken);
+
+			if (c.noble != undefined) {
+				const nob = this.table.takeNoble(c.noble!)!;
+				player.addNoble(nob);
+			}
 		
 		return true;
 	}
@@ -667,6 +737,27 @@ class Game {
 
 		// Check noble
 		//..
+			let bonuses = player.bonuses();
+		
+			let availableNobs: number[] = []; 
+			for (let i = 0; i < this.table.nobles.length; i++) {
+				if (this.table.nobles[i] == undefined) continue;
+				if (satisfies(bonuses, this.table.nobles[i]!.price)) {
+					availableNobs.push(i+1);
+				}
+			}
+			
+			if (availableNobs.length > 0) console.log('Will afford nobles: ' + availableNobs);
+		
+			if (availableNobs.length != 0 && c.noble == undefined) {
+				console.log('Noble not specified!');
+				return false;
+			}
+			if (c.noble != undefined && !availableNobs.includes(c.noble!)) {
+				console.log('Incorrect noble specified!');
+				return false;
+			}
+
 
 		const taken = this.table.takeCard(c.loc!)!;
 		player.reserveCard(taken);
@@ -675,7 +766,12 @@ class Game {
 		if (c.give != undefined) this.table.putTokens(c.give!);
 	
 		player.getTokens(take, c.give);
-		
+
+			if (c.noble != undefined) {
+				const nob = this.table.takeNoble(c.noble!)!;
+				player.addNoble(nob);
+			}
+
 		return true;
 		
 	}
@@ -786,8 +882,10 @@ function parseTake(s: string[]): Command {
 	
 	res.noble = parseOptNoble(s);
 	
-	if (s[0] != '\n') throw new Error("Incorrect parse");
-	
+	if (s[0] != '\n') {//throw new Error("Incorrect parse");
+		console.log("Incorrect parse");
+		return new Command();
+	}
 	return res;
 }
 
@@ -806,8 +904,10 @@ function parseBuy(s: string[]): Command {
 
 	res.noble = parseOptNoble(s);
 	
-	if (s[0] != '\n') throw new Error("Incorrect parse");
-	
+	if (s[0] != '\n') {//throw new Error("Incorrect parse");
+		console.log("Incorrect parse");
+		return new Command();
+	}	
 	return res;
 }
 
@@ -827,8 +927,10 @@ function parseReserve(s: string[]): Command {
 
 	res.noble = parseOptNoble(s);
 	
-	if (s[0] != '\n') throw new Error("Incorrect parse");
-	
+	if (s[0] != '\n') {//throw new Error("Incorrect parse");
+		console.log("Incorrect parse");
+		return new Command();
+	}	
 	return res;
 }
 
