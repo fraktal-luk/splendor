@@ -1,6 +1,11 @@
 
 enum Color {WHITE, BLUE, GREEN, RED, BLACK, YELLOW};
 
+function color2char(c: Color): string {
+	return 'WBGRKY'[c];
+}
+
+
 type Row = number;
 
 type ValVector = [number, number, number, number, number, number];
@@ -134,8 +139,10 @@ class Noble {
 }
 
 const nobleStringList = [
-	"00044", "00440", "04400", "44000", "40004",
-	"00333", "03330", "33300", "33003", "30033"
+	//"00044", "00440", "04400", "44000", "40004",
+	//"00333", "03330", "33300", "33003", "30033"
+		"00022", "00220", "02200", "22000", "20002",
+		"00111", "01110", "11100", "11001", "10011"
 ];
 
 const NOBLES = Noble.getSet(nobleStringList);
@@ -217,7 +224,7 @@ class Player {
 				if (this.owned[j].length > i)
 					res += ' [P  *]'.replace('P', this.owned[j][i].points.toString());
 				else
-					res += '        ';
+					res += '       ';
 			}
 			res += '\n';
 		}
@@ -243,7 +250,7 @@ class Player {
 		for (let i = 0; i < this.reserved.length; i++) {
 			const card = this.reserved[i];
 			hCardBorders += "    ----- ";
-			valStrip += valStripCont.replace('P', pointStr(card.points)).replace('C', Color[card.color][0]);
+			valStrip += valStripCont.replace('P', pointStr(card.points)).replace('C', color2char(card.color));
 			priceStripN += priceStripCont.replace('vvvvv', priceStrN(card.price));
 			priceStripC += priceStripCont.replace('vvvvv', priceStrC(card.price));
 		}
@@ -371,6 +378,9 @@ class Table {
 		const res = this.rows[loc[0]-1][loc[1]-1];
 		this.rows[loc[0]-1][loc[1]-1] = undefined;
 		this.rows[loc[0]-1][loc[1]-1] = this.stacks[loc[0]-1].shift();
+		
+		//	console.log('Taking card: ' + res);
+		
 		return res;
 	}
 	
@@ -478,7 +488,7 @@ class Table {
 		const r = row;
 		for (let i = 0; i < 4; i++) {
 			const card = this.rows[r][i]!;
-			valStrip += valStripCont.replace('P', pointStr(card.points)).replace('C', Color[card.color][0]);
+			valStrip += valStripCont.replace('P', pointStr(card.points)).replace('C', color2char(card.color));
 			priceStripN += priceStripCont.replace('vvvvv', priceStrN(card.price));
 			priceStripC += priceStripCont.replace('vvvvv', priceStrC(card.price));
 		}
@@ -549,39 +559,46 @@ class Game {
 	}
 
 
-	moveTake(k: number, c: Command): void {
+	moveTake(k: number, c: Command): boolean {
 		let player = this.players[k];
 		if (!validateTake(c.take!)) {
 			console.log('Incorrect Take');
-			return;
+			return false;
 		}
 		
 		if (!this.table.canTake(c.take!)) {
 			console.log('Not enough on table');
-			return;
+			return false;
 		}
 		
 		if (!player.canGet(c.take!, c.give)) {
 			console.log('Wrong number of tokens remaining on player');
-			return;
+			return false;
 		}
+	
+		// Check noble
+		//..
 	
 		this.table.takeTokens(c.take!);
 		if (c.give != undefined) this.table.putTokens(c.give!);
 	
 		player.getTokens(c.take!, c.give);
+		
+		return true;
 	}
 
 
-	moveBuy(k: number, c: Command): void {
+	moveBuy(k: number, c: Command): boolean {
 		let player = this.players[k];
 	
 		const fromReserve = (c.loc![0] == 0);
 	
 		const card = fromReserve ? 
 							player.reserved[c.loc![1]-1]	:	this.table.rows[c.loc![0]-1][c.loc![1]-1];
-		if (card == undefined) throw new Error('No card!');
-		
+		if (card == undefined) {///throw new Error('No card!');
+			console.log("No card!");			
+			return false;
+		}
 		const realPrice = getRealPrice(card!.price, player.owned);
 		
 		const pay = (c.give == undefined) ? realPrice : c.give!;
@@ -593,38 +610,64 @@ class Game {
 		
 		if (!satisfies(pay, realPrice)) {
 			console.log('Not paying exact');
-			return;
+			return false;
 		}
 		
 		// pay must be affordable to the player
 		if (!player.canGet([0, 0, 0, 0, 0, 0], pay)) {
 			console.log('Wrong number of tokens remaining on player');
-			return;
+			return false;
 		}
-	
+
+		// Check noble
+		//..
+		const taken = fromReserve ? 
+							  player.takeReserved(c.loc!) : this.table.takeCard(c.loc!)!;
+							  
+			let bonuses = player.bonuses();
+			bonuses[taken.color]++;
+		
+			let availableNobs: number[] = []; 
+			for (let i = 0; i < this.table.nobles.length; i++) {
+				if (this.table.nobles[i] == undefined) continue;
+				if (satisfies(bonuses, this.table.nobles[i]!.price)) {
+					availableNobs.push(i);
+				}
+			}
+			
+			if (availableNobs.length > 0) console.log('Will afford nobles: ' + availableNobs);
+		
+
 		player.getTokens([0, 0, 0, 0, 0, 0], pay);
 		this.table.putTokens(pay);
 		
-		const taken = fromReserve ? 
-							  player.takeReserved(c.loc!) : this.table.takeCard(c.loc!)!;
+
 		player.addCard(taken);
+		
+		return true;
 	}
 
-	moveReserve(k: number, c: Command): void {
+	moveReserve(k: number, c: Command): boolean {
 		let player = this.players[k];
 
 		const card = (c.loc![1] == 0) ?
 					   this.table.stacks[c.loc![0]-1].at(-1)	: this.table.rows[c.loc![0]-1][c.loc![1]-1];
 
-		if (card == undefined) throw new Error('No card!');
+		if (card == undefined) {//throw new Error('No card!');
+			console.log("No card!");
+			return false;
+		}
 
 		const take: ValVector = (this.table.tokens[Color.YELLOW] > 0) ? [0, 0, 0, 0, 0, 1] : [0, 0, 0, 0, 0, 0];
 		
 		if (!player.canReserve(take, c.give)) {
 			console.log('Wrong number of tokens remaining on player or 3 reserved');
-			return;
+			return false;
 		}
-		
+
+		// Check noble
+		//..
+
 		const taken = this.table.takeCard(c.loc!)!;
 		player.reserveCard(taken);
 
@@ -633,25 +676,29 @@ class Game {
 	
 		player.getTokens(take, c.give);
 		
+		return true;
+		
 	}
 
-	movePlayer(k: number, s: string): void {
+	movePlayer(k: number, s: string): boolean {
 		let player = this.players[k];
 		const command = parseMove(s);
 		
 				console.log(command);
-
 		
 		switch (command.kind) {
 		case 'take':
-			this.moveTake(k, command);
+			return this.moveTake(k, command);
 		break;
 		case 'buy':
-			this.moveBuy(k, command);
+			return this.moveBuy(k, command);
 		break;
 		case 'reserve':
-			this.moveReserve(k, command);
+			return this.moveReserve(k, command);
 		break;
+		default:
+			console.log('Command not correct');
+			return false;
 		}
 		
 	}
@@ -690,8 +737,8 @@ function randSeq(n: number): number[] {
 type Kind = 'take' | 'buy' | 'reserve';
 
 class Command {
-	
-	kind: Kind = 'take';
+
+	kind?: Kind = undefined;
 	loc?: number[];
 	take?: ValVector;
 	give?: ValVector;
@@ -702,7 +749,10 @@ function parseMove(s: string): Command {
 	let sFilt = s.split('').filter((s) => s != ' ');
 	sFilt.push('\n');
 
-	if (sFilt.length == 0) throw new Error("empty command");
+	if (sFilt.length == 0) {//throw new Error("empty command");
+		console.log('Command empty');
+		return new Command();
+	}
 	
 	switch (sFilt[0]) {
 	case "t": 
@@ -714,7 +764,9 @@ function parseMove(s: string): Command {
 	case "r":
 		return parseReserve(sFilt);
 	break;
-	default: throw new Error("Command wrong beginning");
+	default: //throw new Error("Command wrong beginning");
+		console.log('Command wrong beginning');
+		return new Command();
 	}
 }
 
@@ -787,6 +839,7 @@ function letter2color(s: string): Color {
 function parseTokenList(s: string[]): ValVector {
 	let res: ValVector = [0, 0, 0, 0, 0, 0];
 	let numStr = '';
+	let anyColor = false;
 	while ('0123456789wbgrky'.includes(s[0])) {
 		if ('0123456789'.includes(s[0])) {
 			if (numStr.length > 0) throw new Error("number after number!");
@@ -797,12 +850,16 @@ function parseTokenList(s: string[]): ValVector {
 			const num = numStr.length > 0 ? parseInt(numStr) : 1;
 			res[color] += num;
 
+			anyColor = true;
+
 			numStr = '';
 		}
 		//else {
 		//	return res;
 		//}
 	}
+	
+	if (!anyColor) throw new Error('Empty color list');
 	
 	return res;
 }
@@ -865,15 +922,18 @@ function handleInput(input: any): void {
 	if (input.toString()[0] == 'q') process.exit(0);
 	else {
 		//console.log(input.toString() + '{}');
-		game.movePlayer(0, input.toString());
+		if (game.movePlayer(0, input.toString())) {
 		
-		console.log(game.table.strSh());
-		//console.log(game.table.tnStr());
-		console.log('');
-		console.log(game.players[0].strSh(0));
+			console.log(game.table.strSh());
+			//console.log(game.table.tnStr());
+			console.log('');
+			console.log(game.players[0].strSh(0));
 		
-		//console.log(game.players[0].tcrStr());
-			
+		}
+		else {
+			console.log('Move not valid');
+		}
+		
 	}
 }
 
