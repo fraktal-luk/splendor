@@ -222,7 +222,7 @@ class Player {
 		for (let i = 0; i < maxLen; i++) {
 			for (let j = 0; j < 5; j++) {
 				if (this.owned[j].length > i)
-					res += ' [P  *]'.replace('P', this.owned[j][i].points.toString());
+					res += ' [P  *]'.replace('P', pointStr(this.owned[j][i].points));
 				else
 					res += '       ';
 			}
@@ -231,7 +231,7 @@ class Player {
 		
 		return res;
 	}
-	
+
 	reservedStr(): string {
 		let hCardBorders = "|";
 		const valStripStart = "|";
@@ -799,6 +799,54 @@ class Game {
 		
 	}
 
+
+	sumUp(): void {
+		let pointVec: number[] = [];
+		let cardVec: number[] = [];
+		let maxPointVec: boolean[] = [];
+
+		for (let i = 0; i < this.players.length; i++) {
+			pointVec.push(this.players[i].points());
+			cardVec.push(this.players[i].numCards());
+		}
+		
+		let minCards = Math.max(...cardVec);
+		
+		console.log('Points per player: ' + pointVec);
+		const maxPoints = Math.max(...pointVec);
+		//const haveMax = this.players.filter((p: Player) => p.points() == maxPoints);
+		//haveMax.map((p: Player) => p.numCards())
+		for (let i = 0; i < this.players.length; i++) {
+			if (pointVec[i] == maxPoints) {
+				maxPointVec.push(true);
+				minCards = Math.min(minCards, this.players[i].numCards());
+			}
+			else {
+				maxPointVec.push(false);
+			}
+		}
+		
+		let winners: number[] = [];
+		for (let i = 0; i < this.players.length; i++) {
+			if (this.players[i].points() == maxPoints && this.players[i].numCards() == minCards) {
+				winners.push(i);
+			}
+		}
+		
+		if (maxPoints >= 15) console.log('15 reached!');
+		console.log('Leading players: ' + winners);
+	}
+
+
+	// Check if game state is correct
+	validate(): boolean {
+		// TODO
+		// Check: every player <= 10 tokens, all cards are somewhere and dont repeat, total nums of token colors, etc.
+		
+		
+		return false;
+	}
+
 }
 
 function permutation(n: number, seq: number[]): number[] {
@@ -1030,7 +1078,9 @@ function handleInput(input: any): void {
 			//console.log(game.table.tnStr());
 			console.log('');
 			console.log(game.players[0].strSh(0));
-		
+			
+			
+			game.sumUp();
 		}
 		else {
 			console.log('Move not valid');
