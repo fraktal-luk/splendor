@@ -3,6 +3,7 @@ import {Game} from './rules.ts';
 
 
 let game = new Game(2);
+//game.dontFill = true;
 
 console.log(game.table.str());
 console.log(game.players[0]);
