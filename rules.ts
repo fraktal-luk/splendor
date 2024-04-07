@@ -496,24 +496,25 @@ class Table {
 		].join('\n');
 
 		const hCardBorders =
-		"|     -----     -----     -----     -----     -----  ";
+		"|-----   -----   -----   -----   -----  ";
 		const valStripStart =
-		"|    |XXXXX|";
+		"|  NN |";
 		const valStripCont = 
-					"   |P (C)|";
-		let midStrip = 
-		"| NN |XXXXX|   |     |   |     |   |     |   |     | ";
+					" |P (C)|";
+		//let midStrip = 
+		//"| NN |XXXXX| |     | |     | |     | |     | ";
 		
 		const priceStripStart =
-		"|    |XXXXX|";
+		"|.....|";
 		const priceStripCont =
-					 "   |vvvvv|";
+					 " |vvvvv|";
 
-		let valStrip = valStripStart;
+		const r = row;
+
+		let valStrip = valStripStart.replace('NN', (this.stacks[r].length + 100).toString().substr(1));
 		let priceStripN = priceStripStart;
 		let priceStripC = priceStripStart;
 		
-		const r = row;
 		for (let i = 0; i < 4; i++) {
 			const card = this.rows[r][i]!;
 			valStrip += valStripCont.replace('P', pointStr(card.points)).replace('C', color2char(card.color));
@@ -521,9 +522,10 @@ class Table {
 			priceStripC += priceStripCont.replace('vvvvv', priceStrC(card.price));
 		}
 		
-		midStrip = midStrip.replace('NN', (this.stacks[r].length + 100).toString().substr(1));
+		//midStrip = midStrip.replace('NN', (this.stacks[r].length + 100).toString().substr(1));
 		
-		return [hCardBorders, valStrip, midStrip, priceStripN, priceStripC, hCardBorders].join('\n');
+		return [hCardBorders, valStrip, //midStrip, 
+										priceStripN, priceStripC, hCardBorders].join('\n');
 	}
 	
 	str(): string {
@@ -540,14 +542,12 @@ class Table {
 	}
 
 	strSh(): string {
-		return  "-----------------------------\n" +
-				"---------- Table ------------\n" +
+		return  "---------- Table ------------\n" +
 				this.rowStr(2) + '\n' +
 				this.rowStr(1) + '\n' +
 				this.rowStr(0) + '\n' +
 				"--------------------------\n" +
 				this.tnStr() + '\n' +
-				"--------------------------\n" +
 				"--------------------------\n";
 	}
 
