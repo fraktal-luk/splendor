@@ -528,12 +528,20 @@ class Game {
 		this.turn = (this.turn+1) % this.nPlayers;
 	}
 
-
-	moveTake(k: number, c: Command): boolean {
+	handleNoble(p: Player, c: Command): void {
+		if (c.noble != undefined) {
+			const nob = this.table.takeNoble(c.noble!)!;
+			p.addNoble(nob);
+		}
+	}
+	
+	
+	
+	validateTake(k: number, c: Command): boolean {
 		let player = this.players[k];
 
 		// Validation part
-		if (!validateTake(c.take!)) {
+		if (!verifyTake(c.take!)) {
 			console.log('Incorrect Take');
 			return false;
 		}
@@ -571,6 +579,16 @@ class Game {
 				return false;
 			}
 
+		
+		return true;
+	}
+
+
+	moveTake(k: number, c: Command): boolean {
+		let player = this.players[k];
+
+		if (!this.validateTake(k, c)) return false;
+
 		// Execution part
 
 		this.table.takeTokens(c.take!);
@@ -578,16 +596,18 @@ class Game {
 	
 		player.addTokens(c.take!, c.give);
 		
-		if (c.noble != undefined) {
-			const nob = this.table.takeNoble(c.noble!)!;
-			player.addNoble(nob);
-		}
+		// if (c.noble != undefined) {
+			// const nob = this.table.takeNoble(c.noble!)!;
+			// player.addNoble(nob);
+		// }
+		
+		this.handleNoble(player, c);
 		
 		return true;
 	}
 
 
-	moveBuy(k: number, c: Command): boolean {
+	validateBuy(k: number, c: Command): boolean {
 		let player = this.players[k];
 		
 		const fromReserve = (c.loc![0] == 0);
@@ -602,7 +622,6 @@ class Game {
 		const realPrice = getRealPrice(card!.price, player.owned);
 		
 		const pay = (c.give == undefined) ? realPrice : c.give!;
-		//const payEffective = 
 		
 		// pay must satisfy card price
 			console.log(pay);
@@ -618,6 +637,9 @@ class Game {
 			console.log('Wrong number of tokens remaining on player');
 			return false;
 		}
+		
+		
+		
 
 		// Check noble
 		//..
@@ -646,35 +668,52 @@ class Game {
 				return false;
 			}
 
-		
+		return true;
+	}
+
+
+	moveBuy(k: number, c: Command): boolean {
+		let player = this.players[k];
+
+		if (!this.validateBuy(k, c)) return false;
+
+	
+		const fromReserve = (c.loc![0] == 0);
+	
+		const card = fromReserve ? 
+							player.reserved[c.loc![1]-1]	:	this.table.rows[c.loc![0]-1][c.loc![1]-1];
+		const realPrice = getRealPrice(card!.price, player.owned);
+		const pay = (c.give == undefined) ? realPrice : c.give!;
+
 		// Execution part
 		const taken = fromReserve ? 
-							  player.takeReserved(c.loc!) : this.table.takeCard(c.loc!, this.dontFill)!;
-							  
+							  player.takeReserved(c.loc!) : this.table.takeCard(c.loc!, this.dontFill)!;				  
 
 		player.addTokens([0, 0, 0, 0, 0, 0], pay);
 		this.table.putTokens(pay);
 		
-
 		player.addCard(taken);
 
-			if (c.noble != undefined) {
-				const nob = this.table.takeNoble(c.noble!)!;
-				player.addNoble(nob);
-			}
-		
+		// if (c.noble != undefined) {
+			// const nob = this.table.takeNoble(c.noble!)!;
+			// player.addNoble(nob);
+		// }
+
+		this.handleNoble(player, c);
+	
 		return true;
 	}
 
-	moveReserve(k: number, c: Command): boolean {
+	
+
+	validateReserve(k: number, c: Command): boolean {
 		let player = this.players[k];
 
 		const card = (c.loc![1] == 0) ?
 					   this.table.stacks[c.loc![0]-1].at(-1)	: this.table.rows[c.loc![0]-1][c.loc![1]-1];
 		const take: ValVector = (this.table.tokens[Color.YELLOW] > 0) ? [0, 0, 0, 0, 0, 1] : [0, 0, 0, 0, 0, 0];
 		
-		// Validation part
-		if (card == undefined) {//throw new Error('No card!');
+		if (card == undefined) {
 			console.log("No card!");
 			return false;
 		}
@@ -707,6 +746,21 @@ class Game {
 				return false;
 			}
 
+		
+		return true;
+	}
+
+
+	moveReserve(k: number, c: Command): boolean {
+		let player = this.players[k];
+
+		const card = (c.loc![1] == 0) ?
+					   this.table.stacks[c.loc![0]-1].at(-1)	: this.table.rows[c.loc![0]-1][c.loc![1]-1];
+		const take: ValVector = (this.table.tokens[Color.YELLOW] > 0) ? [0, 0, 0, 0, 0, 1] : [0, 0, 0, 0, 0, 0];
+
+
+		if (!this.validateReserve(k, c)) return false;
+
 		// Execution part
 		const taken = this.table.takeCard(c.loc!, this.dontFill)!;
 		player.reserveCard(taken);
@@ -716,14 +770,17 @@ class Game {
 	
 		player.addTokens(take, c.give);
 
-		if (c.noble != undefined) {
-			const nob = this.table.takeNoble(c.noble!)!;
-			player.addNoble(nob);
-		}
+		// if (c.noble != undefined) {
+			// const nob = this.table.takeNoble(c.noble!)!;
+			// player.addNoble(nob);
+		// }
+
+		this.handleNoble(player, c);
 
 		return true;
 		
 	}
+
 
 	movePlayer(k: number, s: string): boolean {
 		let player = this.players[k];
@@ -1010,7 +1067,7 @@ function parseOptNoble(s: string[]): number | undefined {
 }
 
 
-function validateTake(v: ValVector): boolean {
+function verifyTake(v: ValVector): boolean {
 	let sum = 0;
 	for (let i = 0; i < v.length; i++) {
 		sum += v[i];
