@@ -343,20 +343,23 @@ class Table {
 	rows: (Card|undefined)[][] = [[], [], []];	
 	tokens: ValVector = [0, 0, 0, 0, 0, 0];
 	
-	constructor(n: number) {
+	constructor(n: number, noNobles: boolean = false, presetOrder?: number[]) {
 		if (n < 2 || n > 4) throw new Error("Wrong num of players");
-		
-		const CARDS_PERM = permute(CARD_SET, permutation(90, randSeq(90)));
+				
+		const  cardOrder = presetOrder ?? randSeq(90);
+				console.log(cardOrder);
+				
+		const CARD_SEQ = permute(CARD_SET, permutation(90, cardOrder));
 		const NOBLES_PERM = permute(NOBLES, permutation(10, randSeq(10)));
 		
 		for (let r = 0; r < 3; r++)
-			this.stacks[r] = CARDS_PERM.filter((c: Card) => c.row == r+1);
+			this.stacks[r] = CARD_SEQ.filter((c: Card) => c.row == r+1);
 		
 		for (let i: number = 0; i < 3; i++)
 			for (let j: number = 0; j < 4; j++)
 				this.rows[i][j] = this.stacks[i].shift()!;
 		
-		for (let i = 0; i <= n; i++) this.nobles[i] = NOBLES_PERM.shift()!;
+		if (!noNobles) for (let i = 0; i <= n; i++) this.nobles[i] = NOBLES_PERM.shift()!;
 
 		const nToks = [0, 0, 4, 5, 7][n];
 		for (let i: Color = Color.WHITE; i < Color.YELLOW; i++) this.tokens[i] = nToks;
@@ -514,12 +517,12 @@ class Game {
 
 	dontFill: boolean = false;
 
-	constructor(n: number) {
+	constructor(n: number, noNobs: boolean = false, presetOrder?: number[]) {
 		this.nPlayers = n;
 		this.players = [];
 		for (let i: number = 0; i < n; i++)
 			this.players.push(new Player());
-		this.table = new Table(n);
+		this.table = new Table(n, noNobs, presetOrder);
 		
 		this.turn = 0;
 	}
