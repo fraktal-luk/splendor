@@ -1,12 +1,12 @@
 
-enum Color {WHITE, BLUE, GREEN, RED, BLACK, YELLOW};
+export enum Color {WHITE, BLUE, GREEN, RED, BLACK, YELLOW};
 
-function color2char(c: Color): string {
+export function color2char(c: Color): string {
 	return 'WBGRKY'[c];
 }
 
 type Row = number;
-type ValVector = [number, number, number, number, number, number];
+export type ValVector = [number, number, number, number, number, number];
 
 // Checks if price is exact 
 function satisfies(paid: ValVector, price: ValVector): boolean {
@@ -24,7 +24,7 @@ function getRealPrice(price: ValVector, cards: Card[][]): ValVector {
 	return res;
 }
 
-type CardId = number;
+export type CardId = number;
 
 class Card {
 	id: CardId = 0;
@@ -213,7 +213,9 @@ class Player {
 		for (let i = 0; i < maxLen; i++) {
 			for (let j = 0; j < 5; j++) {
 				if (this.owned[j].length > i)
-					res += ' [P  *]'.replace('P', pointStr(this.owned[j][i].points));
+					res += (
+							' [P  *]'.replace('P', pointStr(this.owned[j][i].points)).replace('*', color2char(this.owned[j][i].color))
+							);
 				else
 					res += '       ';
 			}
@@ -337,6 +339,22 @@ class Player {
 	
 }
 
+
+function drawCards(cardOrder: number[]): Card[] {
+	return permute(CARD_SET, permutation(90, cardOrder));
+}
+
+export function setupStacks(cardOrder: number[]): CardId[][] {
+	let res: CardId[][] = [[], [], []];
+	
+	const cardSeq = drawCards(cardOrder);
+	for (let r = 0; r < 3; r++)
+		res[r] = cardSeq.filter((c: Card) => c.row == r+1).map((c: Card) => c.id);
+	
+	return res;	
+}
+
+
 class Table {
 	nobles: (Noble|undefined)[] = [];
 	stacks: Card[][] = [[], [], []];
@@ -350,7 +368,6 @@ class Table {
 				console.log(cardOrder);
 				
 		const CARD_SEQ = permute(CARD_SET, permutation(90, cardOrder));
-		const NOBLES_PERM = permute(NOBLES, permutation(10, randSeq(10)));
 		
 		for (let r = 0; r < 3; r++)
 			this.stacks[r] = CARD_SEQ.filter((c: Card) => c.row == r+1);
@@ -358,7 +375,9 @@ class Table {
 		for (let i: number = 0; i < 3; i++)
 			for (let j: number = 0; j < 4; j++)
 				this.rows[i][j] = this.stacks[i].shift()!;
-		
+
+		const NOBLES_PERM = permute(NOBLES, permutation(10, randSeq(10)));		
+
 		if (!noNobles) for (let i = 0; i <= n; i++) this.nobles[i] = NOBLES_PERM.shift()!;
 
 		const nToks = [0, 0, 4, 5, 7][n];

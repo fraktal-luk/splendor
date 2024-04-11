@@ -1,5 +1,5 @@
 
-import {Game} from './rules.ts';
+import {Color, ValVector, CardId, Game, setupStacks} from './rules.ts';
 
 const presetOrder: number[] = [
    7, 23, 52, 12, 66, 52, 74, 79, 79, 43,  7, 74,
@@ -13,8 +13,8 @@ const presetOrder: number[] = [
 ];
 
 
-let game = new Game(2, true, presetOrder);
-//game.dontFill = true;
+let game = new Game(3, true, presetOrder);
+game.dontFill = true;
 
 console.log(game.table.str());
 console.log(game.players[0]);
@@ -44,7 +44,82 @@ const moves = [
     "t grw",
     "t brk",
 	"b 12",
-	"b 13"
+	"b 13",
+	
+	"t wbg",
+	"t brk",
+	"b 23",
+	
+	"twbk",
+	"twbk",
+	
+	"b 22",
+	
+	"t 2g",
+	"t wbg",
+	"t bgr",
+	"b 34",
+	
+	"t 2r",
+	"t r",
+	"t r",
+	"b 21",
+	
+	"t 2r",
+	"b 24"
 ];
 
-playMovesSinglePlayer(moves);
+////////////////////////////////////////
+
+// 1 player tree analysis
+// no nobles, no reservations or gold
+
+class TableState1 {
+	tokens: ValVector = [0, 0, 0, 0, 0, 0];
+	rows: CardId[][] = [];
+	stacks: CardId[][] = [];
+
+}
+
+class PlayerState1 {
+	tokens: ValVector = [0, 0, 0, 0, 0, 0];
+	bonuses: ValVector = [0, 0, 0, 0, 0, 0];
+	points: number = 0;
+}
+
+class GameState1 {
+	table: TableState1 = new TableState1();
+	player: PlayerState1 = new PlayerState1();
+}
+
+
+class Move1 {
+	tmp: number = -1;
+}
+
+class GameNode1 {
+	// game state
+	state: GameState1 = new GameState1();
+	
+	// possible next nodes
+	followers: Map<Move1, GameNode1> = new Map<Move1, GameNode1>();
+}
+
+class MoveTree1 {
+	root: GameNode1 = new GameNode1;
+}
+
+let tree = new MoveTree1();
+//const initialState = 
+
+tree.root.state.table.stacks = setupStacks(presetOrder);
+
+console.log(tree.root.state);
+
+
+
+
+
+
+
+//playMovesSinglePlayer(moves);
