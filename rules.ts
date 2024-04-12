@@ -26,6 +26,19 @@ function getRealPrice(price: ValVector, cards: Card[][]): ValVector {
 
 export type CardId = number;
 
+export function getCardPrice(id: CardId): ValVector {
+	return CARD_SET[id-1]!.price;
+}
+
+export function getCardPoints(id: CardId): number {
+	return CARD_SET[id-1]!.points;
+}
+
+export function getCardColor(id: CardId): Color {
+	return CARD_SET[id-1]!.color;
+}
+
+
 class Card {
 	id: CardId = 0;
 	points: number = 0;
