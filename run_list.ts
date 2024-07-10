@@ -1,5 +1,6 @@
 
-import {Color, ValVector, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardColor} from './rules.ts';
+import {Color, ValVector, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardColor,
+		vecAdd, vecSub, vecEnough, vecSum} from './rules.ts';
 
 const presetOrder: number[] = [
    7, 23, 52, 12, 66, 52, 74, 79, 79, 43,  7, 74,
@@ -194,7 +195,109 @@ class GameNode1 {
 	
 	// possible next nodes
 	followers: Map<Move1, GameNode1> = new Map<Move1, GameNode1>();
+	
+	fillFollowers(): void {
+		const player = this.state.player;
+		const table = this.state.table;
+		
+		// all Buy moves possible
+		//	 no reserved, so only from Table
+		for (let r = 0; r < 3; r++) {
+			for (let c = 0; c < 4; c++) {
+				// get price
+				const id = this.state.table.rows[r][c];
+				const price = getCardPrice(id);
+				
+				const budget = vecAdd(this.state.player.tokens, this.state.player.bonuses);
+				if (vecEnough(budget, price)) {
+					console.log( r + c + "  Enough: " + budget + " for " + price);
+				}
+			}
+		}
+		
+		// all Take moves possible
+		const nPlayerToks = vecSum(this.state.player.tokens);
+		
+		  // all threes
+		  const strs3 = [
+			  "00111",
+			  "01110",
+			  "11100",
+			  "11001",
+			  "10011",
+			  
+			  "01011",
+			  "10110",
+			  "01101",
+			  "11010",
+			  "10101",
+		  ];
+		  
+		  const surplus3 = Math.max(0, nPlayerToks + 3 - 10);
+		  // In this case surplus will be divided into 2 remaining colors (yellow not used)
+		  
+		  for (const s of strs3) {
+			  console.log(">>>>>> " + str2vv(s));
+			  
+			  //const zeros = 
+			  
+			  // check if toks available on table
+			  const vec = str2vv(s);
+			  if (!vecEnough(this.state.table.tokens, vec)) {
+				 console.log("Table cnt provide " + s); 
+			  }
+			  else {
+				 //	console.log("If take " + s);
+				  // check all possibilities of returning the surplus
+				  const returns = generateReturns3(vec, 3 + surplus3);
+				  console.log(returns);
+			  }
+			  
+			  // if 
+			  
+		  }
+		  
+		  // all twos
+		    // each color)
+		  //for (const c of ) {
+			  
+		  //}
+	}
 }
+
+
+function str2vv(s: string): ValVector {
+	let res: ValVector = [0, 0, 0, 0, 0, 0];
+	const n = Math.min(s.length, 6);
+	for (let i = 0; i < n; i++) {
+		res[i] = parseInt(s[i]);
+	}
+	return res;
+}
+
+// Deal 3 in all ways among 2 slots with '0' in the input
+function generateReturns3(ones: ValVector, surplus: number): ValVector[] {
+	let res: ValVector[] = [];
+
+	// Leave out the last element cause yellow not used
+	const firstInd = ones.slice(0,5).indexOf(0);
+	const secondInd = ones.slice(0,5).lastIndexOf(0);
+
+	for (let firstReturn = 0; firstReturn <= surplus; firstReturn++) {
+	  const secondReturn = surplus - firstReturn;
+	  
+	  let current: ValVector = [0, 0, 0, 0, 0, 0];
+	  current[firstInd] = firstReturn;
+	  current[secondInd] = secondReturn;
+	  res.push(current);
+	}
+
+	return res;
+}
+
+
+
+
 
 class MoveTree1 {
 	root: GameNode1 = new GameNode1;
@@ -235,3 +338,4 @@ console.log(table.rows);
 console.log(table.stacks);
 
 //playMovesSinglePlayer(moves);
+	tree.root.fillFollowers();

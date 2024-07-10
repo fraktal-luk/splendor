@@ -17,6 +17,34 @@ function satisfies(paid: ValVector, price: ValVector): boolean {
 	return paid[5] == missing;
 }
 
+export function vecAdd(a: ValVector, b: ValVector): ValVector {
+	let res: ValVector = [0, 0, 0, 0, 0, 0];
+	for (let i = 0; i < a.length; i++)
+		res[i] = a[i] + b[i];
+	return res;
+}	
+
+export function vecSub(a: ValVector, b: ValVector): ValVector {
+	let res: ValVector = [0, 0, 0, 0, 0, 0];
+	for (let i = 0; i < a.length; i++)
+		res[i] = a[i] - b[i];
+	return res;
+}	
+
+export function vecEnough(a: ValVector, b: ValVector): boolean {
+	for (let i = 0; i < a.length; i++)
+		if (!(a[i] >= b[i])) return false;
+	return true;
+}	
+
+export function vecSum(a: ValVector): number {
+	let res = 0;
+	for (let i = 0; i < a.length; i++)
+		res += a[i];
+	return res;
+}	
+
+
 function getRealPrice(price: ValVector, cards: Card[][]): ValVector {
 	let res: ValVector = [...price];
 	for (let i = 0; i < 5; i++)
