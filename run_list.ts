@@ -217,7 +217,11 @@ class GameNode1 {
 		
 		// all Take moves possible
 		const nPlayerToks = vecSum(this.state.player.tokens);
-		
+
+		  const surplus1 = Math.max(0, nPlayerToks + 1 - 10);		  
+		  const surplus2 = Math.max(0, nPlayerToks + 2 - 10);		  
+		  const surplus3 = Math.max(0, nPlayerToks + 3 - 10);
+		  
 		  // all threes
 		  const strs3 = [
 			  "00111",
@@ -232,36 +236,45 @@ class GameNode1 {
 			  "11010",
 			  "10101",
 		  ];
-		  
-		  const surplus3 = Math.max(0, nPlayerToks + 3 - 10);
-		  // In this case surplus will be divided into 2 remaining colors (yellow not used)
-		  
-		  for (const s of strs3) {
-			  console.log(">>>>>> " + str2vv(s));
-			  
-			  //const zeros = 
-			  
-			  // check if toks available on table
-			  const vec = str2vv(s);
-			  if (!vecEnough(this.state.table.tokens, vec)) {
-				 console.log("Table cnt provide " + s); 
-			  }
-			  else {
-				 //	console.log("If take " + s);
-				  // check all possibilities of returning the surplus
-				  const returns = generateReturns3(vec, 3 + surplus3);
-				  console.log(returns);
-			  }
-			  
-			  // if 
-			  
-		  }
-		  
+
+		  TMP_showMoves(strs3, table.tokens, surplus3 + 3);
+
 		  // all twos
-		    // each color)
-		  //for (const c of ) {
+		  // all threes
+		  const strs2 = [
+			  "00011",
+			  "00110",
+			  "01100",
+			  "11000",
+			  "10001",
 			  
-		  //}
+			  "00101",
+			  "01010",
+			  "10100",
+			  "01001",
+			  "10010",
+		  ];
+
+		  TMP_showMoves(strs2, table.tokens, surplus2 + 2);
+
+		  const strs1 = [
+			  "00001",
+			  "00010",
+			  "00100",
+			  "01000",
+			  "10000",
+		  ];
+
+		  TMP_showMoves(strs1, table.tokens, surplus1 + 1);
+
+		  const strs2same = [
+			  "00002",
+			  "00020",
+			  "00200",
+			  "02000",
+			  "20000",
+		  ];
+		  
 	}
 }
 
@@ -275,7 +288,7 @@ function str2vv(s: string): ValVector {
 	return res;
 }
 
-// Deal 3 in all ways among 2 slots with '0' in the input
+// Deal up to 3 in all ways among 2 slots with '0' in the input
 function generateReturns3(ones: ValVector, surplus: number): ValVector[] {
 	let res: ValVector[] = [];
 
@@ -295,7 +308,81 @@ function generateReturns3(ones: ValVector, surplus: number): ValVector[] {
 	return res;
 }
 
+// Deal up to 2 among 3 slots ith '0' in the input
+function generateReturns2(ones: ValVector, surplus: number): ValVector[] {
+	let res: ValVector[] = [];
 
+	const firstInd = ones.slice(0,5).indexOf(1);
+	const secondInd = ones.slice(0,5).lastIndexOf(1);
+
+	const templates = [ "011", "101", "110"];
+	
+	// for each of templates insert its number represenation into ValVector skipping firstInd and secondInd 
+	for (const t of templates) {
+		let ind = 0;
+		let v: ValVector = [0, 0, 0, 0, 0, 0];
+		for (const d of t) {
+			if (ind == firstInd) ind++;
+			if (ind == secondInd) ind++;
+			v[ind] = parseInt(d);
+			ind++;
+		}
+		res.push(v);
+	}
+
+	return res;
+}
+
+function generateReturns1(ones: ValVector, surplus: number): ValVector[] {
+	let res: ValVector[] = [];
+
+	const firstInd = ones.slice(0,5).indexOf(1);
+	
+	// for each of templates insert its number represenation into ValVector skipping firstInd and secondInd 
+	for (let i = 1; i <= 4; i++) {
+		let ind = (firstInd + i) % 5;
+		let v: ValVector = [0, 0, 0, 0, 0, 0];
+		v[ind] = 1;
+		res.push(v);
+	}
+
+	return res;
+}
+
+function generateReturns0(): ValVector[] {
+	let res: ValVector[] = [];
+	const v: ValVector = [0, 0, 0, 0, 0, 0]; 
+	
+	res.push(v);
+
+	return res;
+}
+
+
+function TMP_showMoves(strs: string[], tableToks: ValVector, surplus: number): void {
+  console.log("!!!!");
+  for (const s of strs) {
+	  console.log(">>>>>> " + str2vv(s));
+
+	  // check if toks available on table
+	  const vec = str2vv(s);
+	  if (!vecEnough(tableToks, vec)) {
+		 console.log("Table cant provide " + s); 
+	  }
+	  else {
+		  // check all possibilities of returning the surplus
+		  const returns = 
+				(surplus == 3) ? generateReturns3(vec, 3):
+				(surplus == 2) ? generateReturns2(vec, 2):
+				(surplus == 1) ? generateReturns1(vec, 1):
+								 generateReturns0();
+		  console.log(returns);
+		  
+		  // TODO: for each of returns make a move {+vec, -returns[i]} and insert to map
+	  }
+	  
+  }
+}
 
 
 
