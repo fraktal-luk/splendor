@@ -2,6 +2,8 @@
 import {Color, ValVector, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardColor,
 		vecAdd, vecSub, vecEnough, vecSum} from './rules.ts';
 
+import {generateReturns } from './comb.ts';
+
 const presetOrder: number[] = [
    7, 23, 52, 12, 66, 52, 74, 79, 79, 43,  7, 74,
   38,  1, 30, 51, 60, 19, 47, 59, 29, 12, 22, 27,
@@ -288,75 +290,75 @@ function str2vv(s: string): ValVector {
 	return res;
 }
 
-// Deal up to 3 in all ways among 2 slots with '0' in the input
-function generateReturns3(ones: ValVector, surplus: number): ValVector[] {
-	let res: ValVector[] = [];
+// // Deal up to 3 in all ways among 2 slots with '0' in the input
+// function generateReturns3(ones: ValVector, surplus: number): ValVector[] {
+	// let res: ValVector[] = [];
 
-	// Leave out the last element cause yellow not used
-	const firstInd = ones.slice(0,5).indexOf(0);
-	const secondInd = ones.slice(0,5).lastIndexOf(0);
+	// // Leave out the last element cause yellow not used
+	// const firstInd = ones.slice(0,5).indexOf(0);
+	// const secondInd = ones.slice(0,5).lastIndexOf(0);
 
-	for (let firstReturn = 0; firstReturn <= surplus; firstReturn++) {
-	  const secondReturn = surplus - firstReturn;
+	// for (let firstReturn = 0; firstReturn <= surplus; firstReturn++) {
+	  // const secondReturn = surplus - firstReturn;
 	  
-	  let current: ValVector = [0, 0, 0, 0, 0, 0];
-	  current[firstInd] = firstReturn;
-	  current[secondInd] = secondReturn;
-	  res.push(current);
-	}
+	  // let current: ValVector = [0, 0, 0, 0, 0, 0];
+	  // current[firstInd] = firstReturn;
+	  // current[secondInd] = secondReturn;
+	  // res.push(current);
+	// }
 
-	return res;
-}
+	// return res;
+// }
 
-// Deal up to 2 among 3 slots ith '0' in the input
-function generateReturns2(ones: ValVector, surplus: number): ValVector[] {
-	let res: ValVector[] = [];
+// // Deal up to 2 among 3 slots ith '0' in the input
+// function generateReturns2(ones: ValVector, surplus: number): ValVector[] {
+	// let res: ValVector[] = [];
 
-	if (surplus == 0) {
-		return generateReturns0();
-	}
+	// if (surplus == 0) {
+		// return generateReturns0();
+	// }
 
-	const firstInd = ones.slice(0,5).indexOf(1);
-	const secondInd = ones.slice(0,5).lastIndexOf(1);
+	// const firstInd = ones.slice(0,5).indexOf(1);
+	// const secondInd = ones.slice(0,5).lastIndexOf(1);
 
-	// If surplus is 2
-	const templates = [ "011", "101", "110"];
-	// TODO: if surplus is 1, swap 1<->0 in templates
+	// // If surplus is 2
+	// const templates = [ "011", "101", "110"];
+	// // TODO: if surplus is 1, swap 1<->0 in templates
 	
-	// for each of templates insert its number represenation into ValVector skipping firstInd and secondInd 
-	for (const t of templates) {
-		let ind = 0;
-		let v: ValVector = [0, 0, 0, 0, 0, 0];
-		for (const d of t) {
-			if (ind == firstInd) ind++;
-			if (ind == secondInd) ind++;
-			v[ind] = parseInt(d);
-			ind++;
-		}
-		res.push(v);
-	}
+	// // for each of templates insert its number represenation into ValVector skipping firstInd and secondInd 
+	// for (const t of templates) {
+		// let ind = 0;
+		// let v: ValVector = [0, 0, 0, 0, 0, 0];
+		// for (const d of t) {
+			// if (ind == firstInd) ind++;
+			// if (ind == secondInd) ind++;
+			// v[ind] = parseInt(d);
+			// ind++;
+		// }
+		// res.push(v);
+	// }
 
-	return res;
-}
+	// return res;
+// }
 
 
-function generateReturns1(ones: ValVector, surplus: number): ValVector[] {
-	let res: ValVector[] = [];
+// function generateReturns1(ones: ValVector, surplus: number): ValVector[] {
+	// let res: ValVector[] = [];
 
-	if (surplus == 0) return generateReturns0(); 
+	// if (surplus == 0) return generateReturns0(); 
 
-	const firstInd = ones.slice(0,5).indexOf(1);
+	// const firstInd = ones.slice(0,5).indexOf(1);
 	
-	// for each of templates insert its number represenation into ValVector skipping firstInd and secondInd 
-	for (let i = 1; i <= 4; i++) {
-		let ind = (firstInd + i) % 5;
-		let v: ValVector = [0, 0, 0, 0, 0, 0];
-		v[ind] = 1;
-		res.push(v);
-	}
+	// // for each of templates insert its number represenation into ValVector skipping firstInd and secondInd 
+	// for (let i = 1; i <= 4; i++) {
+		// let ind = (firstInd + i) % 5;
+		// let v: ValVector = [0, 0, 0, 0, 0, 0];
+		// v[ind] = 1;
+		// res.push(v);
+	// }
 
-	return res;
-}
+	// return res;
+// }
 
 
 
@@ -372,12 +374,9 @@ function TMP_showMoves(strs: string[], tableToks: ValVector, surplus: number): v
 	  }
 	  else {
 		  // check all possibilities of returning the surplus
-		  // const returns = 
-				// (surplus == 3) ? generateReturns3(vec, 3):
-				// (surplus == 2) ? generateReturns2(vec, 2):
-				// (surplus == 1) ? generateReturns1(vec, 1):
-								 // generateReturns0();
-		  // console.log(returns);
+		  const returns = generateReturns(vec, surplus);
+
+		  console.log(returns);
 		  
 		  // TODO: for each of returns make a move {+vec, -returns[i]} and insert to map
 	  }

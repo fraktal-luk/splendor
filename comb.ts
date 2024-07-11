@@ -12,10 +12,15 @@ function generateReturns0(): ValVector[] {
 	return res;
 }
 
-function generateReturns(takes: ValVector, surplus: number): ValVector[] {
+export function generateReturns(takes: ValVector, surplus: number): ValVector[] {
 	let res: ValVector[] = [];
 	
+	const nFree = vecSum(takes);
+	
 	if (surplus == 0) return generateReturns0();
+	
+	
+
 
 	return res;
 }
