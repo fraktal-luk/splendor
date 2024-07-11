@@ -312,10 +312,16 @@ function generateReturns3(ones: ValVector, surplus: number): ValVector[] {
 function generateReturns2(ones: ValVector, surplus: number): ValVector[] {
 	let res: ValVector[] = [];
 
+	if (surplus == 0) {
+		return generateReturns0();
+	}
+
 	const firstInd = ones.slice(0,5).indexOf(1);
 	const secondInd = ones.slice(0,5).lastIndexOf(1);
 
+	// If surplus is 2
 	const templates = [ "011", "101", "110"];
+	// TODO: if surplus is 1, swap 1<->0 in templates
 	
 	// for each of templates insert its number represenation into ValVector skipping firstInd and secondInd 
 	for (const t of templates) {
@@ -333,8 +339,11 @@ function generateReturns2(ones: ValVector, surplus: number): ValVector[] {
 	return res;
 }
 
+
 function generateReturns1(ones: ValVector, surplus: number): ValVector[] {
 	let res: ValVector[] = [];
+
+	if (surplus == 0) return generateReturns0(); 
 
 	const firstInd = ones.slice(0,5).indexOf(1);
 	
@@ -349,14 +358,6 @@ function generateReturns1(ones: ValVector, surplus: number): ValVector[] {
 	return res;
 }
 
-function generateReturns0(): ValVector[] {
-	let res: ValVector[] = [];
-	const v: ValVector = [0, 0, 0, 0, 0, 0]; 
-	
-	res.push(v);
-
-	return res;
-}
 
 
 function TMP_showMoves(strs: string[], tableToks: ValVector, surplus: number): void {
@@ -371,12 +372,12 @@ function TMP_showMoves(strs: string[], tableToks: ValVector, surplus: number): v
 	  }
 	  else {
 		  // check all possibilities of returning the surplus
-		  const returns = 
-				(surplus == 3) ? generateReturns3(vec, 3):
-				(surplus == 2) ? generateReturns2(vec, 2):
-				(surplus == 1) ? generateReturns1(vec, 1):
-								 generateReturns0();
-		  console.log(returns);
+		  // const returns = 
+				// (surplus == 3) ? generateReturns3(vec, 3):
+				// (surplus == 2) ? generateReturns2(vec, 2):
+				// (surplus == 1) ? generateReturns1(vec, 1):
+								 // generateReturns0();
+		  // console.log(returns);
 		  
 		  // TODO: for each of returns make a move {+vec, -returns[i]} and insert to map
 	  }
