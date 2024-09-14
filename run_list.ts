@@ -190,6 +190,38 @@ class BuyMove1 extends Move1 {
 }
 
 
+	// Sum 1
+	const STR_1x1 = [
+	  "00001", "00010", "00100", "01000", "10000",
+	];
+	
+	
+	// Sum 2
+	const STR_2x1 = [
+	  "00011", "00110", "01100", "11000", "10001", "00101", "01010", "10100", "01001", "10010",
+	];
+
+	const STR_1x2 = [
+	  "00002", "00020", "00200", "02000", "20000",
+	];
+
+
+	// Sum 3
+	const STR_1x3 = [
+	  "00003", "00030", "00300", "03000", "30000",
+	];
+	
+	const STR_1x2_1x1 = [
+	  "00012", "00120", "01200", "12000", "20001",
+	  "00102", "01020", "10200", "02001", "20010",
+	  "01002", "10020", "00201", "02010", "20100",
+	  "10002", "00021", "00210", "02100", "21000",
+	];		
+
+	const STR_3x1 = [
+	  "00111", "01110", "11100", "11001", "10011", "01011", "10110", "01101", "11010", "10101",
+	];
+
 
 class GameNode1 {
 	// game state
@@ -204,6 +236,8 @@ class GameNode1 {
 		
 		// all Buy moves possible
 		//	 no reserved, so only from Table
+		console.log(">--- Possible buys:");
+		
 		for (let r = 0; r < 3; r++) {
 			for (let c = 0; c < 4; c++) {
 				// get price
@@ -220,62 +254,21 @@ class GameNode1 {
 		// all Take moves possible
 		const nPlayerToks = vecSum(this.state.player.tokens);
 
-		  const surplus1 = Math.max(0, nPlayerToks + 1 - 10);		  
-		  const surplus2 = Math.max(0, nPlayerToks + 2 - 10);		  
-		  const surplus3 = Math.max(0, nPlayerToks + 3 - 10);
-		  
-		  // all threes
-		  const strs3 = [
-			  "00111",
-			  "01110",
-			  "11100",
-			  "11001",
-			  "10011",
-			  
-			  "01011",
-			  "10110",
-			  "01101",
-			  "11010",
-			  "10101",
-		  ];
+		const surplus1 = Math.max(0, nPlayerToks + 1 - 10);		  
+		const surplus2 = Math.max(0, nPlayerToks + 2 - 10);		  
+		const surplus3 = Math.max(0, nPlayerToks + 3 - 10);
 
-		  TMP_showMoves(strs3, table.tokens, surplus3 + 3);
+		// all threes
+		const strs3 = STR_3x1;
+		TMP_showMoves(strs3, this.state.player.tokens, table.tokens, surplus3    +  3);
 
-		  // all twos
-		  // all threes
-		  const strs2 = [
-			  "00011",
-			  "00110",
-			  "01100",
-			  "11000",
-			  "10001",
-			  
-			  "00101",
-			  "01010",
-			  "10100",
-			  "01001",
-			  "10010",
-		  ];
+		const strs2 = STR_2x1;
+		TMP_showMoves(strs2, this.state.player.tokens, table.tokens, surplus2    + 2);
 
-		  TMP_showMoves(strs2, table.tokens, surplus2 + 2);
+		const strs1 = STR_1x1;
+		TMP_showMoves(strs1, this.state.player.tokens, table.tokens, surplus1    + 1);
 
-		  const strs1 = [
-			  "00001",
-			  "00010",
-			  "00100",
-			  "01000",
-			  "10000",
-		  ];
-
-		  TMP_showMoves(strs1, table.tokens, surplus1 + 1);
-
-		  const strs2same = [
-			  "00002",
-			  "00020",
-			  "00200",
-			  "02000",
-			  "20000",
-		  ];
+		const strs2same = STR_1x2;
 		  
 	}
 }
@@ -290,98 +283,95 @@ function str2vv(s: string): ValVector {
 	return res;
 }
 
-// // Deal up to 3 in all ways among 2 slots with '0' in the input
-// function generateReturns3(ones: ValVector, surplus: number): ValVector[] {
-	// let res: ValVector[] = [];
 
-	// // Leave out the last element cause yellow not used
-	// const firstInd = ones.slice(0,5).indexOf(0);
-	// const secondInd = ones.slice(0,5).lastIndexOf(0);
-
-	// for (let firstReturn = 0; firstReturn <= surplus; firstReturn++) {
-	  // const secondReturn = surplus - firstReturn;
-	  
-	  // let current: ValVector = [0, 0, 0, 0, 0, 0];
-	  // current[firstInd] = firstReturn;
-	  // current[secondInd] = secondReturn;
-	  // res.push(current);
-	// }
-
-	// return res;
-// }
-
-// // Deal up to 2 among 3 slots ith '0' in the input
-// function generateReturns2(ones: ValVector, surplus: number): ValVector[] {
-	// let res: ValVector[] = [];
-
-	// if (surplus == 0) {
-		// return generateReturns0();
-	// }
-
-	// const firstInd = ones.slice(0,5).indexOf(1);
-	// const secondInd = ones.slice(0,5).lastIndexOf(1);
-
-	// // If surplus is 2
-	// const templates = [ "011", "101", "110"];
-	// // TODO: if surplus is 1, swap 1<->0 in templates
+function TMP_showMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, surplus: number): void {
+	console.log(">- Showing moves if taking " + vecSum(str2vv(strs[0])));
 	
-	// // for each of templates insert its number represenation into ValVector skipping firstInd and secondInd 
-	// for (const t of templates) {
-		// let ind = 0;
-		// let v: ValVector = [0, 0, 0, 0, 0, 0];
-		// for (const d of t) {
-			// if (ind == firstInd) ind++;
-			// if (ind == secondInd) ind++;
-			// v[ind] = parseInt(d);
-			// ind++;
-		// }
-		// res.push(v);
-	// }
-
-	// return res;
-// }
-
-
-// function generateReturns1(ones: ValVector, surplus: number): ValVector[] {
-	// let res: ValVector[] = [];
-
-	// if (surplus == 0) return generateReturns0(); 
-
-	// const firstInd = ones.slice(0,5).indexOf(1);
+	let legalTakes: string[] = [];
+	let illegalTakes: string[] = [];
 	
-	// // for each of templates insert its number represenation into ValVector skipping firstInd and secondInd 
-	// for (let i = 1; i <= 4; i++) {
-		// let ind = (firstInd + i) % 5;
-		// let v: ValVector = [0, 0, 0, 0, 0, 0];
-		// v[ind] = 1;
-		// res.push(v);
-	// }
+	for (const s of strs) {
+		//console.log(">-- " + str2vv(s));
 
-	// return res;
-// }
-
-
-
-function TMP_showMoves(strs: string[], tableToks: ValVector, surplus: number): void {
-  console.log("!!!!");
-  for (const s of strs) {
-	  console.log(">>>>>> " + str2vv(s));
-
-	  // check if toks available on table
-	  const vec = str2vv(s);
-	  if (!vecEnough(tableToks, vec)) {
-		 console.log("Table cant provide " + s); 
-	  }
-	  else {
-		  // check all possibilities of returning the surplus
-		  const returns = generateReturns(vec, surplus);
-
-		  console.log(returns);
-		  
-		  // TODO: for each of returns make a move {+vec, -returns[i]} and insert to map
-	  }
+		// check if toks available on table
+		const vec = str2vv(s);
+		if (!vecEnough(tableToks, vec)) {
+			//console.log("    Table cant provide");
+			illegalTakes.push(s);
+		}
+		else {
+		    //console.log("    OK to take, with surplus " + surplus);
+		    legalTakes.push(s)
+		}
 	  
-  }
+	}
+	
+	console.log("Legal: " + legalTakes);
+	console.log("Illegal: " + illegalTakes);
+	
+    const rets = getReturns(surplus);	
+	console.log("returns: " + rets);
+}
+
+function getReturns(surplus: number): string[] {
+	if (surplus < 0 && surplus > 3) throw new Error("wrong surplus");
+	
+	let result: string[] = [];
+	
+	switch (surplus) {
+		case 3:
+			result = result.concat(STR_3x1);
+			result = result.concat(STR_1x2_1x1);
+			result = result.concat(STR_1x3);
+		
+			// 111 - 
+			for (const s of STR_3x1) {
+				//console.log(":      " + str2vv(s));
+			}
+			
+			// 21 - 
+			for (const s of STR_1x2_1x1) {
+				//console.log(":      " + str2vv(s));
+			}
+			
+			// 3 -
+			for (const s of STR_1x3) {
+				//console.log(":      " + str2vv(s));
+			}
+			
+			break;
+		case 2:
+			result = result.concat(STR_2x1);
+			result = result.concat(STR_1x2);
+			
+			// 11
+			for (const s of STR_2x1) {
+				//console.log(":      " + str2vv(s));
+			}
+			
+			// 2
+			for (const s of STR_1x2) {
+				//console.log(":      " + str2vv(s));
+			}
+			
+			break;
+		case 1:
+			result = result.concat(STR_1x1);
+
+			// 1
+			for (const s of STR_1x1) {
+				//console.log(":      " + str2vv(s));
+			}
+			
+			break;
+		case 0:
+			result.push("000000");
+
+			//console.log("    " + [0, 0, 0, 0, 0, 0]);
+	}
+	
+	//console.log(result);
+	return result;
 }
 
 
