@@ -122,8 +122,8 @@ class TableState1 {
 
 
 class PlayerState1 {
-	tokens: ValVector = //[0, 0, 0, 0, 0, 0];
-						[1, 2, 3, 3, 0, 0];
+	tokens: ValVector = [0, 0, 0, 0, 0, 0];
+						//[1, 2, 3, 3, 0, 0];
 	bonuses: ValVector = [0, 0, 0, 0, 0, 0];
 						//[3, 0, 0, 0, 4, 0];
 	points: number = 0;
@@ -496,17 +496,30 @@ console.log(table.rows);
 console.log(table.stacks);
 
 //playMovesSinglePlayer(moves);
-	tree.root.fillFollowers();
-	
-	//console.log(tree.root.followersTake.values().next().value);
-	
-	const viewedNode = tree.root.followersBuy.values().next().value;
-	
-	console.log(tree.root.state.table.tokens);
-	console.log(tree.root.state.player.tokens);
+let viewedNode = tree.root;
+let iter = 0;
+
+while (iter++ < 10) {
+	viewedNode.fillFollowers();
+		
 	
 	console.log(viewedNode.state.table.tokens);
 	console.log(viewedNode.state.player.tokens);
 
-	console.log(tree.root.followersBuy);
+	console.log(viewedNode.followersBuy.size);
+	console.log(viewedNode.followersBuy);
+	console.log(viewedNode.followersTake.size);
 	
+	if (viewedNode.followersBuy.size > 0) {
+		const chosenMove = viewedNode.followersBuy.keys().next().value;
+		viewedNode = viewedNode.followersBuy.values().next().value;
+		console.log("Move: " + chosenMove.toks + "\n");
+	}
+	else {
+		const chosenMove = viewedNode.followersTake.keys().next().value;
+		viewedNode = viewedNode.followersTake.values().next().value;
+		console.log("Move: " + chosenMove.toks + "\n");
+	}
+	
+}
+
