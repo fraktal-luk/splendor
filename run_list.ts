@@ -2,7 +2,7 @@
 import {Color, ValVector, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardColor,
 		vecAdd, vecSub, vecEnough, vecSum} from './rules.ts';
 
-import {generateReturns } from './comb.ts';
+import { } from './comb.ts';
 
 const presetOrder: number[] = [
    7, 23, 52, 12, 66, 52, 74, 79, 79, 43,  7, 74,
@@ -190,37 +190,92 @@ class BuyMove1 extends Move1 {
 }
 
 
-	// Sum 1
-	const STR_1x1 = [
-	  "00001", "00010", "00100", "01000", "10000",
-	];
+// Sum 1
+const STR_1x1 = [
+  "00001", "00010", "00100", "01000", "10000",
+];
+
+
+// Sum 2
+const STR_2x1 = [
+  "00011", "00110", "01100", "11000", "10001", "00101", "01010", "10100", "01001", "10010",
+];
+
+const STR_1x2 = [
+  "00002", "00020", "00200", "02000", "20000",
+];
+
+
+// Sum 3
+const STR_1x3 = [
+  "00003", "00030", "00300", "03000", "30000",
+];
+
+const STR_1x2_1x1 = [
+  "00012", "00120", "01200", "12000", "20001",
+  "00102", "01020", "10200", "02001", "20010",
+  "01002", "10020", "00201", "02010", "20100",
+  "10002", "00021", "00210", "02100", "21000",
+];		
+
+const STR_3x1 = [
+  "00111", "01110", "11100", "11001", "10011", "01011", "10110", "01101", "11010", "10101",
+];
+
+
+function vecNonNegative(v: ValVector): boolean {
+	return !(v.some((x) => x < 0));
+}
+
+
+function str2vv(s: string): ValVector {
+	let res: ValVector = [0, 0, 0, 0, 0, 0];
+	const n = Math.min(s.length, 6);
+	for (let i = 0; i < n; i++) {
+		res[i] = parseInt(s[i]);
+	}
+	return res;
+}
+
+
+function crossVecs(takes: string[], returns: string[]): ValVector[] {
+	let sums: ValVector[] = [];
 	
+	for (const t of takes) {
+		for (const r of returns) {
+			const added = vecSub(str2vv(t), str2vv(r));
+			sums.push(added);
+		}
+	}
 	
-	// Sum 2
-	const STR_2x1 = [
-	  "00011", "00110", "01100", "11000", "10001", "00101", "01010", "10100", "01001", "10010",
-	];
-
-	const STR_1x2 = [
-	  "00002", "00020", "00200", "02000", "20000",
-	];
+	return sums;
+}
 
 
-	// Sum 3
-	const STR_1x3 = [
-	  "00003", "00030", "00300", "03000", "30000",
-	];
+function encodeVec(v: ValVector): number {
+	let res = 0;
 	
-	const STR_1x2_1x1 = [
-	  "00012", "00120", "01200", "12000", "20001",
-	  "00102", "01020", "10200", "02001", "20010",
-	  "01002", "10020", "00201", "02010", "20100",
-	  "10002", "00021", "00210", "02100", "21000",
-	];		
+	for (let i = 5; i >= 0; i--) {
+		res *= 16;
+		res += (v[i] & 15);
+	}
+	
+	return res;
+}
 
-	const STR_3x1 = [
-	  "00111", "01110", "11100", "11001", "10011", "01011", "10110", "01101", "11010", "10101",
-	];
+function decodeVec(n: number): ValVector {
+	let res: ValVector = [0,0,0,0,0,0];
+
+	for (let i = 0; i < 6; i++) {		
+		res[i] = n & 15;
+		if (res[i] > 7) res[i] -= 16; // 7 is max toks per color, above are negatives
+		n = n >>> 4;
+	}
+
+	return res;
+}
+
+
 
 
 class GameNode1 {
@@ -231,6 +286,12 @@ class GameNode1 {
 	followers: Map<Move1, GameNode1> = new Map<Move1, GameNode1>();
 	
 	fillFollowers(): void {
+		this.TMP_fillBuys();
+		this.TMP_fillTakes();
+	}
+
+	
+	TMP_fillBuys(): void {
 		const player = this.state.player;
 		const table = this.state.table;
 		
@@ -250,97 +311,80 @@ class GameNode1 {
 				}
 			}
 		}
+	}	
+
+
+	TMP_fillTakes(): void {
+
+		const playerToks = this.state.player.tokens;
+		const tableToks = this.state.table.tokens;
 		
 		// all Take moves possible
-		const nPlayerToks = vecSum(this.state.player.tokens);
+		const nPlayerToks = vecSum(playerToks);
 
 		const surplus1 = Math.max(0, nPlayerToks + 1 - 10);		  
 		const surplus2 = Math.max(0, nPlayerToks + 2 - 10);		  
 		const surplus3 = Math.max(0, nPlayerToks + 3 - 10);
+			
 
 		// all threes
 		const strs3 = STR_3x1;
-		const moves3 = TMP_showMoves(strs3, this.state.player.tokens, table.tokens, surplus3    +  3);
+		const moves3 = makeMoves(strs3, playerToks, tableToks, surplus3    +  0*3);
 
 
 		const strs2 = STR_2x1;
-		const moves2 = TMP_showMoves(strs2, this.state.player.tokens, table.tokens, surplus2    + 2);
+		const moves2 = makeMoves(strs2, playerToks, tableToks, surplus2    + 0*2);
 
 		const strs2same = STR_1x2;
-		const moves2s = TMP_showMoves(strs2same, this.state.player.tokens, table.tokens, surplus2    + 2);
+		const moves2s = makeMoves(strs2same, playerToks, tableToks, surplus2    + 0*2);
 
 
 		const strs1 = STR_1x1;
-		const moves1 = TMP_showMoves(strs1, this.state.player.tokens, table.tokens, surplus1    + 1);
+		const moves1 = makeMoves(strs1, playerToks, tableToks, surplus1    + 0*1);
 
-		let allTakeMoves = [...moves3].concat([...moves2]).concat([...moves2s]).concat([...moves1]);
-						   //[...moves2s].concat([...moves1]);
+		let allTakeMoves = moves3.concat(moves2).concat(moves2s).concat(moves1);
 		
 		console.log("The set is");
 		
-		//console.log(...moves3);
-		//console.log(new Set<ValVector>(allTakeMoves));
-		console.log(allTakeMoves);
-		//console.log(new Set<>(allTakeMoves));
-		const encoded = allTakeMoves.map(encodeVec);
-		
-		console.log(encoded);
-		
+		const encoded = allTakeMoves.map(encodeVec);		
 		const unique = new Set<number>(encoded);
-		
 		const decoded = [...unique].map(decodeVec);
 		
 		console.log(decoded.length);
 		console.log(decoded);
 		
+		// Check which moves are impossible because would leave player with negative token states
+		//...
+		let nonNegatives: ValVector[] = [];
 		
-			// console.log(decodeVec(0));
-			// console.log(decodeVec(1));
-			// console.log(decodeVec(17));
-			// console.log(decodeVec(encodeVec([-1, 0, 0, 0, 0, 0])));
-			// console.log(decodeVec(encodeVec([-3, 0, 0, 0, 0, 0])));
-			// console.log(decodeVec(encodeVec([-3, 1, 0, -2, 2, 0])));
+		for (const v of decoded) {
+			const resulting = vecAdd(playerToks, v);
+			if (vecNonNegative(resulting)) nonNegatives.push(v);
+		}
+		
+		console.log(nonNegatives);
 	}
 }
 
 
-function str2vv(s: string): ValVector {
-	let res: ValVector = [0, 0, 0, 0, 0, 0];
-	const n = Math.min(s.length, 6);
-	for (let i = 0; i < n; i++) {
-		res[i] = parseInt(s[i]);
-	}
-	return res;
-}
-
-
-function TMP_showMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, surplus: number): Set<ValVector> {
+function makeMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, surplus: number): ValVector[] {
 	console.log(">- Showing moves if taking " + vecSum(str2vv(strs[0])));
 	
 	let legalTakes: string[] = [];
 	let illegalTakes: string[] = [];
 	
 	for (const s of strs) {
-		//console.log(">-- " + str2vv(s));
-
 		// check if toks available on table
 		const vec = str2vv(s);
-		if (!vecEnough(tableToks, vec)) {
-			//console.log("    Table cant provide");
-			illegalTakes.push(s);
-		}
-		else {
-		    //console.log("    OK to take, with surplus " + surplus);
-		    legalTakes.push(s)
-		}
-	  
+		if (!vecEnough(tableToks, vec)) illegalTakes.push(s);
+		else legalTakes.push(s);
 	}
 	
-	console.log("Legal: " + legalTakes);
-	console.log("Illegal: " + illegalTakes);
+		console.log("Legal: " + legalTakes);
+		console.log("Illegal: " + illegalTakes);
 	
     const rets = getReturns(surplus);	
-	console.log("returns: " + rets);
+		console.log("returns: " + rets);
 	
 	return crossVecs(legalTakes, rets);
 }
@@ -351,103 +395,24 @@ function getReturns(surplus: number): string[] {
 	let result: string[] = [];
 	
 	switch (surplus) {
-		case 3:
-			result = result.concat(STR_3x1);
-			result = result.concat(STR_1x2_1x1);
-			result = result.concat(STR_1x3);
-		
-			// 111 - 
-			for (const s of STR_3x1) {
-				//console.log(":      " + str2vv(s));
-			}
-			
-			// 21 - 
-			for (const s of STR_1x2_1x1) {
-				//console.log(":      " + str2vv(s));
-			}
-			
-			// 3 -
-			for (const s of STR_1x3) {
-				//console.log(":      " + str2vv(s));
-			}
-			
-			break;
-		case 2:
-			result = result.concat(STR_2x1);
-			result = result.concat(STR_1x2);
-			
-			// 11
-			for (const s of STR_2x1) {
-				//console.log(":      " + str2vv(s));
-			}
-			
-			// 2
-			for (const s of STR_1x2) {
-				//console.log(":      " + str2vv(s));
-			}
-			
-			break;
-		case 1:
-			result = result.concat(STR_1x1);
-
-			// 1
-			for (const s of STR_1x1) {
-				//console.log(":      " + str2vv(s));
-			}
-			
-			break;
-		case 0:
-			result.push("000000");
-
-			//console.log("    " + [0, 0, 0, 0, 0, 0]);
+	case 3:
+		result = result.concat(STR_3x1);
+		result = result.concat(STR_1x2_1x1);
+		result = result.concat(STR_1x3);
+		break;
+	case 2:
+		result = result.concat(STR_2x1);
+		result = result.concat(STR_1x2);
+		break;
+	case 1:
+		result = result.concat(STR_1x1);
+		break;
+	case 0:
+		result.push("000000");
 	}
 	
-	//console.log(result);
 	return result;
 }
-
-function crossVecs(takes: string[], returns: string[]): Set<ValVector> {
-	let sums: ValVector[] = [];
-	
-	for (const t of takes) {
-		for (const r of returns) {
-			const added = vecSub(str2vv(t), str2vv(r));
-			sums.push(added);
-		}
-	}
-	
-	console.log(sums);
-	return (new Set(sums));
-}
-
-
-function encodeVec(v: ValVector): number {
-	let res = 0;
-	
-	for (let i = 5; i >= 0; i--) {
-		res *= 16;
-		res += (v[i] & 15);
-	}
-	
-	return res;
-}
-
-function decodeVec(n: number): ValVector {
-	let res: ValVector = [0,0,0,0,0,0];
-
-	for (let i = 0; i < 6; i++) {
-		//	console.log("n is: " + n);
-		
-		res[i] = n & 15;
-		if (res[i] > 3) res[i] -= 16;
-		n = n >>> 4;
-	}
-
-	//console.log("done");
-
-	return res;
-}
-
 
 class MoveTree1 {
 	root: GameNode1 = new GameNode1;
