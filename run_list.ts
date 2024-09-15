@@ -320,7 +320,7 @@ class GameNode1 {
 		
 		// all Buy moves possible
 		//	 no reserved, so only from Table
-		console.log(">--- Possible buys:");
+		//console.log(">--- Possible buys:");
 		
 		for (let r = 1; r < 4; r++) {
 			for (let c = 1; c < 5; c++) {
@@ -330,7 +330,7 @@ class GameNode1 {
 				
 				const budget = vecAdd(this.state.player.tokens, this.state.player.bonuses);
 				if (vecEnough(budget, price)) {
-					console.log( r + " " + c + "  Enough: " + budget + " for " + price);
+					//console.log( r + " " + c + "  Enough: " + budget + " for " + price);
 					const realPrice = vecLimit0(vecSub(price, this.state.player.bonuses));
 					
 					let newState = this.state.deepCopy();
@@ -382,14 +382,14 @@ class GameNode1 {
 
 		let allTakeMoves = moves3.concat(moves2).concat(moves2s).concat(moves1);
 		
-		console.log("The set is");
+		//console.log("The set is");
 		
 		const encoded = allTakeMoves.map(encodeVec);		
 		const unique = new Set<number>(encoded);
 		const decoded = [...unique].map(decodeVec);
 		
-		console.log(decoded.length);
-		console.log(decoded);
+		//console.log(decoded.length);
+		//console.log(decoded);
 		
 		// Check which moves are impossible because would leave player with negative token states
 		//...
@@ -410,13 +410,13 @@ class GameNode1 {
 			this.followersTake.set(newMove, newNode);
 		}
 		
-		console.log(nonNegatives);
+		//console.log(nonNegatives);
 	}
 }
 
 
 function makeMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, surplus: number): ValVector[] {
-	console.log(">- Showing moves if taking " + vecSum(str2vv(strs[0])));
+	//console.log(">- Showing moves if taking " + vecSum(str2vv(strs[0])));
 	
 	let legalTakes: string[] = [];
 	let illegalTakes: string[] = [];
@@ -428,11 +428,11 @@ function makeMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, 
 		else legalTakes.push(s);
 	}
 	
-		console.log("Legal: " + legalTakes);
-		console.log("Illegal: " + illegalTakes);
+	//	console.log("Legal: " + legalTakes);
+	//	console.log("Illegal: " + illegalTakes);
 	
     const rets = getReturns(surplus);	
-		console.log("returns: " + rets);
+	//	console.log("returns: " + rets);
 	
 	return crossVecs(legalTakes, rets);
 }
@@ -498,6 +498,15 @@ console.log(table.stacks);
 //playMovesSinglePlayer(moves);
 	tree.root.fillFollowers();
 	
-	console.log(tree.root.followersTake);
+	//console.log(tree.root.followersTake.values().next().value);
 	
-	console.log(tree.root.followersBuy)
+	const viewedNode = tree.root.followersBuy.values().next().value;
+	
+	console.log(tree.root.state.table.tokens);
+	console.log(tree.root.state.player.tokens);
+	
+	console.log(viewedNode.state.table.tokens);
+	console.log(viewedNode.state.player.tokens);
+
+	console.log(tree.root.followersBuy);
+	
