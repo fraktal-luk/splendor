@@ -260,16 +260,46 @@ class GameNode1 {
 
 		// all threes
 		const strs3 = STR_3x1;
-		TMP_showMoves(strs3, this.state.player.tokens, table.tokens, surplus3    +  3);
+		const moves3 = TMP_showMoves(strs3, this.state.player.tokens, table.tokens, surplus3    +  3);
+
 
 		const strs2 = STR_2x1;
-		TMP_showMoves(strs2, this.state.player.tokens, table.tokens, surplus2    + 2);
-
-		const strs1 = STR_1x1;
-		TMP_showMoves(strs1, this.state.player.tokens, table.tokens, surplus1    + 1);
+		const moves2 = TMP_showMoves(strs2, this.state.player.tokens, table.tokens, surplus2    + 2);
 
 		const strs2same = STR_1x2;
-		  
+		const moves2s = TMP_showMoves(strs2same, this.state.player.tokens, table.tokens, surplus2    + 2);
+
+
+		const strs1 = STR_1x1;
+		const moves1 = TMP_showMoves(strs1, this.state.player.tokens, table.tokens, surplus1    + 1);
+
+		let allTakeMoves = [...moves3].concat([...moves2]).concat([...moves2s]).concat([...moves1]);
+						   //[...moves2s].concat([...moves1]);
+		
+		console.log("The set is");
+		
+		//console.log(...moves3);
+		//console.log(new Set<ValVector>(allTakeMoves));
+		console.log(allTakeMoves);
+		//console.log(new Set<>(allTakeMoves));
+		const encoded = allTakeMoves.map(encodeVec);
+		
+		console.log(encoded);
+		
+		const unique = new Set<number>(encoded);
+		
+		const decoded = [...unique].map(decodeVec);
+		
+		console.log(decoded.length);
+		console.log(decoded);
+		
+		
+			// console.log(decodeVec(0));
+			// console.log(decodeVec(1));
+			// console.log(decodeVec(17));
+			// console.log(decodeVec(encodeVec([-1, 0, 0, 0, 0, 0])));
+			// console.log(decodeVec(encodeVec([-3, 0, 0, 0, 0, 0])));
+			// console.log(decodeVec(encodeVec([-3, 1, 0, -2, 2, 0])));
 	}
 }
 
@@ -284,7 +314,7 @@ function str2vv(s: string): ValVector {
 }
 
 
-function TMP_showMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, surplus: number): void {
+function TMP_showMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, surplus: number): Set<ValVector> {
 	console.log(">- Showing moves if taking " + vecSum(str2vv(strs[0])));
 	
 	let legalTakes: string[] = [];
@@ -311,6 +341,8 @@ function TMP_showMoves(strs: string[], playerToks: ValVector, tableToks: ValVect
 	
     const rets = getReturns(surplus);	
 	console.log("returns: " + rets);
+	
+	return crossVecs(legalTakes, rets);
 }
 
 function getReturns(surplus: number): string[] {
@@ -374,6 +406,47 @@ function getReturns(surplus: number): string[] {
 	return result;
 }
 
+function crossVecs(takes: string[], returns: string[]): Set<ValVector> {
+	let sums: ValVector[] = [];
+	
+	for (const t of takes) {
+		for (const r of returns) {
+			const added = vecSub(str2vv(t), str2vv(r));
+			sums.push(added);
+		}
+	}
+	
+	console.log(sums);
+	return (new Set(sums));
+}
+
+
+function encodeVec(v: ValVector): number {
+	let res = 0;
+	
+	for (let i = 5; i >= 0; i--) {
+		res *= 16;
+		res += (v[i] & 15);
+	}
+	
+	return res;
+}
+
+function decodeVec(n: number): ValVector {
+	let res: ValVector = [0,0,0,0,0,0];
+
+	for (let i = 0; i < 6; i++) {
+		//	console.log("n is: " + n);
+		
+		res[i] = n & 15;
+		if (res[i] > 3) res[i] -= 16;
+		n = n >>> 4;
+	}
+
+	//console.log("done");
+
+	return res;
+}
 
 
 class MoveTree1 {
