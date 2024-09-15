@@ -122,8 +122,10 @@ class TableState1 {
 
 
 class PlayerState1 {
-	tokens: ValVector = [0, 0, 0, 0, 0, 0];
+	tokens: ValVector = //[0, 0, 0, 0, 0, 0];
+						[1, 2, 3, 3, 0, 0];
 	bonuses: ValVector = [0, 0, 0, 0, 0, 0];
+						//[3, 0, 0, 0, 4, 0];
 	points: number = 0;
 	
 	cols: CardId[][] = [[], [], [], [], []];
@@ -227,6 +229,16 @@ function vecNonNegative(v: ValVector): boolean {
 	return !(v.some((x) => x < 0));
 }
 
+function vecLimit0(v: ValVector): ValVector {
+	let res: ValVector = [...v];
+	
+	for (let i = 0; i < 6; i++) {
+		if (res[i] < 0) res[i] = 0;
+	}
+	
+	return res;
+}
+
 
 function str2vv(s: string): ValVector {
 	let res: ValVector = [0, 0, 0, 0, 0, 0];
@@ -275,7 +287,16 @@ function decodeVec(n: number): ValVector {
 	return res;
 }
 
-
+// Split vec with possible negatives into a legal combination of take and return
+function findCanonicalTake(v: ValVector): string {
+	// If Y positive -> wrong
+	// If more than 3 positives -> wrong
+	// If any > 2 -> wrong
+	// If has "2" -> take 2 same, rest must be nonpositive OR wrong
+    // Otherwise '1's to take, rest to return	
+	
+	return "";
+}	
 
 
 class GameNode1 {
@@ -283,11 +304,13 @@ class GameNode1 {
 	state: GameState1 = new GameState1();
 	
 	// possible next nodes
-	followers: Map<Move1, GameNode1> = new Map<Move1, GameNode1>();
+	//followers: Map<Move1, GameNode1> = new Map<Move1, GameNode1>();
+	followersTake: Map<TakeMove1, GameNode1> = new Map<TakeMove1, GameNode1>();
+	followersBuy: Map<BuyMove1, GameNode1> = new Map<BuyMove1, GameNode1>();
 	
 	fillFollowers(): void {
-		this.TMP_fillBuys();
 		this.TMP_fillTakes();
+		this.TMP_fillBuys();
 	}
 
 	
@@ -299,15 +322,30 @@ class GameNode1 {
 		//	 no reserved, so only from Table
 		console.log(">--- Possible buys:");
 		
-		for (let r = 0; r < 3; r++) {
-			for (let c = 0; c < 4; c++) {
+		for (let r = 1; r < 4; r++) {
+			for (let c = 1; c < 5; c++) {
 				// get price
-				const id = this.state.table.rows[r][c];
+				const id = this.state.table.rows[r-1][c-1];
 				const price = getCardPrice(id);
 				
 				const budget = vecAdd(this.state.player.tokens, this.state.player.bonuses);
 				if (vecEnough(budget, price)) {
-					console.log( r + c + "  Enough: " + budget + " for " + price);
+					console.log( r + " " + c + "  Enough: " + budget + " for " + price);
+					const realPrice = vecLimit0(vecSub(price, this.state.player.bonuses));
+					
+					let newState = this.state.deepCopy();
+					newState.player.addCard(newState.table.takeCard(r, c));
+					newState.player.takeToks(realPrice);
+					newState.table.addToks(realPrice);
+					
+					const newMove: BuyMove1 = {toks: realPrice, loc: [r, c]};
+					
+					let newNode = new GameNode1();
+					newNode.state = newState;
+					//	console.log(newState);
+					//	console.log(newMove);
+					
+					this.followersBuy.set(newMove, newNode);
 				}
 			}
 		}
@@ -360,6 +398,16 @@ class GameNode1 {
 		for (const v of decoded) {
 			const resulting = vecAdd(playerToks, v);
 			if (vecNonNegative(resulting)) nonNegatives.push(v);
+			
+			let newState = this.state.deepCopy();
+			newState.table.takeToks(v);
+			newState.player.addToks(v);
+			const newMove: TakeMove1 = {toks: v};
+			
+			let newNode = new GameNode1();
+			newNode.state = newState;
+			
+			this.followersTake.set(newMove, newNode);
 		}
 		
 		console.log(nonNegatives);
@@ -415,7 +463,7 @@ function getReturns(surplus: number): string[] {
 }
 
 class MoveTree1 {
-	root: GameNode1 = new GameNode1;
+	root: GameNode1 = new GameNode1();
 }
 
 let tree = new MoveTree1();
@@ -434,23 +482,22 @@ console.log(table.rows);
 console.log(table.stacks);
 
 
-const stateCopy = //structuredClone(tree.root.state);
-					tree.root.state.deepCopy();
+const stateCopy = tree.root.state.deepCopy();
 
-table.takeToks([1, 0, 0, 1, 1, 0]);
-player.addToks([1, 0, 0, 1, 1, 0]);
-
-player.addCard(table.takeCard(2, 1));
+//table.takeToks([1, 0, 0, 1, 1, 0]);
+//player.addToks([1, 0, 0, 1, 1, 0]);
+//player.addCard(table.takeCard(2, 1));
 
 console.log(tree.root.state);
-// console.log(table.rows);
-// console.log(table.stacks);
 
 console.log(stateCopy);
-
 
 console.log(table.rows);
 console.log(table.stacks);
 
 //playMovesSinglePlayer(moves);
 	tree.root.fillFollowers();
+	
+	console.log(tree.root.followersTake);
+	
+	console.log(tree.root.followersBuy)
