@@ -1,14 +1,12 @@
 
-enum Color {WHITE, BLUE, GREEN, RED, BLACK, YELLOW};
+export enum Color {WHITE, BLUE, GREEN, RED, BLACK, YELLOW};
 
-function color2char(c: Color): string {
+export function color2char(c: Color): string {
 	return 'WBGRKY'[c];
 }
 
-
 type Row = number;
-
-type ValVector = [number, number, number, number, number, number];
+export type ValVector = [number, number, number, number, number, number];
 
 // Checks if price is exact 
 function satisfies(paid: ValVector, price: ValVector): boolean {
@@ -19,16 +17,55 @@ function satisfies(paid: ValVector, price: ValVector): boolean {
 	return paid[5] == missing;
 }
 
+export function vecAdd(a: ValVector, b: ValVector): ValVector {
+	let res: ValVector = [0, 0, 0, 0, 0, 0];
+	for (let i = 0; i < a.length; i++)
+		res[i] = a[i] + b[i];
+	return res;
+}	
+
+export function vecSub(a: ValVector, b: ValVector): ValVector {
+	let res: ValVector = [0, 0, 0, 0, 0, 0];
+	for (let i = 0; i < a.length; i++)
+		res[i] = a[i] - b[i];
+	return res;
+}	
+
+export function vecEnough(a: ValVector, b: ValVector): boolean {
+	for (let i = 0; i < a.length; i++)
+		if (!(a[i] >= b[i])) return false;
+	return true;
+}	
+
+export function vecSum(a: ValVector): number {
+	let res = 0;
+	for (let i = 0; i < a.length; i++)
+		res += a[i];
+	return res;
+}	
+
+
 function getRealPrice(price: ValVector, cards: Card[][]): ValVector {
 	let res: ValVector = [...price];
-	
 	for (let i = 0; i < 5; i++)
 		res[i] = Math.max(0, res[i] - cards[i].length);
-
 	return res;
 }
 
-type CardId = number;
+export type CardId = number;
+
+export function getCardPrice(id: CardId): ValVector {
+	return CARD_SET[id-1]!.price;
+}
+
+export function getCardPoints(id: CardId): number {
+	return CARD_SET[id-1]!.points;
+}
+
+export function getCardColor(id: CardId): Color {
+	return CARD_SET[id-1]!.color;
+}
+
 
 class Card {
 	id: CardId = 0;
@@ -169,7 +206,6 @@ class Player {
 	reserved: Card[] = [];
 	nobles: Noble[] = [];
 	
-	
 	points(): number {
 		let sum = 0;
 		for (const col of this.owned) {
@@ -182,7 +218,6 @@ class Player {
 	numCards(): number {
 		let sum = 0;
 		for (const col of this.owned) {
-			//for (const card of col)
 			sum += col.length;
 		}
 		return sum;
@@ -206,7 +241,6 @@ class Player {
 				'                       ' + rS[4] + '\n';
 	}
 	
-
 	tokenCardStr(): string {
 		const lens = this.owned.map((ca: Card[]) => ca.length);
 		return '    W  B  G  R  K  Y   ' + '\n' + 'T:  ' + this.tokens.join('  ') + '   ' + '\n' + 'C:  ' + lens.join('  ') + '   ' + '   ';
@@ -217,12 +251,12 @@ class Player {
 		const lens = this.owned.map((ca: Card[]) => ca.length);
 		const maxLen = Math.max(...lens);
 
-		//	console.log('MAx len: ' + maxLen.toString());
-
 		for (let i = 0; i < maxLen; i++) {
 			for (let j = 0; j < 5; j++) {
 				if (this.owned[j].length > i)
-					res += ' [P  *]'.replace('P', pointStr(this.owned[j][i].points));
+					res += (
+							' [P  *]'.replace('P', pointStr(this.owned[j][i].points)).replace('*', color2char(this.owned[j][i].color))
+							);
 				else
 					res += '       ';
 			}
@@ -284,8 +318,7 @@ class Player {
 	}
 
 	strSh(k: number): string {
-		return  "-----------------------------------------\n" +
-				"------- Player " + k.toString() + " ------\n" +
+		return  "------- Player " + k.toString() + " ------\n" +
 				this.nobleStr() + '\n' +
 				this.tcrStr() + '\n' +
 				this.ownedStr() + '\n' +
@@ -303,7 +336,6 @@ class Player {
 			newVec[i] -= give[i];
 			
 			if (newVec[i] < 0) return false;
-			
 			sum += newVec[i];
 		}
 		
@@ -312,11 +344,10 @@ class Player {
 	
 	canReserve(take: ValVector, give?: ValVector): boolean {
 		if (this.reserved.length >= 3) return false;
-		
-		return this.canGet(take, give);
+		else return this.canGet(take, give);
 	}
 
-	getTokens(take: ValVector, give?: ValVector): void {
+	addTokens(take: ValVector, give?: ValVector): void {
 		if (give == undefined) give = [0, 0, 0, 0, 0, 0];
 		
 		for (let i = 0; i < 6; i++ ) {
@@ -326,9 +357,7 @@ class Player {
 	}
 
 	seeReserved(loc: number[]): Card {
-		const res = this.reserved[loc[1]-1]!;
-		//this.reserved.splice(loc[1]-1, 1); // delete it
-		return res;
+		return this.reserved[loc[1]-1]!;
 	}
 
 	takeReserved(loc: number[]): Card {
@@ -338,7 +367,6 @@ class Player {
 	}
 	
 	addCard(c: Card): void {
-			console.log('added ' + c.color.toString());
 		this.owned[c.color].push(c);
 	}
 	
@@ -352,26 +380,46 @@ class Player {
 	
 }
 
+
+function drawCards(cardOrder: number[]): Card[] {
+	return permute(CARD_SET, permutation(90, cardOrder));
+}
+
+export function setupStacks(cardOrder: number[]): CardId[][] {
+	let res: CardId[][] = [[], [], []];
+	
+	const cardSeq = drawCards(cardOrder);
+	for (let r = 0; r < 3; r++)
+		res[r] = cardSeq.filter((c: Card) => c.row == r+1).map((c: Card) => c.id);
+	
+	return res;	
+}
+
+
 class Table {
 	nobles: (Noble|undefined)[] = [];
 	stacks: Card[][] = [[], [], []];
 	rows: (Card|undefined)[][] = [[], [], []];	
 	tokens: ValVector = [0, 0, 0, 0, 0, 0];
 	
-	constructor(n: number) {
+	constructor(n: number, noNobles: boolean = false, presetOrder?: number[]) {
 		if (n < 2 || n > 4) throw new Error("Wrong num of players");
-		
-		const CARDS_PERM = permute(CARD_SET, permutation(90, randSeq(90)));
-		const NOBLES_PERM = permute(NOBLES, permutation(10, randSeq(10)));
+				
+		const  cardOrder = presetOrder ?? randSeq(90);
+				console.log(cardOrder);
+				
+		const CARD_SEQ = permute(CARD_SET, permutation(90, cardOrder));
 		
 		for (let r = 0; r < 3; r++)
-			this.stacks[r] = CARDS_PERM.filter((c: Card) => c.row == r+1);
+			this.stacks[r] = CARD_SEQ.filter((c: Card) => c.row == r+1);
 		
 		for (let i: number = 0; i < 3; i++)
 			for (let j: number = 0; j < 4; j++)
 				this.rows[i][j] = this.stacks[i].shift()!;
-		
-		for (let i = 0; i <= n; i++) this.nobles[i] = NOBLES_PERM.shift()!;
+
+		const NOBLES_PERM = permute(NOBLES, permutation(10, randSeq(10)));		
+
+		if (!noNobles) for (let i = 0; i <= n; i++) this.nobles[i] = NOBLES_PERM.shift()!;
 
 		const nToks = [0, 0, 4, 5, 7][n];
 		for (let i: Color = Color.WHITE; i < Color.YELLOW; i++) this.tokens[i] = nToks;
@@ -383,18 +431,12 @@ class Table {
 		if (loc[0] < 1 || loc[0] > 3) throw new Error('Invalid row number');
 		if (loc[1] < 0 || loc[1] > 4) throw new Error('Invalid col number');
 		
-		if (loc[1] == 0) return this.stacks[loc[0]-1].shift(); // Taking from stack
-		
-		const res = this.rows[loc[0]-1][loc[1]-1];
-		//this.rows[loc[0]-1][loc[1]-1] = undefined;
-		//this.rows[loc[0]-1][loc[1]-1] = this.stacks[loc[0]-1].shift();
-		
-		//	console.log('Taking card: ' + res);
-		
-		return res;
+		if (loc[1] == 0) return this.stacks[loc[0]-1][0]; // Taking from stack
+
+		return this.rows[loc[0]-1][loc[1]-1];
 	}
 
-	takeCard(loc: number[]): Card | undefined {
+	takeCard(loc: number[], dontFill: boolean = false): Card | undefined {
 		if (loc[0] < 1 || loc[0] > 3) throw new Error('Invalid row number');
 		if (loc[1] < 0 || loc[1] > 4) throw new Error('Invalid col number');
 		
@@ -402,10 +444,8 @@ class Table {
 		
 		const res = this.rows[loc[0]-1][loc[1]-1];
 		this.rows[loc[0]-1][loc[1]-1] = undefined;
-		this.rows[loc[0]-1][loc[1]-1] = this.stacks[loc[0]-1].shift();
-		
-		//	console.log('Taking card: ' + res);
-		
+		if (!dontFill) this.rows[loc[0]-1][loc[1]-1] = this.stacks[loc[0]-1].shift();
+				
 		return res;
 	}
 	
@@ -427,9 +467,7 @@ class Table {
 
 	takeNoble(k: number): Noble | undefined {
 		const res = this.nobles[k-1];
-		//return undefined;
-		this.nobles[k-1] = undefined;
-		
+		this.nobles[k-1] = undefined;		
 		return res;
 	}	
 
@@ -437,17 +475,7 @@ class Table {
 		return '\n' + '   W B G R K Y' + '\n' + '   ' + this.tokens.join(' ');
 	}
 
-	nobleStr(): string {
-		/*
-		"|   --A--     -----     -----     -----  ",
-		"|  |('_')|   |5 (G)|   |5 (G)|   |5 (G)| ",
-		"|  |/| |\|   |     |   |     |   |     | ",
-		"|  |.....|   |.....|   |.....|   |.....| ",
-		"|  |.....|   |.....|   |.....|   |.....| ",
-		"|   -----     -----     -----     -----  ",
-		
-		*/
-		
+	nobleStr(): string {		
 		let border = '';
 		let costN = '';
 		let costC = '';
@@ -459,7 +487,7 @@ class Table {
 				costC += ('   |' + priceStrC(this.nobles[i]!.price) +'|');
 			}
 			else {
-				border +=  "          ";
+				border += "          ";
 				costN +=  "          ";
 				costC +=  "          ";
 			}
@@ -469,31 +497,6 @@ class Table {
 	}
 
 	rowStr(row: number): string {
-		const template =
-		[
-		" --------------------------------------------------- ",
-		"|     -----     -----     -----     -----     -----  ",
-		"|    |XXXXX|   |5 (G)|   |5 (G)|   |5 (G)|   |5 (G)| ",
-		"| 16 |XXXXX|   |     |   |     |   |     |   |     | ",
-		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
-		"|     -----     -----     -----     -----     -----  ",
-		"|                                                    ",
-		"|     -----     -----     -----     -----     -----  ",
-		"|    |XXXXX|   |5 (G)|   |5 (G)|   |5 (G)|   |5 (G)| ",
-		"| 26 |XXXXX|   |     |   |     |   |     |   |     | ",
-		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
-		"|     -----     -----     -----     -----     -----  ",
-		"|                                                    ",
-		"|     -----     -----     -----     -----     -----  ",
-		"|    |XXXXX|   |5 (G)|   |5 (G)|   |5 (G)|   |5 (G)| ",
-		"| 36 |XXXXX|   |     |   |     |   |     |   |     | ",
-		"|    |XXXXX|   |.....|   |.....|   |.....|   |.....| ",
-		"|     -----     -----     -----     -----     -----  ",
-		" --------------------------------------------------- ",
-		"|   (W)   (B)   (G)   (R)   (K)    (Y)               ",
-		"|    4     4     4     4     4      5                ",
-		" --------------------------------------------------- ",
-		].join('\n');
 
 		const hCardBorders =
 		"|-----   -----   -----   -----   -----  ";
@@ -501,9 +504,6 @@ class Table {
 		"|  NN |";
 		const valStripCont = 
 					" |P (C)|";
-		//let midStrip = 
-		//"| NN |XXXXX| |     | |     | |     | |     | ";
-		
 		const priceStripStart =
 		"|.....|";
 		const priceStripCont =
@@ -515,29 +515,36 @@ class Table {
 		let priceStripN = priceStripStart;
 		let priceStripC = priceStripStart;
 		
-		for (let i = 0; i < 4; i++) {
-			const card = this.rows[r][i]!;
-			valStrip += valStripCont.replace('P', pointStr(card.points)).replace('C', color2char(card.color));
-			priceStripN += priceStripCont.replace('vvvvv', priceStrN(card.price));
-			priceStripC += priceStripCont.replace('vvvvv', priceStrC(card.price));
+		for (let i = 0; i < 4; i++) {			
+			const card = this.rows[r][i];
+			
+			let colorLetter = " ";
+			let points = 0;
+			let price: ValVector = [0, 0, 0, 0, 0, 0];
+			if (card == undefined) {
+			}
+			else {
+				colorLetter = color2char(card.color);
+				points = card.points;
+				price = card.price;
+			}
+			
+			valStrip += valStripCont.replace('P', pointStr(points)).replace('C', colorLetter);
+			priceStripN += priceStripCont.replace('vvvvv', priceStrN(price));
+			priceStripC += priceStripCont.replace('vvvvv', priceStrC(price));
 		}
-		
-		//midStrip = midStrip.replace('NN', (this.stacks[r].length + 100).toString().substr(1));
-		
-		return [hCardBorders, valStrip, //midStrip, 
-										priceStripN, priceStripC, hCardBorders].join('\n');
+				
+		return [hCardBorders, valStrip, priceStripN, priceStripC, hCardBorders].join('\n');
 	}
 	
 	str(): string {
-		return  "-----------------------------\n" +
-				"---------- Table ------------\n" +
+		return  "---------- Table ------------\n" +
 				this.nobleStr() + '\n' +
 				this.rowStr(2) + '\n' +
 				this.rowStr(1) + '\n' +
 				this.rowStr(0) + '\n' +
 				"--------------------------\n" +
 				this.tokenStr() + '\n' +
-				"--------------------------\n" +
 				"--------------------------\n";
 	}
 
@@ -551,11 +558,9 @@ class Table {
 				"--------------------------\n";
 	}
 
-
 	tnStr(): string {
 		const tS = this.tokenStr().split('\n');
 		const nS = this.nobleStr().split('\n');
-		
 		return  '              ' + nS[0] + '\n' + tS[1] + nS[1] + '\n' + tS[2] + nS[2] + '\n' +
 				'              ' + nS[3];
 	}
@@ -570,26 +575,36 @@ class Game {
 	
 	turn: number;
 
-	constructor(n: number) {
+	dontFill: boolean = false;
+
+	constructor(n: number, noNobs: boolean = false, presetOrder?: number[]) {
 		this.nPlayers = n;
 		this.players = [];
 		for (let i: number = 0; i < n; i++)
 			this.players.push(new Player());
-		this.table = new Table(n);
+		this.table = new Table(n, noNobs, presetOrder);
 		
 		this.turn = 0;
 	}
 	
-	move(s: string): void {
-		
-		
+	nextPlayer(s: string): void {
 		this.turn = (this.turn+1) % this.nPlayers;
 	}
 
-
-	moveTake(k: number, c: Command): boolean {
+	handleNoble(p: Player, c: Command): void {
+		if (c.noble != undefined) {
+			const nob = this.table.takeNoble(c.noble!)!;
+			p.addNoble(nob);
+		}
+	}
+	
+	
+	
+	validateTake(k: number, c: Command): boolean {
 		let player = this.players[k];
-		if (!validateTake(c.take!)) {
+
+		// Validation part
+		if (!verifyTake(c.take!)) {
 			console.log('Incorrect Take');
 			return false;
 		}
@@ -627,25 +642,40 @@ class Game {
 				return false;
 			}
 
-		this.table.takeTokens(c.take!);
-		if (c.give != undefined) this.table.putTokens(c.give!);
-	
-		player.getTokens(c.take!, c.give);
-		
-			if (c.noble != undefined) {
-				const nob = this.table.takeNoble(c.noble!)!;
-				player.addNoble(nob);
-			}
 		
 		return true;
 	}
 
 
-	moveBuy(k: number, c: Command): boolean {
+	moveTake(k: number, c: Command): boolean {
 		let player = this.players[k];
+
+		if (!this.validateTake(k, c)) return false;
+
+		// Execution part
+
+		this.table.takeTokens(c.take!);
+		if (c.give != undefined) this.table.putTokens(c.give!);
 	
+		player.addTokens(c.take!, c.give);
+		
+		// if (c.noble != undefined) {
+			// const nob = this.table.takeNoble(c.noble!)!;
+			// player.addNoble(nob);
+		// }
+		
+		this.handleNoble(player, c);
+		
+		return true;
+	}
+
+
+	validateBuy(k: number, c: Command): boolean {
+		let player = this.players[k];
+		
 		const fromReserve = (c.loc![0] == 0);
 	
+		// Validation part
 		const card = fromReserve ? 
 							player.reserved[c.loc![1]-1]	:	this.table.rows[c.loc![0]-1][c.loc![1]-1];
 		if (card == undefined) {///throw new Error('No card!');
@@ -655,7 +685,6 @@ class Game {
 		const realPrice = getRealPrice(card!.price, player.owned);
 		
 		const pay = (c.give == undefined) ? realPrice : c.give!;
-		//const payEffective = 
 		
 		// pay must satisfy card price
 			console.log(pay);
@@ -671,6 +700,9 @@ class Game {
 			console.log('Wrong number of tokens remaining on player');
 			return false;
 		}
+		
+		
+		
 
 		// Check noble
 		//..
@@ -699,36 +731,55 @@ class Game {
 				return false;
 			}
 
-		const taken = fromReserve ? 
-							  player.takeReserved(c.loc!) : this.table.takeCard(c.loc!)!;
-							  
-
-		player.getTokens([0, 0, 0, 0, 0, 0], pay);
-		this.table.putTokens(pay);
-		
-
-		player.addCard(taken);
-
-			if (c.noble != undefined) {
-				const nob = this.table.takeNoble(c.noble!)!;
-				player.addNoble(nob);
-			}
-		
 		return true;
 	}
 
-	moveReserve(k: number, c: Command): boolean {
+
+	moveBuy(k: number, c: Command): boolean {
+		let player = this.players[k];
+
+		if (!this.validateBuy(k, c)) return false;
+
+	
+		const fromReserve = (c.loc![0] == 0);
+	
+		const card = fromReserve ? 
+							player.reserved[c.loc![1]-1]	:	this.table.rows[c.loc![0]-1][c.loc![1]-1];
+		const realPrice = getRealPrice(card!.price, player.owned);
+		const pay = (c.give == undefined) ? realPrice : c.give!;
+
+		// Execution part
+		const taken = fromReserve ? 
+							  player.takeReserved(c.loc!) : this.table.takeCard(c.loc!, this.dontFill)!;				  
+
+		player.addTokens([0, 0, 0, 0, 0, 0], pay);
+		this.table.putTokens(pay);
+		
+		player.addCard(taken);
+
+		// if (c.noble != undefined) {
+			// const nob = this.table.takeNoble(c.noble!)!;
+			// player.addNoble(nob);
+		// }
+
+		this.handleNoble(player, c);
+	
+		return true;
+	}
+
+	
+
+	validateReserve(k: number, c: Command): boolean {
 		let player = this.players[k];
 
 		const card = (c.loc![1] == 0) ?
 					   this.table.stacks[c.loc![0]-1].at(-1)	: this.table.rows[c.loc![0]-1][c.loc![1]-1];
-
-		if (card == undefined) {//throw new Error('No card!');
+		const take: ValVector = (this.table.tokens[Color.YELLOW] > 0) ? [0, 0, 0, 0, 0, 1] : [0, 0, 0, 0, 0, 0];
+		
+		if (card == undefined) {
 			console.log("No card!");
 			return false;
 		}
-
-		const take: ValVector = (this.table.tokens[Color.YELLOW] > 0) ? [0, 0, 0, 0, 0, 1] : [0, 0, 0, 0, 0, 0];
 		
 		if (!player.canReserve(take, c.give)) {
 			console.log('Wrong number of tokens remaining on player or 3 reserved');
@@ -758,23 +809,41 @@ class Game {
 				return false;
 			}
 
+		
+		return true;
+	}
 
-		const taken = this.table.takeCard(c.loc!)!;
+
+	moveReserve(k: number, c: Command): boolean {
+		let player = this.players[k];
+
+		const card = (c.loc![1] == 0) ?
+					   this.table.stacks[c.loc![0]-1].at(-1)	: this.table.rows[c.loc![0]-1][c.loc![1]-1];
+		const take: ValVector = (this.table.tokens[Color.YELLOW] > 0) ? [0, 0, 0, 0, 0, 1] : [0, 0, 0, 0, 0, 0];
+
+
+		if (!this.validateReserve(k, c)) return false;
+
+		// Execution part
+		const taken = this.table.takeCard(c.loc!, this.dontFill)!;
 		player.reserveCard(taken);
 
 		this.table.takeTokens(take);
 		if (c.give != undefined) this.table.putTokens(c.give!);
 	
-		player.getTokens(take, c.give);
+		player.addTokens(take, c.give);
 
-			if (c.noble != undefined) {
-				const nob = this.table.takeNoble(c.noble!)!;
-				player.addNoble(nob);
-			}
+		// if (c.noble != undefined) {
+			// const nob = this.table.takeNoble(c.noble!)!;
+			// player.addNoble(nob);
+		// }
+
+		this.handleNoble(player, c);
 
 		return true;
 		
 	}
+
 
 	movePlayer(k: number, s: string): boolean {
 		let player = this.players[k];
@@ -922,10 +991,18 @@ function parseTake(s: string[]): Command {
 	
 	s.shift(); // "t"
 	res.take = parseTokenList(s);
+	if (res.take == undefined) {
+		console.log("Wrong token list");
+		return new Command();
+	}
 	
 	if (s[0] == '-') {
 		s.shift();
 		res.give = parseTokenList(s);
+		if (res.give == undefined) {
+			console.log("Wrong token list");
+			return new Command();
+		}
 	}
 	
 	res.noble = parseOptNoble(s);
@@ -948,6 +1025,10 @@ function parseBuy(s: string[]): Command {
 	if (s[0] == 'p') {
 		s.shift();
 		res.give = parseTokenList(s);
+		if (res.give == undefined) {
+			console.log("Wrong token list");
+			return new Command();
+		}
 	}
 
 	res.noble = parseOptNoble(s);
@@ -971,6 +1052,10 @@ function parseReserve(s: string[]): Command {
 	if (s[0] == '-') {
 		s.shift();
 		res.give = parseTokenList(s);
+		if (res.give == undefined) {
+			console.log("Wrong token list");
+			return new Command();
+		}
 	}
 
 	res.noble = parseOptNoble(s);
@@ -986,13 +1071,14 @@ function letter2color(s: string): Color {
 	return 'wbgrky'.indexOf(s[0]);
 }	
 
-function parseTokenList(s: string[]): ValVector {
+function parseTokenList(s: string[]): ValVector | undefined {
 	let res: ValVector = [0, 0, 0, 0, 0, 0];
 	let numStr = '';
 	let anyColor = false;
 	while ('0123456789wbgrky'.includes(s[0])) {
 		if ('0123456789'.includes(s[0])) {
-			if (numStr.length > 0) throw new Error("number after number!");
+			if (numStr.length > 0) //throw new Error("number after number!");
+									return undefined;
 			numStr = s.shift()!;
 		}
 		else if ('wbgrky'.includes(s[0])) {			
@@ -1009,7 +1095,8 @@ function parseTokenList(s: string[]): ValVector {
 		//}
 	}
 	
-	if (!anyColor) throw new Error('Empty color list');
+	if (!anyColor) //throw new Error('Empty color list');
+				return undefined;
 	
 	return res;
 }
@@ -1043,7 +1130,7 @@ function parseOptNoble(s: string[]): number | undefined {
 }
 
 
-function validateTake(v: ValVector): boolean {
+function verifyTake(v: ValVector): boolean {
 	let sum = 0;
 	for (let i = 0; i < v.length; i++) {
 		sum += v[i];
