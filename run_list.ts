@@ -249,16 +249,26 @@ function str2vv(s: string): ValVector {
 	return res;
 }
 
+function vv2str(v: ValVector): string {
+	return "[" + v + "]";
+}
+
 
 function crossVecs(takes: string[], returns: string[]): ValVector[] {
 	let sums: ValVector[] = [];
+	let strSums: string[] = [];
 	
 	for (const t of takes) {
 		for (const r of returns) {
 			const added = vecSub(str2vv(t), str2vv(r));
 			sums.push(added);
+				//strSums.push(vv2str(added));
 		}
 	}
+	
+		// console.log("Takes: " + takes);
+		// console.log("Rutus: " + returns);
+		// console.log("Cross: " + strSums);
 	
 	return sums;
 }
@@ -431,9 +441,11 @@ function makeMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, 
 	//	console.log("Legal: " + legalTakes);
 	//	console.log("Illegal: " + illegalTakes);
 	
-    const rets = getReturns(surplus);	
-	//	console.log("returns: " + rets);
+    const rets = getReturns(surplus);
 	
+	//	if (surplus > 0)	
+	//		console.log("Surplus!!!  returns: " + rets);
+		
 	return crossVecs(legalTakes, rets);
 }
 
@@ -502,7 +514,7 @@ let iter = 0;
 while (iter++ < 10) {
 	viewedNode.fillFollowers();
 		
-	
+	console.log("Move -----------------------------------------------------------");
 	console.log(viewedNode.state.table.tokens);
 	console.log(viewedNode.state.player.tokens);
 
