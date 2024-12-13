@@ -1,8 +1,11 @@
 
-import {Color, ValVector, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardColor,
-		vecAdd, vecSub, vecEnough, vecSum} from './rules.ts';
+import {ValVector, satisfies, vecAdd, vecSub, vecEnough, vecSum,
+		vecNonNegative, vecLimit0, str2vv, vv2str	} from './valvec.ts'
+import {Color, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardColor,
+		} from './rules.ts';
 
-import { } from './comb.ts';
+import { STR_1x1, STR_2x1, STR_1x2, STR_1x3, STR_1x2_1x1, STR_3x1,
+		crossVecs, encodeVec, decodeVec} from './comb.ts';
 
 const presetOrder: number[] = [
    7, 23, 52, 12, 66, 52, 74, 79, 79, 43,  7, 74,
@@ -18,27 +21,6 @@ const presetOrder: number[] = [
 
 let game = new Game(3, true, presetOrder);
 game.dontFill = true;
-
-console.log(game.table.str());
-console.log(game.players[0]);
-
-
-function playMovesSinglePlayer(commands: string[]): void {
-	for (const s of commands) {
-		if (game.movePlayer(0, s)) {
-			console.log("Move valid: " + s);
-		}
-		else {
-			console.log("Move not valid: " + s);
-		};
-		
-	}
-
-	console.log(game.table.strSh());
-	console.log('');
-	console.log(game.players[0].strSh(0));
-	game.sumUp();
-}
 
 
 ////////////////////////////////////////
@@ -161,105 +143,6 @@ class BuyMove1 extends Move1 {
 }
 
 
-// Sum 1
-const STR_1x1 = [
-  "00001", "00010", "00100", "01000", "10000",
-];
-
-
-// Sum 2
-const STR_2x1 = [
-  "00011", "00110", "01100", "11000", "10001", "00101", "01010", "10100", "01001", "10010",
-];
-
-const STR_1x2 = [
-  "00002", "00020", "00200", "02000", "20000",
-];
-
-
-// Sum 3
-const STR_1x3 = [
-  "00003", "00030", "00300", "03000", "30000",
-];
-
-const STR_1x2_1x1 = [
-  "00012", "00120", "01200", "12000", "20001",
-  "00102", "01020", "10200", "02001", "20010",
-  "01002", "10020", "00201", "02010", "20100",
-  "10002", "00021", "00210", "02100", "21000",
-];		
-
-const STR_3x1 = [
-  "00111", "01110", "11100", "11001", "10011", "01011", "10110", "01101", "11010", "10101",
-];
-
-
-function vecNonNegative(v: ValVector): boolean {
-	return !(v.some((x) => x < 0));
-}
-
-function vecLimit0(v: ValVector): ValVector {
-	let res: ValVector = [...v];
-	
-	for (let i = 0; i < 6; i++) {
-		if (res[i] < 0) res[i] = 0;
-	}
-	
-	return res;
-}
-
-
-function str2vv(s: string): ValVector {
-	let res: ValVector = [0, 0, 0, 0, 0, 0];
-	const n = Math.min(s.length, 6);
-	for (let i = 0; i < n; i++) {
-		res[i] = parseInt(s[i]);
-	}
-	return res;
-}
-
-function vv2str(v: ValVector): string {
-	return "[" + v + "]";
-}
-
-
-function crossVecs(takes: string[], returns: string[]): ValVector[] {
-	let sums: ValVector[] = [];
-	let strSums: string[] = [];
-	
-	for (const t of takes) {
-		for (const r of returns) {
-			const added = vecSub(str2vv(t), str2vv(r));
-			sums.push(added);
-		}
-	}
-	
-	return sums;
-}
-
-
-function encodeVec(v: ValVector): number {
-	let res = 0;
-	
-	for (let i = 5; i >= 0; i--) {
-		res *= 16;
-		res += (v[i] & 15);
-	}
-	
-	return res;
-}
-
-function decodeVec(n: number): ValVector {
-	let res: ValVector = [0,0,0,0,0,0];
-
-	for (let i = 0; i < 6; i++) {		
-		res[i] = n & 15;
-		if (res[i] > 7) res[i] -= 16; // 7 is max toks per color, above are negatives
-		n = n >>> 4;
-	}
-
-	return res;
-}
 
 // Split vec with possible negatives into a legal combination of take and return
 function findCanonicalTake(v: ValVector): string {
@@ -385,6 +268,7 @@ function makeMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, 
 	return crossVecs(legalTakes, rets);
 }
 
+// COMB
 function getReturns(surplus: number): string[] {
 	if (surplus < 0 && surplus > 3) throw new Error("wrong surplus");
 	
@@ -424,18 +308,10 @@ const player = tree.root.state.player;
 const table = tree.root.state.table;
 
 
-console.log(tree.root.state);
-console.log(table.rows);
-console.log(table.stacks);
-
 
 const stateCopy = tree.root.state.deepCopy();
 
-
-console.log(tree.root.state);
-
 console.log(stateCopy);
-
 console.log(table.rows);
 console.log(table.stacks);
 

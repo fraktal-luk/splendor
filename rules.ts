@@ -1,4 +1,6 @@
 
+import {ValVector, satisfies, vecAdd, vecSub, vecEnough, vecSum} from './valvec.ts'
+
 export enum Color {WHITE, BLUE, GREEN, RED, BLACK, YELLOW};
 
 export function color2char(c: Color): string {
@@ -6,43 +8,6 @@ export function color2char(c: Color): string {
 }
 
 type Row = number;
-export type ValVector = [number, number, number, number, number, number];
-
-// Checks if price is exact 
-function satisfies(paid: ValVector, price: ValVector): boolean {
-	let missing = 0;
-	for (let i = 0; i < 5; i++)
-		if (price[i] > paid[i]) missing += (price[i] - paid[i]);
-	
-	return paid[5] == missing;
-}
-
-export function vecAdd(a: ValVector, b: ValVector): ValVector {
-	let res: ValVector = [0, 0, 0, 0, 0, 0];
-	for (let i = 0; i < a.length; i++)
-		res[i] = a[i] + b[i];
-	return res;
-}	
-
-export function vecSub(a: ValVector, b: ValVector): ValVector {
-	let res: ValVector = [0, 0, 0, 0, 0, 0];
-	for (let i = 0; i < a.length; i++)
-		res[i] = a[i] - b[i];
-	return res;
-}	
-
-export function vecEnough(a: ValVector, b: ValVector): boolean {
-	for (let i = 0; i < a.length; i++)
-		if (!(a[i] >= b[i])) return false;
-	return true;
-}	
-
-export function vecSum(a: ValVector): number {
-	let res = 0;
-	for (let i = 0; i < a.length; i++)
-		res += a[i];
-	return res;
-}	
 
 
 function getRealPrice(price: ValVector, cards: Card[][]): ValVector {
