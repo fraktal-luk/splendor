@@ -77,3 +77,29 @@ export function decodeVec(n: number): ValVector {
 
 	return res;
 }
+
+// COMB
+export function getReturns(surplus: number): string[] {
+	if (surplus < 0 && surplus > 3) throw new Error("wrong surplus");
+	
+	let result: string[] = [];
+	
+	switch (surplus) {
+	case 3:
+		result = result.concat(STR_3x1);
+		result = result.concat(STR_1x2_1x1);
+		result = result.concat(STR_1x3);
+		break;
+	case 2:
+		result = result.concat(STR_2x1);
+		result = result.concat(STR_1x2);
+		break;
+	case 1:
+		result = result.concat(STR_1x1);
+		break;
+	case 0:
+		result.push("000000");
+	}
+	
+	return result;
+}
