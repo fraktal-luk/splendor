@@ -41,6 +41,36 @@ function playMovesSinglePlayer(commands: string[]): void {
 }
 
 
+const moves = [
+	"t wgr",
+    "t grw",
+    "t brk",
+	"b 12",
+	"b 13",
+	
+	"t wbg",
+	"t brk",
+	"b 23",
+	
+	"twbk",
+	"twbk",
+	
+	"b 22",
+	
+	"t 2g",
+	"t wbg",
+	"t bgr",
+	"b 34",
+	
+	"t 2r",
+	"t r",
+	"t r",
+	"b 21",
+	
+	"t 2r",
+	"b 24"
+];
+
 ////////////////////////////////////////
 
 // 1 player tree analysis
@@ -439,30 +469,4 @@ console.log(stateCopy);
 console.log(table.rows);
 console.log(table.stacks);
 
-let viewedNode = tree.root;
-let iter = 0;
-
-while (iter++ < 10) {
-	viewedNode.fillFollowers();
-		
-	console.log("Move -----------------------------------------------------------");
-	console.log(viewedNode.state.table.tokens);
-	console.log(viewedNode.state.player.tokens);
-
-	console.log(viewedNode.followersBuy.size);
-	console.log(viewedNode.followersBuy);
-	console.log(viewedNode.followersTake.size);
-	
-	if (viewedNode.followersBuy.size > 0) {
-		const chosenMove = viewedNode.followersBuy.keys().next().value;
-		viewedNode = viewedNode.followersBuy.values().next().value;
-		console.log("Move: " + chosenMove.toks + "\n");
-	}
-	else {
-		const chosenMove = viewedNode.followersTake.keys().next().value;
-		viewedNode = viewedNode.followersTake.values().next().value;
-		console.log("Move: " + chosenMove.toks + "\n");
-	}
-	
-}
-
+playMovesSinglePlayer(moves);
