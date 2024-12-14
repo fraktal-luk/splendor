@@ -24,6 +24,15 @@ const presetOrder: number[] = [
 // 1 player tree analysis
 // no nobles, no reservations or gold
 
+class TableStruct1 {
+	stackLevels: [number, number, number] = [0, 0, 0];
+	cardsRow3: [number, number, number, number]  = [0, 0, 0, 0];
+	cardsRow2: [number, number, number, number]  = [0, 0, 0, 0];
+	cardsRow1: [number, number, number, number]  = [0, 0, 0, 0];
+	tokLevels: [number, number, number, number, number, number]  = [0, 0, 0, 0, 0, 0];
+}
+
+
 class TableState1 {
 	tokens: ValVector = [4, 4, 4, 4, 4, 0];
 	rows: CardId[][] = [[], [], []];
@@ -69,8 +78,41 @@ class TableState1 {
 			if (this.tokens[i] < 0) throw new Error("Negative toks in table");
 		}
 	}
+	
+	toStruct(): TableStruct1 {
+		let res = new TableStruct1();
+
+		for (let i = 0; i < this.stacks.length; i++)
+			res.stackLevels[i] = this.stacks[i]!.length;
+
+		for (let i = 0; i < 4; i++) {
+			res.cardsRow1[i] = this.stacks[0]![i];
+			res.cardsRow2[i] = this.stacks[1]![i];
+			res.cardsRow3[i] = this.stacks[2]![i];
+		}
+
+		for (let i = 0; i < this.tokens.length; i++)
+			res.tokLevels[i] = this.tokens[i]!;
+
+		return res;
+	}
+	
+	toBigInt(): BigInt {
+		return BigInt(0);
+	}
+	
+	static fromBigInt(b: BigInt): TableState1 {
+		return new TableState1();
+	}
 }
 
+
+class PlayerStruct1 {
+	cardLevels: [number, number, number, number, number] = [0, 0, 0, 0, 0];
+	tokLevels: [number, number, number, number, number, number]  = [0, 0, 0, 0, 0, 0];
+	reserved: [number, number, number] = [0, 0, 0];
+	points: number = 0;
+}
 
 class PlayerState1 {
 	tokens: ValVector = [0, 0, 0, 0, 0, 0];
@@ -117,7 +159,33 @@ class PlayerState1 {
 			if (this.tokens[i] < 0) throw new Error("Negative toks in player");
 		}
 	}
+	
+	toStruct(): PlayerStruct1 {
+		let res = new PlayerStruct1();
 
+		for (let i = 0; i < this.bonuses.length; i++)
+			res.cardLevels[i] = this.bonuses[i]!;
+
+		for (let i = 0; i < this.tokens.length; i++)
+			res.tokLevels[i] = this.tokens[i]!;
+		
+		// No reserved yet
+		// for (let i = 0; i < 3; i++)
+			// res.tokLevels[i] = this.tokens[i]!;
+		
+		res.points = this.points;
+
+		return res;
+	}
+
+
+	toBigInt(): BigInt {
+		return BigInt(0);
+	}
+	
+	static fromBigInt(b: BigInt): PlayerState1 {
+		return new PlayerState1();
+	}
 }
 
 class GameState1 {
@@ -130,6 +198,15 @@ class GameState1 {
 		res.player = this.player.deepCopy();
 		
 		return res;
+	}
+	
+	
+	toBigInt(): BigInt {
+		return BigInt(0);
+	}
+	
+	static fromBigInt(b: BigInt): GameState1 {
+		return new GameState1();
 	}
 }
 
@@ -271,4 +348,12 @@ while (iter++ < 10) {
 	}
 	
 }
+
+console.log("Conv:");
+console.log(viewedNode.state.table.toBigInt());
+console.log(TableState1.fromBigInt(5n));
+
+console.log(viewedNode.state.table.toStruct());
+
+console.log(viewedNode.state.player.toStruct());
 
