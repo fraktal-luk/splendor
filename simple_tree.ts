@@ -30,6 +30,45 @@ class TableStruct1 {
 	cardsRow2: [number, number, number, number]  = [0, 0, 0, 0];
 	cardsRow1: [number, number, number, number]  = [0, 0, 0, 0];
 	tokLevels: [number, number, number, number, number, number]  = [0, 0, 0, 0, 0, 0];
+	
+	toBigInt(): BigInt {
+		let resStacks = 0n; // 3B
+		let resCards3 = 0n; // 4B
+		let resCards2 = 0n; // 4B
+		let resCards1 = 0n; // 4B
+		let resTokens = 0n; // 3B
+		
+		for (const stl of this.stackLevels) {
+			resStacks = (resStacks << 8n) | BigInt(stl);
+		}
+
+		for (const stl of this.cardsRow3) {
+			resCards3 = (resCards3 << 8n) | BigInt(stl);
+		}
+
+		for (const stl of this.cardsRow2) {
+			resCards2 = (resCards2 << 8n) | BigInt(stl);
+		}
+		
+		for (const stl of this.cardsRow1) {
+			resCards1 = (resCards1 << 8n) | BigInt(stl);
+		}
+
+		for (const stl of this.tokLevels) {
+			resTokens = (resTokens << 4n) | BigInt(stl);
+		}
+
+		let finalRes = (resTokens << 24n) | (resStacks);
+		finalRes = (finalRes << 32n) | resCards3;
+		finalRes = (finalRes << 32n) | resCards2;
+		finalRes = (finalRes << 32n) | resCards1;
+
+			console.log("  >>  " + this);
+			console.log("   >  " + finalRes.toString(16));
+			
+		
+		return finalRes;
+	}
 }
 
 
@@ -98,7 +137,7 @@ class TableState1 {
 	}
 	
 	toBigInt(): BigInt {
-		return BigInt(0);
+		return this.toStruct().toBigInt();
 	}
 	
 	static fromBigInt(b: BigInt): TableState1 {
@@ -116,9 +155,7 @@ class PlayerStruct1 {
 
 class PlayerState1 {
 	tokens: ValVector = [0, 0, 0, 0, 0, 0];
-						//[1, 2, 3, 3, 0, 0];
 	bonuses: ValVector = [0, 0, 0, 0, 0, 0];
-						//[3, 0, 0, 0, 4, 0];
 	points: number = 0;
 	
 	cols: CardId[][] = [[], [], [], [], []];
