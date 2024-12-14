@@ -103,3 +103,45 @@ export function getReturns(surplus: number): string[] {
 	
 	return result;
 }
+
+
+export function makeMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, surplus: number): ValVector[] {	
+	let legalTakes: string[] = [];
+	let illegalTakes: string[] = [];
+	
+	// Moves are checked to not take more than table contains
+	for (const s of strs) {
+		const vec = str2vv(s);
+		if (!vecEnough(tableToks, vec)) illegalTakes.push(s);
+		else legalTakes.push(s);
+	}
+	
+    const rets = getReturns(surplus);
+	
+	// Moves which leave player with negative token are included, will be removed downstream
+	return crossVecs(legalTakes, rets);
+}
+
+export function makeAllTakeMoves(playerToks: ValVector, tableToks:ValVector): ValVector[] {
+	const nPlayerToks = vecSum(playerToks);
+	const surplus1 = Math.max(0, nPlayerToks + 1 - 10);		  
+	const surplus2 = Math.max(0, nPlayerToks + 2 - 10);		  
+	const surplus3 = Math.max(0, nPlayerToks + 3 - 10);
+
+	const moves3 = makeMoves(STR_3x1, playerToks, tableToks, surplus3);
+	const moves2 = makeMoves(STR_2x1, playerToks, tableToks, surplus2);
+	const moves2s = makeMoves(STR_1x2, playerToks, tableToks, surplus2);
+	const moves1 = makeMoves(STR_1x1, playerToks, tableToks, surplus1);
+
+	const allTakeMoves = moves3.concat(moves2).concat(moves2s).concat(moves1);
+	
+	return allTakeMoves;
+}
+
+export function uniqueMoves(moves: ValVector[]): ValVector[] {
+	const encoded = moves.map(encodeVec);		
+	const unique = new Set<number>(encoded);
+	const decoded = [...unique].map(decodeVec);
+	
+	return decoded;	
+}

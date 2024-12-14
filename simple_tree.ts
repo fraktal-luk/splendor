@@ -5,7 +5,8 @@ import {Color, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardCo
 		} from './rules.ts';
 
 import { STR_1x1, STR_2x1, STR_1x2, STR_1x3, STR_1x2_1x1, STR_3x1,
-		crossVecs, encodeVec, decodeVec, getReturns} from './comb.ts';
+		crossVecs, encodeVec, decodeVec, getReturns,
+		makeMoves, makeAllTakeMoves, uniqueMoves} from './comb.ts';
 
 const presetOrder: number[] = [
    7, 23, 52, 12, 66, 52, 74, 79, 79, 43,  7, 74,
@@ -17,11 +18,6 @@ const presetOrder: number[] = [
    3, 12, 11,  6,  3,  8,  7,  5,  0,  7,  1,  1,
    5,  3,  3,  0,  0,  0
 ];
-
-
-let game = new Game(3, true, presetOrder);
-game.dontFill = true;
-
 
 ////////////////////////////////////////
 
@@ -61,12 +57,16 @@ class TableState1 {
 	addToks(v: ValVector): void {
 		for (let i = 0; i < 5; i++) {
 			this.tokens[i] += v[i];
+			
+			if (this.tokens[i] < 0) throw new Error("Negative toks in table");
 		}
 	}
 	
 	takeToks(v: ValVector): void {
 		for (let i = 0; i < 5; i++) {
 			this.tokens[i] -= v[i];
+			
+			if (this.tokens[i] < 0) throw new Error("Negative toks in table");
 		}
 	}
 }
@@ -105,12 +105,16 @@ class PlayerState1 {
 	addToks(v: ValVector): void {
 		for (let i = 0; i < 5; i++) {
 			this.tokens[i] += v[i];
+			
+			if (this.tokens[i] < 0) throw new Error("Negative toks in player");
 		}
 	}
 	
 	takeToks(v: ValVector): void {
 		for (let i = 0; i < 5; i++) {
 			this.tokens[i] -= v[i];
+			
+			if (this.tokens[i] < 0) throw new Error("Negative toks in player");
 		}
 	}
 
@@ -169,7 +173,6 @@ class GameNode1 {
 		this.TMP_fillBuys();
 	}
 
-	
 	TMP_fillBuys(): void {
 		const player = this.state.player;
 		const table = this.state.table;
@@ -208,12 +211,11 @@ class GameNode1 {
 		const decoded = uniqueMoves(allTakeMoves);
 		
 		// Check which moves are impossible because would leave player with negative token states
-		let nonNegatives: ValVector[] = [];
 		
 		for (const v of decoded) {
 			const resulting = vecAdd(playerToks, v);
-			if (vecNonNegative(resulting)) nonNegatives.push(v);
-			
+			if (!vecNonNegative(resulting))
+				continue;
 			let newState = this.state.deepCopy();
 			newState.table.takeToks(v);
 			newState.player.addToks(v);
@@ -228,82 +230,6 @@ class GameNode1 {
 	}
 }
 
-
-function makeAllTakeMoves(playerToks: ValVector, tableToks:ValVector): ValVector[] {
-	const nPlayerToks = vecSum(playerToks);
-
-	const surplus1 = Math.max(0, nPlayerToks + 1 - 10);		  
-	const surplus2 = Math.max(0, nPlayerToks + 2 - 10);		  
-	const surplus3 = Math.max(0, nPlayerToks + 3 - 10);
-
-	// all threes
-	const strs3 = STR_3x1;
-	const moves3 = makeMoves(strs3, playerToks, tableToks, surplus3);
-
-	const strs2 = STR_2x1;
-	const moves2 = makeMoves(strs2, playerToks, tableToks, surplus2);
-
-	const strs2same = STR_1x2;
-	const moves2s = makeMoves(strs2same, playerToks, tableToks, surplus2);
-
-	const strs1 = STR_1x1;
-	const moves1 = makeMoves(strs1, playerToks, tableToks, surplus1);
-
-	let allTakeMoves = moves3.concat(moves2).concat(moves2s).concat(moves1);
-	
-	return allTakeMoves;
-}
-
-function uniqueMoves(moves: ValVector[]): ValVector[] {
-	const encoded = moves.map(encodeVec);		
-	const unique = new Set<number>(encoded);
-	const decoded = [...unique].map(decodeVec);
-	
-	return decoded;	
-}
-
-
-
-function makeMoves(strs: string[], playerToks: ValVector, tableToks: ValVector, surplus: number): ValVector[] {	
-	let legalTakes: string[] = [];
-	let illegalTakes: string[] = [];
-	
-	for (const s of strs) {
-		const vec = str2vv(s);
-		if (!vecEnough(tableToks, vec)) illegalTakes.push(s);
-		else legalTakes.push(s);
-	}
-	
-    const rets = getReturns(surplus);
-	return crossVecs(legalTakes, rets);
-}
-
-// // COMB
-// function getReturns(surplus: number): string[] {
-	// if (surplus < 0 && surplus > 3) throw new Error("wrong surplus");
-	
-	// let result: string[] = [];
-	
-	// switch (surplus) {
-	// case 3:
-		// result = result.concat(STR_3x1);
-		// result = result.concat(STR_1x2_1x1);
-		// result = result.concat(STR_1x3);
-		// break;
-	// case 2:
-		// result = result.concat(STR_2x1);
-		// result = result.concat(STR_1x2);
-		// break;
-	// case 1:
-		// result = result.concat(STR_1x1);
-		// break;
-	// case 0:
-		// result.push("000000");
-	// }
-	
-	// return result;
-// }
-
 class MoveTree1 {
 	root: GameNode1 = new GameNode1();
 }
@@ -316,14 +242,11 @@ tree.root.state.table.fillRows();
 
 const player = tree.root.state.player;
 const table = tree.root.state.table;
-
-
-
 const stateCopy = tree.root.state.deepCopy();
-
 console.log(stateCopy);
 console.log(table.rows);
 console.log(table.stacks);
+
 
 let viewedNode = tree.root;
 let iter = 0;
@@ -331,23 +254,20 @@ let iter = 0;
 while (iter++ < 10) {
 	viewedNode.fillFollowers();
 		
-	console.log("Move -----------------------------------------------------------");
-	console.log(viewedNode.state.table.tokens);
-	console.log(viewedNode.state.player.tokens);
-
-	console.log(viewedNode.followersBuy.size);
-	console.log(viewedNode.followersBuy);
-	console.log(viewedNode.followersTake.size);
+	console.log("Move " + iter + "-----------------------------------------------------------");
+	console.log("P toks: " + viewedNode.state.player.tokens + ", T toks: " + viewedNode.state.table.tokens);
+	
+	console.log("Takes: " + viewedNode.followersTake.size + ", buys " + viewedNode.followersBuy.size);
 	
 	if (viewedNode.followersBuy.size > 0) {
 		const chosenMove = viewedNode.followersBuy.keys().next().value;
 		viewedNode = viewedNode.followersBuy.values().next().value;
-		console.log("Move: " + chosenMove.toks + "\n");
+		console.log("chose Buy " + chosenMove.toks + " @ " + chosenMove.loc + "\n");
 	}
 	else {
 		const chosenMove = viewedNode.followersTake.keys().next().value;
 		viewedNode = viewedNode.followersTake.values().next().value;
-		console.log("Move: " + chosenMove.toks + "\n");
+		console.log("chose Take " + chosenMove.toks + "\n");
 	}
 	
 }
