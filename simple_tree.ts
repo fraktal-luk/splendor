@@ -198,9 +198,9 @@ class TableState1 {
 			res.stackLevels[i] = this.stacks[i]!.length;
 
 		for (let i = 0; i < 4; i++) {
-			res.cardsRow1[i] = this.stacks[0]![i];
-			res.cardsRow2[i] = this.stacks[1]![i];
-			res.cardsRow3[i] = this.stacks[2]![i];
+			res.cardsRow1[i] = this.rows[0]![i];
+			res.cardsRow2[i] = this.rows[1]![i];
+			res.cardsRow3[i] = this.rows[2]![i];
 		}
 
 		for (let i = 0; i < this.tokens.length; i++)
@@ -229,7 +229,20 @@ class TableState1 {
 		let res = new TableState1(); 
 		
 		const struct = TableStruct1.fromStr(s);
-		 
+		
+		for (let i = 0; i < 6; i++)
+			res.tokens[i] = struct.tokLevels[i]!;
+		
+		res.stacks = setupStacks(presetOrder);
+		res.fillRows();
+		res.rows = [struct.cardsRow1, struct.cardsRow2, struct.cardsRow3];
+
+					 
+		for (let i = 0; i < 3; i++) {
+			const level = struct.stackLevels[i]!;
+			const initial = res.stacks[i]!.length;
+			res.stacks[i] = res.stacks[i]!.slice(initial-level, initial);
+		}
 		return res;
 	}
 }
@@ -454,7 +467,7 @@ console.log(table.stacks);
 let viewedNode = tree.root;
 let iter = 0;
 
-while (iter++ < 10) {
+while (iter++ < 10    - 0) {
 	viewedNode.fillFollowers();
 		
 	console.log("Move " + iter + "-----------------------------------------------------------");
@@ -477,17 +490,16 @@ while (iter++ < 10) {
 
 console.log("Conv:");
 
+console.log(viewedNode.state.table);
 console.log(viewedNode.state.table.toStruct());
-//console.log(viewedNode.state.table.toBigInt());
 
-// const bi = viewedNode.state.table.toBigInt();
+console.log("Conv  ....");
 
-// console.log(TableStruct1.fromBigInt(bi));
+	const st = viewedNode.state.table.str();
 
-const st = viewedNode.state.table.str();
+	console.log(st);
+	console.log(TableStruct1.fromStr(st));
 
-console.log(st);
-console.log(TableStruct1.fromStr(st));
-
-//console.log(viewedNode.state.player.toStruct());
+	console.log(viewedNode.state.table);
+	console.log(TableState1.fromStr(st));
 
