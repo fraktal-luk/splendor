@@ -145,3 +145,40 @@ export function uniqueMoves(moves: ValVector[]): ValVector[] {
 	
 	return decoded;	
 }
+
+export function str2nums(s: string, w: number, n: number): number[] {
+	let res: number[] = [];
+	
+	for (let i = 1; i <= n; i++) {
+		const sub = s.substr(-w*i, w);
+		res.push(parseInt(sub, 16));
+	}
+
+	return res;
+}
+
+export function charPairs(s: string): string[] {
+	let res: string[] = [];
+	
+	if (s.length % 2)
+		s = '0' + s;
+	
+	for (let i = 0; i < s.length; i += 2)
+		res.push(s.substr(i, 2));
+	
+	return res;
+}
+
+export function cutArray(arr: number[], lens: number[]): number[][] {
+	let res: number[][] = [];
+	
+	let beg = 0;
+	
+	for (const n of lens) {
+		res.push(arr.slice(beg, beg + n));
+		beg += n;
+	}
+	
+	return res;
+}
+

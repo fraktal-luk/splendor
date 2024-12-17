@@ -6,7 +6,8 @@ import {Color, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardCo
 
 import { STR_1x1, STR_2x1, STR_1x2, STR_1x3, STR_1x2_1x1, STR_3x1,
 		crossVecs, encodeVec, decodeVec, getReturns,
-		makeMoves, makeAllTakeMoves, uniqueMoves} from './comb.ts';
+		makeMoves, makeAllTakeMoves, uniqueMoves,
+		str2nums, charPairs, cutArray} from './comb.ts';
 
 const presetOrder: number[] = [
    7, 23, 52, 12, 66, 52, 74, 79, 79, 43,  7, 74,
@@ -25,50 +26,122 @@ const presetOrder: number[] = [
 // no nobles, no reservations or gold
 
 class TableStruct1 {
-	stackLevels: [number, number, number] = [0, 0, 0];
-	cardsRow3: [number, number, number, number]  = [0, 0, 0, 0];
-	cardsRow2: [number, number, number, number]  = [0, 0, 0, 0];
-	cardsRow1: [number, number, number, number]  = [0, 0, 0, 0];
-	tokLevels: [number, number, number, number, number, number]  = [0, 0, 0, 0, 0, 0];
+	stackLevels: number[]//[number, number, number]
+				= [0, 0, 0];
+	cardsRow3: number[]//[number, number, number, number]
+				= [0, 0, 0, 0];
+	cardsRow2: number[]//[number, number, number, number]
+				= [0, 0, 0, 0];
+	cardsRow1: number[]//[number, number, number, number]
+				= [0, 0, 0, 0];
+	tokLevels: number[]//[number, number, number, number, number, number]
+				= [0, 0, 0, 0, 0, 0];
 	
-	toBigInt(): BigInt {
-		let resStacks = 0n; // 3B
-		let resCards3 = 0n; // 4B
-		let resCards2 = 0n; // 4B
-		let resCards1 = 0n; // 4B
-		let resTokens = 0n; // 3B
-		
-		for (const stl of this.stackLevels) {
-			resStacks = (resStacks << 8n) | BigInt(stl);
-		}
-
-		for (const stl of this.cardsRow3) {
-			resCards3 = (resCards3 << 8n) | BigInt(stl);
-		}
-
-		for (const stl of this.cardsRow2) {
-			resCards2 = (resCards2 << 8n) | BigInt(stl);
-		}
-		
-		for (const stl of this.cardsRow1) {
-			resCards1 = (resCards1 << 8n) | BigInt(stl);
-		}
-
-		for (const stl of this.tokLevels) {
-			resTokens = (resTokens << 4n) | BigInt(stl);
-		}
-
-		let finalRes = (resTokens << 24n) | (resStacks);
-		finalRes = (finalRes << 32n) | resCards3;
-		finalRes = (finalRes << 32n) | resCards2;
-		finalRes = (finalRes << 32n) | resCards1;
-
-			console.log("  >>  " + this);
-			console.log("   >  " + finalRes.toString(16));
+		toBigInt(): BigInt {
+			let resStacks = 0n; // 3B roud up to 4
+			let resCards3 = 0n; // 4B
+			let resCards2 = 0n; // 4B
+			let resCards1 = 0n; // 4B
+			let resTokens = 0n; // 3B round up to 4
 			
+			for (const stl of this.stackLevels) {
+				resStacks = (resStacks << 8n) | BigInt(stl);
+			}
+
+			for (const stl of this.cardsRow3) {
+				resCards3 = (resCards3 << 8n) | BigInt(stl);
+			}
+
+			for (const stl of this.cardsRow2) {
+				resCards2 = (resCards2 << 8n) | BigInt(stl);
+			}
+			
+			for (const stl of this.cardsRow1) {
+				resCards1 = (resCards1 << 8n) | BigInt(stl);
+			}
+
+			for (const stl of this.tokLevels) {
+				resTokens = (resTokens << 4n) | BigInt(stl);
+			}
+
+			let finalRes = (resTokens << 32n) | (resStacks);
+			finalRes = (finalRes << 32n) | resCards3;
+			finalRes = (finalRes << 32n) | resCards2;
+			finalRes = (finalRes << 32n) | resCards1;
+
+				console.log("  >>  " + this);
+				console.log("   >  " + finalRes.toString(16));
+				
+			
+			return finalRes;
+		}
 		
-		return finalRes;
+		static fromBigInt(n: BigInt): TableStruct1 {
+			let res = new TableStruct1();
+			
+			const str = n.toString(16);
+
+				//let resStacks = 0n; // 3B roud up to 4
+				//let resCards3 = 0n; // 4B
+				//let resCards2 = 0n; // 4B
+				//let resCards1 = 0n; // 4B
+				//let resTokens = 0n; // 3B round up to 4
+			
+			let resCards1 = str.substr(-16*1, 16);
+			let resCards2 = str.substr(-16*2, 16);
+			let resCards3 = str.substr(-16*3, 16);
+			let resStacks = str.substr(-16*4, 16);
+			let resTokens = str.substr(-16*5, 6);  // !! Because substr can't start outside the text
+
+			let numsCards1 = str2nums(resCards1, 2, 4);
+
+				console.log(" [[ " + resTokens + " ]] " );
+			let numsTokens = str2nums(resTokens, 1, 6);
+
+				console.log("c1: ", numsCards1);
+				console.log("tk: ", numsTokens);
+
+			return res;
+		}		
+	
+	str(): string {
+		const tokStr = this.tokLevels.map(x => x.toString(16).substr(0,1)).join('');
+		const rest = [...this.stackLevels, ...this.cardsRow3, ...this.cardsRow2, ...this.cardsRow1];
+		const restStr = rest.map(x => x.toString(16).padStart(2,'0')).join('');
+		
+		return tokStr + restStr;
 	}
+	
+	static fromStr(s: string): TableStruct1 {
+		let res = new TableStruct1();
+		
+		const st = s.substr(0, 6);
+		const restString = s.substr(6, s.length);
+		
+		const pairs = charPairs(restString);
+		
+		let toks = st.split('').map(s => parseInt(s, 16));
+		let ints = pairs.map(s => parseInt(s, 16));
+		
+			//console.log(toks);
+			//console.log('> ' + restString);
+		//	console.log(ints);
+		
+		res.tokLevels = toks;
+		//res.stackLevels = ints.shift(3)!;
+		
+			const cut = cutArray(ints, [3, 4, 4, 4]);
+		
+		//	console.log(cut);
+		
+		res.stackLevels = cut.shift()!;
+		res.cardsRow3 = cut.shift()!;
+		res.cardsRow2 = cut.shift()!;
+		res.cardsRow1 = cut.shift()!;
+		
+		return res;
+	}
+	
 }
 
 
@@ -136,12 +209,28 @@ class TableState1 {
 		return res;
 	}
 	
-	toBigInt(): BigInt {
-		return this.toStruct().toBigInt();
+		toBigInt(): BigInt {
+			return this.toStruct().toBigInt();
+		}
+		
+		static fromBigInt(b: BigInt): TableState1 {
+			let res = new TableState1(); 
+			
+			const struct = TableStruct1.fromBigInt(b);
+			 
+			return res;
+		}
+	
+	str(): string {
+		return this.toStruct().str();
 	}
 	
-	static fromBigInt(b: BigInt): TableState1 {
-		return new TableState1();
+	static fromStr(s: string): TableState1 {
+		let res = new TableState1(); 
+		
+		const struct = TableStruct1.fromStr(s);
+		 
+		return res;
 	}
 }
 
@@ -387,10 +476,18 @@ while (iter++ < 10) {
 }
 
 console.log("Conv:");
-console.log(viewedNode.state.table.toBigInt());
-console.log(TableState1.fromBigInt(5n));
 
 console.log(viewedNode.state.table.toStruct());
+//console.log(viewedNode.state.table.toBigInt());
 
-console.log(viewedNode.state.player.toStruct());
+// const bi = viewedNode.state.table.toBigInt();
+
+// console.log(TableStruct1.fromBigInt(bi));
+
+const st = viewedNode.state.table.str();
+
+console.log(st);
+console.log(TableStruct1.fromStr(st));
+
+//console.log(viewedNode.state.player.toStruct());
 
