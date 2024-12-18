@@ -122,18 +122,11 @@ class TableStruct1 {
 		
 		let toks = st.split('').map(s => parseInt(s, 16));
 		let ints = pairs.map(s => parseInt(s, 16));
-		
-			//console.log(toks);
-			//console.log('> ' + restString);
-		//	console.log(ints);
-		
+
 		res.tokLevels = toks;
-		//res.stackLevels = ints.shift(3)!;
 		
-			const cut = cutArray(ints, [3, 4, 4, 4]);
-		
-		//	console.log(cut);
-		
+		const cut = cutArray(ints, [3, 4, 4, 4]);
+				
 		res.stackLevels = cut.shift()!;
 		res.cardsRow3 = cut.shift()!;
 		res.cardsRow2 = cut.shift()!;
@@ -249,10 +242,41 @@ class TableState1 {
 
 
 class PlayerStruct1 {
-	cardLevels: [number, number, number, number, number] = [0, 0, 0, 0, 0];
-	tokLevels: [number, number, number, number, number, number]  = [0, 0, 0, 0, 0, 0];
-	reserved: [number, number, number] = [0, 0, 0];
+	tokLevels: number[]  = [0, 0, 0, 0, 0, 0];
+	cardLevels: number[] = [0, 0, 0, 0, 0, 0];
+	reserved: number[] = [0, 0, 0];
 	points: number = 0;
+	
+	str(): string {
+		let res = "";
+		const tokStr = this.tokLevels.map(x => x.toString(16).substr(0,1)).join('');
+		const cardStr = this.cardLevels.map(x => x.toString(16).padStart(2,'0')).join('');
+		const pointStr = this.points.toString(16).padStart(2, '0');
+		
+		return tokStr + cardStr + pointStr;
+		return res;
+	}
+	
+	static fromStr(s: string): PlayerStruct1 {
+		let res = new PlayerStruct1();
+		
+		const tokStr = s.substr(0, 6);
+		const restStr = s.substr(6, s.length-6);
+
+		const pairs = charPairs(restStr);
+		
+		let toks = tokStr.split('').map(s => parseInt(s, 16));
+		let ints = pairs.map(s => parseInt(s, 16));
+
+		res.tokLevels = toks;
+		
+		const cut = cutArray(ints, [6, 1]);
+		
+		res.cardLevels = cut.shift()!;
+		res.points = cut.shift()![0];
+		
+		return res;
+	}
 }
 
 class PlayerState1 {
@@ -324,6 +348,26 @@ class PlayerState1 {
 	
 	static fromBigInt(b: BigInt): PlayerState1 {
 		return new PlayerState1();
+	}
+	
+	str(): string {
+		return this.toStruct().str();
+	}
+	
+	static fromStr(s: string): PlayerState1 {
+		let res = new PlayerState1();
+		
+		const struct = PlayerStruct1.fromStr(s);
+		
+		//	$$$$
+		for (let i = 0; i < 6; i++) {
+			res.tokens[i] = struct.tokLevels[i]!;
+			res.bonuses[i] = struct.cardLevels[i]!;
+		}
+		
+		res.points = struct.points;
+
+		return res;
 	}
 }
 
@@ -503,3 +547,12 @@ console.log("Conv  ....");
 	console.log(viewedNode.state.table);
 	console.log(TableState1.fromStr(st));
 
+console.log("Conv  pl");
+
+	const pst = viewedNode.state.player.str();
+
+	console.log(pst);
+	console.log(PlayerStruct1.fromStr(pst));
+
+	console.log(viewedNode.state.player);
+	console.log(PlayerState1.fromStr(pst));
