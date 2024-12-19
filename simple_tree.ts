@@ -391,6 +391,20 @@ class GameState1 {
 	static fromBigInt(b: BigInt): GameState1 {
 		return new GameState1();
 	}
+	
+	str(): string {
+		return this.table.str() + this.player.str(); 
+	}
+	
+	static fromStr(s: string): GameState1 {
+		let res = new GameState1();
+		
+		const PLEN = res.player.str().length;
+
+		res.table = TableState1.fromStr(s.substr(0, s.length-PLEN));
+		res.player = PlayerState1.fromStr(s.substr(s.length-PLEN, PLEN));
+		return res;
+	}
 }
 
 
@@ -427,6 +441,12 @@ class GameNode1 {
 	//followers: Map<Move1, GameNode1> = new Map<Move1, GameNode1>();
 	followersTake: Map<TakeMove1, GameNode1> = new Map<TakeMove1, GameNode1>();
 	followersBuy: Map<BuyMove1, GameNode1> = new Map<BuyMove1, GameNode1>();
+	
+	static fromState(gs: GameState1): GameNode1 {
+		let res = new GameNode1();
+		res.state = gs;
+		return res;
+	}
 	
 	fillFollowers(): void {
 		this.TMP_fillTakes();
@@ -488,6 +508,7 @@ class GameNode1 {
 		}
 		
 	}
+	
 }
 
 class MoveTree1 {
@@ -511,48 +532,34 @@ console.log(table.stacks);
 let viewedNode = tree.root;
 let iter = 0;
 
-while (iter++ < 10    - 0) {
-	viewedNode.fillFollowers();
-		
-	console.log("Move " + iter + "-----------------------------------------------------------");
-	console.log("P toks: " + viewedNode.state.player.tokens + ", T toks: " + viewedNode.state.table.tokens);
+
+
+let front = [tree.root];
+
+console.log(front);
+
+while (iter++ <= 2) {
+	let newFront: GameNode1[] = [];
 	
-	console.log("Takes: " + viewedNode.followersTake.size + ", buys " + viewedNode.followersBuy.size);
-	
-	if (viewedNode.followersBuy.size > 0) {
-		const chosenMove = viewedNode.followersBuy.keys().next().value;
-		viewedNode = viewedNode.followersBuy.values().next().value;
-		console.log("chose Buy " + chosenMove.toks + " @ " + chosenMove.loc + "\n");
+	for (let s of front) {
+		s.fillFollowers();
+		newFront = newFront.concat(Array.from(s.followersBuy.values())).concat(Array.from(s.followersTake.values()));
 	}
-	else {
-		const chosenMove = viewedNode.followersTake.keys().next().value;
-		viewedNode = viewedNode.followersTake.values().next().value;
-		console.log("chose Take " + chosenMove.toks + "\n");
-	}
+	front = newFront;
+
+	const strs = front.map(x => x.state.str());
+	const strSet = new Set(strs);
+
+	const uniqueStrs = Array.from(strSet.values());
 	
+	const recreated = uniqueStrs.map(s => GameNode1.fromState(GameState1.fromStr(s)));
+	//	const recreated = uniqueStrs.map(s => GameState1.fromStr(s));
+	//	GameState1.fromStr(uniqueStrs[0]!);
+
+	console.log('All ' + front.length);
+	console.log('unique ' + strSet.size);
+	//	console.log(strSet);
 }
 
-console.log("Conv:");
+console.log(front.length);
 
-console.log(viewedNode.state.table);
-console.log(viewedNode.state.table.toStruct());
-
-console.log("Conv  ....");
-
-	const st = viewedNode.state.table.str();
-
-	console.log(st);
-	console.log(TableStruct1.fromStr(st));
-
-	console.log(viewedNode.state.table);
-	console.log(TableState1.fromStr(st));
-
-console.log("Conv  pl");
-
-	const pst = viewedNode.state.player.str();
-
-	console.log(pst);
-	console.log(PlayerStruct1.fromStr(pst));
-
-	console.log(viewedNode.state.player);
-	console.log(PlayerState1.fromStr(pst));
