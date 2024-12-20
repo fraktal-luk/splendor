@@ -58,3 +58,9 @@ while (iter++ <= 5) {
 
 console.log(front.length);
 
+	// const nd = front.find(x => x.state.player.points > 0)!;
+
+	// const tmpNode = nd.state.table;
+
+	// console.log(tmpNode);
+	// console.log(TableState1.fromStr(tmpNode.str()));

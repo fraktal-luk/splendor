@@ -157,14 +157,14 @@ export class TableState1 {
 	fillRows(): void {
 		for (let r = 0; r < 3; r++)  {
 			for (let c = 0; c < 4; c++)  {
-				this.rows[r][c] = this.stacks[r].shift()!;
+				this.rows[r][c] = this.stacks[r].pop()!;
 			}
 		}
 	}
 	
 	takeCard(r: number, c: number): CardId {
 		const res = this.rows[r-1][c-1];
-		this.rows[r-1][c-1] = this.stacks[r-1].shift()!;
+		this.rows[r-1][c-1] = this.stacks[r-1].pop()!;
 		return res;
 	}
 
@@ -230,11 +230,10 @@ export class TableState1 {
 		res.fillRows();
 		res.rows = [struct.cardsRow1, struct.cardsRow2, struct.cardsRow3];
 
-					 
+
 		for (let i = 0; i < 3; i++) {
 			const level = struct.stackLevels[i]!;
-			const initial = res.stacks[i]!.length;
-			res.stacks[i] = res.stacks[i]!.slice(initial-level, initial);
+			res.stacks[i] = res.stacks[i]!.slice(0, level);
 		}
 		return res;
 	}

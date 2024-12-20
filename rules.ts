@@ -355,7 +355,7 @@ export function setupStacks(cardOrder: number[]): CardId[][] {
 	
 	const cardSeq = drawCards(cardOrder);
 	for (let r = 0; r < 3; r++)
-		res[r] = cardSeq.filter((c: Card) => c.row == r+1).map((c: Card) => c.id);
+		res[r] = cardSeq.filter((c: Card) => c.row == r+1).map((c: Card) => c.id).reverse();
 	
 	return res;	
 }
@@ -376,11 +376,11 @@ class Table {
 		const CARD_SEQ = permute(CARD_SET, permutation(90, cardOrder));
 		
 		for (let r = 0; r < 3; r++)
-			this.stacks[r] = CARD_SEQ.filter((c: Card) => c.row == r+1);
+			this.stacks[r] = CARD_SEQ.filter((c: Card) => c.row == r+1).reverse();
 		
 		for (let i: number = 0; i < 3; i++)
 			for (let j: number = 0; j < 4; j++)
-				this.rows[i][j] = this.stacks[i].shift()!;
+				this.rows[i][j] = this.stacks[i].pop()!;
 
 		const NOBLES_PERM = permute(NOBLES, permutation(10, randSeq(10)));		
 
@@ -396,7 +396,7 @@ class Table {
 		if (loc[0] < 1 || loc[0] > 3) throw new Error('Invalid row number');
 		if (loc[1] < 0 || loc[1] > 4) throw new Error('Invalid col number');
 		
-		if (loc[1] == 0) return this.stacks[loc[0]-1][0]; // Taking from stack
+		if (loc[1] == 0) return this.stacks[loc[0]-1].at(-1); // Taking from stack
 
 		return this.rows[loc[0]-1][loc[1]-1];
 	}
@@ -405,11 +405,11 @@ class Table {
 		if (loc[0] < 1 || loc[0] > 3) throw new Error('Invalid row number');
 		if (loc[1] < 0 || loc[1] > 4) throw new Error('Invalid col number');
 		
-		if (loc[1] == 0) return this.stacks[loc[0]-1].shift(); // Taking from stack
+		if (loc[1] == 0) return this.stacks[loc[0]-1].pop(); // Taking from stack
 		
 		const res = this.rows[loc[0]-1][loc[1]-1];
 		this.rows[loc[0]-1][loc[1]-1] = undefined;
-		if (!dontFill) this.rows[loc[0]-1][loc[1]-1] = this.stacks[loc[0]-1].shift();
+		if (!dontFill) this.rows[loc[0]-1][loc[1]-1] = this.stacks[loc[0]-1].pop();
 				
 		return res;
 	}
