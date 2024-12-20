@@ -26,84 +26,12 @@ export const presetOrder: number[] = [
 // no nobles, no reservations or gold
 
 export class TableStruct1 {
-	stackLevels: number[]//[number, number, number]
-				= [0, 0, 0];
-	cardsRow3: number[]//[number, number, number, number]
-				= [0, 0, 0, 0];
-	cardsRow2: number[]//[number, number, number, number]
-				= [0, 0, 0, 0];
-	cardsRow1: number[]//[number, number, number, number]
-				= [0, 0, 0, 0];
-	tokLevels: number[]//[number, number, number, number, number, number]
-				= [0, 0, 0, 0, 0, 0];
-	
-		toBigInt(): BigInt {
-			let resStacks = 0n; // 3B roud up to 4
-			let resCards3 = 0n; // 4B
-			let resCards2 = 0n; // 4B
-			let resCards1 = 0n; // 4B
-			let resTokens = 0n; // 3B round up to 4
-			
-			for (const stl of this.stackLevels) {
-				resStacks = (resStacks << 8n) | BigInt(stl);
-			}
+	stackLevels: number[] = [0, 0, 0];
+	cardsRow3: number[] = [0, 0, 0, 0];
+	cardsRow2: number[] = [0, 0, 0, 0];
+	cardsRow1: number[] = [0, 0, 0, 0];
+	tokLevels: number[] = [0, 0, 0, 0, 0, 0];
 
-			for (const stl of this.cardsRow3) {
-				resCards3 = (resCards3 << 8n) | BigInt(stl);
-			}
-
-			for (const stl of this.cardsRow2) {
-				resCards2 = (resCards2 << 8n) | BigInt(stl);
-			}
-			
-			for (const stl of this.cardsRow1) {
-				resCards1 = (resCards1 << 8n) | BigInt(stl);
-			}
-
-			for (const stl of this.tokLevels) {
-				resTokens = (resTokens << 4n) | BigInt(stl);
-			}
-
-			let finalRes = (resTokens << 32n) | (resStacks);
-			finalRes = (finalRes << 32n) | resCards3;
-			finalRes = (finalRes << 32n) | resCards2;
-			finalRes = (finalRes << 32n) | resCards1;
-
-				console.log("  >>  " + this);
-				console.log("   >  " + finalRes.toString(16));
-				
-			
-			return finalRes;
-		}
-		
-		static fromBigInt(n: BigInt): TableStruct1 {
-			let res = new TableStruct1();
-			
-			const str = n.toString(16);
-
-				//let resStacks = 0n; // 3B roud up to 4
-				//let resCards3 = 0n; // 4B
-				//let resCards2 = 0n; // 4B
-				//let resCards1 = 0n; // 4B
-				//let resTokens = 0n; // 3B round up to 4
-			
-			let resCards1 = str.substr(-16*1, 16);
-			let resCards2 = str.substr(-16*2, 16);
-			let resCards3 = str.substr(-16*3, 16);
-			let resStacks = str.substr(-16*4, 16);
-			let resTokens = str.substr(-16*5, 6);  // !! Because substr can't start outside the text
-
-			let numsCards1 = str2nums(resCards1, 2, 4);
-
-				console.log(" [[ " + resTokens + " ]] " );
-			let numsTokens = str2nums(resTokens, 1, 6);
-
-				console.log("c1: ", numsCards1);
-				console.log("tk: ", numsTokens);
-
-			return res;
-		}		
-	
 	str(): string {
 		const tokStr = this.tokLevels.map(x => x.toString(16).substr(0,1)).join('');
 		const rest = [...this.stackLevels, ...this.cardsRow3, ...this.cardsRow2, ...this.cardsRow1];
@@ -201,19 +129,7 @@ export class TableState1 {
 
 		return res;
 	}
-	
-		toBigInt(): BigInt {
-			return this.toStruct().toBigInt();
-		}
-		
-		static fromBigInt(b: BigInt): TableState1 {
-			let res = new TableState1(); 
-			
-			const struct = TableStruct1.fromBigInt(b);
-			 
-			return res;
-		}
-	
+
 	str(): string {
 		return this.toStruct().str();
 	}
@@ -341,14 +257,6 @@ export class PlayerState1 {
 	}
 
 
-	toBigInt(): BigInt {
-		return BigInt(0);
-	}
-	
-	static fromBigInt(b: BigInt): PlayerState1 {
-		return new PlayerState1();
-	}
-	
 	str(): string {
 		return this.toStruct().str();
 	}
@@ -358,7 +266,6 @@ export class PlayerState1 {
 		
 		const struct = PlayerStruct1.fromStr(s);
 		
-		//	$$$$
 		for (let i = 0; i < 6; i++) {
 			res.tokens[i] = struct.tokLevels[i]!;
 			res.bonuses[i] = struct.cardLevels[i]!;
@@ -381,15 +288,7 @@ export class GameState1 {
 		
 		return res;
 	}
-	
-	
-	toBigInt(): BigInt {
-		return BigInt(0);
-	}
-	
-	static fromBigInt(b: BigInt): GameState1 {
-		return new GameState1();
-	}
+
 	
 	str(): string {
 		return this.table.str() + this.player.str(); 
@@ -437,7 +336,6 @@ export class GameNode1 {
 	state: GameState1 = new GameState1();
 	
 	// possible next nodes
-	//followers: Map<Move1, GameNode1> = new Map<Move1, GameNode1>();
 	followersTake: Map<TakeMove1, GameNode1> = new Map<TakeMove1, GameNode1>();
 	followersBuy: Map<BuyMove1, GameNode1> = new Map<BuyMove1, GameNode1>();
 	

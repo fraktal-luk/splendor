@@ -31,6 +31,9 @@ let front = [tree.root];
 
 console.log(front);
 
+console.time('1');
+
+
 while (iter++ <= 5) {
 	let newFront: GameNode1[] = [];
 	
@@ -47,8 +50,7 @@ while (iter++ <= 5) {
 	
 	const recreated = uniqueStrs.map(s => GameNode1.fromState(GameState1.fromStr(s)));
 
-	console.log('All ' + front.length);
-	console.log('unique ' + strSet.size);
+	console.log('All ' + front.length + ", unique " + strSet.size);
 	
 	front = recreated;
 	
@@ -56,6 +58,10 @@ while (iter++ <= 5) {
 	console.log("<" + Math.min(...playerPoints) + ":" + Math.max(...playerPoints) + ">");
 }
 
+console.log('\n');
+console.timeEnd('1');
+
+console.log('\n\n');
 console.log(front.length);
 
 	// const nd = front.find(x => x.state.player.points > 0)!;
