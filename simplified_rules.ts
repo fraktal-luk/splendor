@@ -69,7 +69,6 @@ export class TableStruct1 {
 export class TableState1 {
 	tokens: ValVector = [4, 4, 4, 4, 4, 0];
 	rows: CardId[][] = [[], [], []];
-	//stacks: CardId[][] = [];
 	stackNums: number[] = [-1, -1, -1];
 	constStacks: CardId[][] = [];
 
@@ -79,9 +78,7 @@ export class TableState1 {
 		res.tokens = structuredClone(this.tokens);
 		for (let i = 0; i < 3; i++)
 			res.rows[i] = structuredClone(this.rows[i]);
-		// for (let i = 0; i < 3; i++)
-			// res.stacks[i] = structuredClone(this.stacks[i]);
-		
+
 		res.stackNums = structuredClone(this.stackNums);
 		res.constStacks = this.constStacks;
 		
@@ -89,26 +86,15 @@ export class TableState1 {
 	}
 	
 	init(cardOrder: number[]): void {
-		//this.stacks = setupStacks(cardOrder);
 		this.constStacks = setupStacks(cardOrder);
 		this.stackNums = this.constStacks.map(a => a.length);
 		this.fillRows();
-		//this.stackNums = this.stacks.map(a => a.length);
 	}
 	
 	fillRows(): void {
-		for (let r = 0; r < 3; r++)  {
-			for (let c = 0; c < 4; c++)  {
-				this.stackNums[r]--;
-				this.rows[r][c] = this.constStacks[r]!.at(this.stackNums[r])!;
-				
-				//const thisElem = this.stacks[r].pop()!;
-
-				//const thisElem = this.rows[r][c];
-				//const stackElem = this.constStacks[r]!.at(this.stackNums[r])!;
-				
-				// if (thisElem != stackElem)
-					// throw new Error("mismatched stacks");
+		for (let r = 0; r < 3; r++) {
+			for (let c = 0; c < 4; c++) {
+				this.takeCard(r+1, c+1);
 			}
 		}
 	}
@@ -118,16 +104,7 @@ export class TableState1 {
 
 		this.stackNums[r-1]--;
 		this.rows[r-1][c-1] = this.constStacks[r-1]!.at(this.stackNums[r-1])!;
-		// const thisElem = this.stacks[r-1].pop()!;
 
-		// //const thisElem = this.rows[r-1][c-1];
-		// const stackElem = this.constStacks[r-1]!.at(this.stackNums[r-1])!;
-		
-		// if (thisElem != stackElem) {
-			// //console.log(this);
-			// console.log("st: " + this.stacks[r-1].length + ", cst: " + this.stackNums[r-1]);
-			// throw new Error("mismatched stacks");
-		// }
 		return res;
 	}
 
@@ -151,9 +128,8 @@ export class TableState1 {
 		let res = new TableStruct1();
 
 		for (let i = 0; i < this.stackNums.length; i++)
-			res.stackLevels[i] = this.stackNums[i];//this.stacks[i]!.length;
-								
-
+			res.stackLevels[i] = this.stackNums[i];
+			
 		for (let i = 0; i < 4; i++) {
 			res.cardsRow1[i] = this.rows[0]![i];
 			res.cardsRow2[i] = this.rows[1]![i];
@@ -179,27 +155,12 @@ export class TableState1 {
 		res.stackNums = struct.stackLevels;
 		res.rows = [struct.cardsRow1, struct.cardsRow2, struct.cardsRow3];
 
-		for (let i = 0; i < 3; i++) {
-			const level = struct.stackLevels[i]!;
-			//res.stacks[i] = res.stacks[i]!.slice(0, level);
-			
-		}
-
 		for (let i = 0; i < 6; i++)
 			res.tokens[i] = struct.tokLevels[i]!;
-
-		
-			//res.TMP_check();
 		
 		return res;
 	}
 
-		
-		// TMP_check(): void {
-			// for (let i = 0; i < 3; i++)
-				// if (this.stacks[i].length != this.stackNums[i]) throw new Error("wrong st size");
-
-		// }
 }
 
 
@@ -208,17 +169,17 @@ export class PlayerStruct1 {
 	cardLevels: number[] = [0, 0, 0, 0, 0, 0];
 	reserved: number[] = [0, 0, 0];
 	points: number = 0;
-	
+
 	str(): string {
 		let res = "";
 		const tokStr = this.tokLevels.map(x => x.toString(16).substr(0,1)).join('');
 		const cardStr = this.cardLevels.map(x => x.toString(16).padStart(2,'0')).join('');
 		const pointStr = this.points.toString(16).padStart(2, '0');
-		
+
 		return tokStr + cardStr + pointStr;
 		return res;
 	}
-	
+
 	static fromStr(s: string): PlayerStruct1 {
 		let res = new PlayerStruct1();
 		
@@ -287,16 +248,9 @@ export class PlayerState1 {
 	
 	toStruct(): PlayerStruct1 {
 		let res = new PlayerStruct1();
-
-		for (let i = 0; i < this.bonuses.length; i++)
-			res.cardLevels[i] = this.bonuses[i]!;
-
-		for (let i = 0; i < this.tokens.length; i++)
-			res.tokLevels[i] = this.tokens[i]!;
 		
-		// No reserved yet
-		// for (let i = 0; i < 3; i++)
-			// res.tokLevels[i] = this.tokens[i]!;
+		res.cardLevels = structuredClone(this.bonuses);
+		res.tokLevels = structuredClone(this.tokens);
 		
 		res.points = this.points;
 
@@ -336,7 +290,6 @@ export class GameState1 {
 		return res;
 	}
 
-	
 	str(): string {
 		return this.table.str() + this.player.str(); 
 	}
@@ -386,6 +339,9 @@ export class GameNode1 {
 	followersTake: Map<TakeMove1, GameNode1> = new Map<TakeMove1, GameNode1>();
 	followersBuy: Map<BuyMove1, GameNode1> = new Map<BuyMove1, GameNode1>();
 	
+		possibleBuy: GameState1[] = [];
+		possibleTake: GameState1[] = [];
+	
 	static fromState(gs: GameState1): GameNode1 {
 		let res = new GameNode1();
 		res.state = gs;
@@ -406,21 +362,23 @@ export class GameNode1 {
 				const id = this.state.table.rows[r-1][c-1];
 				const price = getCardPrice(id);
 				const budget = vecAdd(this.state.player.tokens, this.state.player.bonuses);
-				if (vecEnough(budget, price)) {
-					const realPrice = vecLimit0(vecSub(price, this.state.player.bonuses));
-					
-					let newState = this.state.deepCopy();
-					newState.player.addCard(newState.table.takeCard(r, c));
-					newState.player.takeToks(realPrice);
-					newState.table.addToks(realPrice);
-					
-					const newMove: BuyMove1 = {toks: realPrice, loc: [r, c]};
-					
-					let newNode = new GameNode1();
-					newNode.state = newState;
-					
-					this.followersBuy.set(newMove, newNode);
-				}
+				if (!vecEnough(budget, price)) continue;
+
+				const realPrice = vecLimit0(vecSub(price, this.state.player.bonuses));
+				
+				let newState = this.state.deepCopy();
+				newState.player.addCard(newState.table.takeCard(r, c));
+				newState.player.takeToks(realPrice);
+				newState.table.addToks(realPrice);
+				
+				const newMove: BuyMove1 = {toks: realPrice, loc: [r, c]};
+				
+				let newNode = new GameNode1();
+				newNode.state = newState;
+				
+				//this.followersBuy.set(newMove, newNode);
+				
+					this.possibleBuy.push(newState.deepCopy());
 			}
 		}
 	}	
@@ -448,7 +406,9 @@ export class GameNode1 {
 			let newNode = new GameNode1();
 			newNode.state = newState;
 			
-			this.followersTake.set(newMove, newNode);
+			//this.followersTake.set(newMove, newNode);
+			
+				this.possibleTake.push(newState.deepCopy());
 		}
 		
 	}
