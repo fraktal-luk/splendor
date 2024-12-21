@@ -22,6 +22,12 @@ export const STR_1x2_1x1 = [
 export const STR_3x1 = ["00111", "01110", "11100", "11001", "10011", "01011", "10110", "01101", "11010", "10101",];
 
 
+function vecEnoughFor2s(a: ValVector, b: ValVector): boolean {
+	for (let i = 0; i < a.length; i++)
+		if ((b[i] >= 2) && (a[i] < 4)) return false;
+	return true;
+}	
+
 
 export function crossVecs(takes: string[], returns: string[]): ValVector[] {
 	let sums: ValVector[] = [];
@@ -94,7 +100,7 @@ export function makeMoves(strs: string[], playerToks: ValVector, tableToks: ValV
 	// Moves are checked to not take more than table contains
 	for (const s of strs) {
 		const vec = str2vv(s);
-		if (!vecEnough(tableToks, vec)) illegalTakes.push(s);
+		if (!vecEnough(tableToks, vec) || !vecEnoughFor2s(tableToks, vec)) illegalTakes.push(s);
 		else legalTakes.push(s);
 	}
 	

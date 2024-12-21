@@ -178,6 +178,9 @@ export class TableState1 {
 			res.stacks[i] = res.stacks[i]!.slice(0, level);
 			
 		}
+		
+			res.TMP_check();
+		
 		return res;
 	}
 

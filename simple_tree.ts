@@ -37,7 +37,7 @@ console.log(front);
 console.time('1');
 
 
-while (iter++ <= 5) {
+while (iter++ <= 5-2) {
 	let newFront: GameNode1[] = [];
 	
 	for (let s of front) {
