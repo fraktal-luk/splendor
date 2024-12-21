@@ -9,35 +9,22 @@ import {TableStruct1, TableState1, PlayerStruct1, PlayerState1, GameState1, Game
 
 
 let tree = new MoveTree1();
+tree.root.state.table.init(presetOrder);
 
-tree.root.state.table.stacks = setupStacks(presetOrder);
-tree.root.state.table.constStacks = setupStacks(presetOrder);
-tree.root.state.table.stackNums = tree.root.state.table.stacks.map(a => a.length);
-tree.root.state.table.fillRows();
-tree.root.state.table.stackNums = tree.root.state.table.stacks.map(a => a.length);
-
-
-
-const player = tree.root.state.player;
 const table = tree.root.state.table;
 
 console.log(table.rows);
-console.log(table.stacks);
+console.log(table.constStacks);
 
 
-let viewedNode = tree.root;
 let iter = 0;
-
-
 
 let front = [tree.root];
 
 console.log(front);
-
 console.time('1');
 
-
-while (iter++ <= 5-2) {
+while (iter++ <= 5) {
 	let newFront: GameNode1[] = [];
 	
 	for (let s of front) {

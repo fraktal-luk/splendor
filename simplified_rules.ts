@@ -69,9 +69,9 @@ export class TableStruct1 {
 export class TableState1 {
 	tokens: ValVector = [4, 4, 4, 4, 4, 0];
 	rows: CardId[][] = [[], [], []];
-	stacks: CardId[][] = [];
-		stackNums: number[] = [-1, -1, -1];
-		constStacks: CardId[][] = [];
+	//stacks: CardId[][] = [];
+	stackNums: number[] = [-1, -1, -1];
+	constStacks: CardId[][] = [];
 
 
 	deepCopy(): TableState1 {
@@ -79,8 +79,8 @@ export class TableState1 {
 		res.tokens = structuredClone(this.tokens);
 		for (let i = 0; i < 3; i++)
 			res.rows[i] = structuredClone(this.rows[i]);
-		for (let i = 0; i < 3; i++)
-			res.stacks[i] = structuredClone(this.stacks[i]);
+		// for (let i = 0; i < 3; i++)
+			// res.stacks[i] = structuredClone(this.stacks[i]);
 		
 		res.stackNums = structuredClone(this.stackNums);
 		res.constStacks = this.constStacks;
@@ -88,17 +88,27 @@ export class TableState1 {
 		return res;
 	}
 	
+	init(cardOrder: number[]): void {
+		//this.stacks = setupStacks(cardOrder);
+		this.constStacks = setupStacks(cardOrder);
+		this.stackNums = this.constStacks.map(a => a.length);
+		this.fillRows();
+		//this.stackNums = this.stacks.map(a => a.length);
+	}
+	
 	fillRows(): void {
 		for (let r = 0; r < 3; r++)  {
 			for (let c = 0; c < 4; c++)  {
-				this.rows[r][c] = this.stacks[r].pop()!;
 				this.stackNums[r]--;
+				this.rows[r][c] = this.constStacks[r]!.at(this.stackNums[r])!;
 				
-				const thisElem = this.rows[r][c];
-				const stackElem = this.constStacks[r]!.at(this.stackNums[r]);
+				//const thisElem = this.stacks[r].pop()!;
+
+				//const thisElem = this.rows[r][c];
+				//const stackElem = this.constStacks[r]!.at(this.stackNums[r])!;
 				
-				if (thisElem != stackElem)
-					throw new Error("mismatched stacks");
+				// if (thisElem != stackElem)
+					// throw new Error("mismatched stacks");
 			}
 		}
 	}
@@ -106,17 +116,18 @@ export class TableState1 {
 	takeCard(r: number, c: number): CardId {
 		const res = this.rows[r-1][c-1];
 
-		this.rows[r-1][c-1] = this.stacks[r-1].pop()!;
 		this.stackNums[r-1]--;
+		this.rows[r-1][c-1] = this.constStacks[r-1]!.at(this.stackNums[r-1])!;
+		// const thisElem = this.stacks[r-1].pop()!;
 
-		const thisElem = this.rows[r-1][c-1];
-		const stackElem = this.constStacks[r-1]!.at(this.stackNums[r-1]);
+		// //const thisElem = this.rows[r-1][c-1];
+		// const stackElem = this.constStacks[r-1]!.at(this.stackNums[r-1])!;
 		
-		if (thisElem != stackElem) {
-			//console.log(this);
-			console.log("st: " + this.stacks[r-1].length + ", cst: " + this.stackNums[r-1]);
-			throw new Error("mismatched stacks");
-		}
+		// if (thisElem != stackElem) {
+			// //console.log(this);
+			// console.log("st: " + this.stacks[r-1].length + ", cst: " + this.stackNums[r-1]);
+			// throw new Error("mismatched stacks");
+		// }
 		return res;
 	}
 
@@ -139,8 +150,9 @@ export class TableState1 {
 	toStruct(): TableStruct1 {
 		let res = new TableStruct1();
 
-		for (let i = 0; i < this.stacks.length; i++)
-			res.stackLevels[i] = this.stacks[i]!.length;
+		for (let i = 0; i < this.stackNums.length; i++)
+			res.stackLevels[i] = this.stackNums[i];//this.stacks[i]!.length;
+								
 
 		for (let i = 0; i < 4; i++) {
 			res.cardsRow1[i] = this.rows[0]![i];
@@ -161,35 +173,33 @@ export class TableState1 {
 	static fromStr(s: string): TableState1 {
 		let res = new TableState1(); 
 		
-		const struct = TableStruct1.fromStr(s);
+		const struct = TableStruct1.fromStr(s);		
+		res.init(presetOrder);
 		
-		for (let i = 0; i < 6; i++)
-			res.tokens[i] = struct.tokLevels[i]!;
-		
-		res.stacks = setupStacks(presetOrder);
-		res.constStacks = setupStacks(presetOrder);
-		res.stackNums = res.stacks.map(a => a.length);
-		res.fillRows();
 		res.stackNums = struct.stackLevels;
 		res.rows = [struct.cardsRow1, struct.cardsRow2, struct.cardsRow3];
 
 		for (let i = 0; i < 3; i++) {
 			const level = struct.stackLevels[i]!;
-			res.stacks[i] = res.stacks[i]!.slice(0, level);
+			//res.stacks[i] = res.stacks[i]!.slice(0, level);
 			
 		}
+
+		for (let i = 0; i < 6; i++)
+			res.tokens[i] = struct.tokLevels[i]!;
+
 		
-			res.TMP_check();
+			//res.TMP_check();
 		
 		return res;
 	}
 
 		
-		TMP_check(): void {
-			for (let i = 0; i < 3; i++)
-				if (this.stacks[i].length != this.stackNums[i]) throw new Error("wrong st size");
+		// TMP_check(): void {
+			// for (let i = 0; i < 3; i++)
+				// if (this.stacks[i].length != this.stackNums[i]) throw new Error("wrong st size");
 
-		}
+		// }
 }
 
 
