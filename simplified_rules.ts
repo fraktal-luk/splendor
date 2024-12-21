@@ -20,6 +20,9 @@ export const presetOrder: number[] = [
    5,  3,  3,  0,  0,  0
 ];
 
+export const presetStacks: CardId[][] = setupStacks(presetOrder);
+
+
 ////////////////////////////////////////
 
 // 1 player tree analysis
@@ -70,7 +73,7 @@ export class TableState1 {
 	tokens: ValVector = [4, 4, 4, 4, 4, 0];
 	rows: CardId[][] = [[], [], []];
 	stackNums: number[] = [-1, -1, -1];
-	constStacks: CardId[][] = [];
+	//constStacks: CardId[][] = [];
 
 
 	deepCopy(): TableState1 {
@@ -80,14 +83,16 @@ export class TableState1 {
 			res.rows[i] = structuredClone(this.rows[i]);
 
 		res.stackNums = structuredClone(this.stackNums);
-		res.constStacks = this.constStacks;
+		//res.constStacks = this.constStacks;
 		
 		return res;
 	}
 	
-	init(cardOrder: number[]): void {
-		this.constStacks = setupStacks(cardOrder);
-		this.stackNums = this.constStacks.map(a => a.length);
+	init(presetStacks: CardId[][]): void {
+		//this.constStacks = //setupStacks(cardOrder);
+		//				   presetStacks;
+		this.stackNums = //this.constStacks.map(a => a.length);
+						 presetStacks.map(a => a.length);
 		this.fillRows();
 	}
 	
@@ -103,7 +108,8 @@ export class TableState1 {
 		const res = this.rows[r-1][c-1];
 
 		this.stackNums[r-1]--;
-		this.rows[r-1][c-1] = this.constStacks[r-1]!.at(this.stackNums[r-1])!;
+		this.rows[r-1][c-1] = //this.constStacks[r-1]!.at(this.stackNums[r-1])!;
+						      presetStacks[r-1]!.at(this.stackNums[r-1])!;
 
 		return res;
 	}
@@ -150,7 +156,7 @@ export class TableState1 {
 		let res = new TableState1(); 
 		
 		const struct = TableStruct1.fromStr(s);		
-		res.init(presetOrder);
+		res.init(presetStacks);
 		
 		res.stackNums = struct.stackLevels;
 		res.rows = [struct.cardsRow1, struct.cardsRow2, struct.cardsRow3];
@@ -371,14 +377,14 @@ export class GameNode1 {
 				newState.player.takeToks(realPrice);
 				newState.table.addToks(realPrice);
 				
-				const newMove: BuyMove1 = {toks: realPrice, loc: [r, c]};
+				// const newMove: BuyMove1 = {toks: realPrice, loc: [r, c]};
 				
-				let newNode = new GameNode1();
-				newNode.state = newState;
+				// let newNode = new GameNode1();
+				// newNode.state = newState;
 				
 				//this.followersBuy.set(newMove, newNode);
 				
-					this.possibleBuy.push(newState.deepCopy());
+					this.possibleBuy.push(newState);
 			}
 		}
 	}	
@@ -396,19 +402,19 @@ export class GameNode1 {
 		
 		for (const v of decoded) {
 			const resulting = vecAdd(playerToks, v);
-			if (!vecNonNegative(resulting))
-				continue;
+			if (!vecNonNegative(resulting)) continue;
+
 			let newState = this.state.deepCopy();
 			newState.table.takeToks(v);
 			newState.player.addToks(v);
-			const newMove: TakeMove1 = {toks: v};
+			//const newMove: TakeMove1 = {toks: v};
 			
-			let newNode = new GameNode1();
-			newNode.state = newState;
+			// let newNode = new GameNode1();
+			// newNode.state = newState;
 			
 			//this.followersTake.set(newMove, newNode);
 			
-				this.possibleTake.push(newState.deepCopy());
+				this.possibleTake.push(newState);
 		}
 		
 	}

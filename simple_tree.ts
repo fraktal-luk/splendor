@@ -5,16 +5,16 @@ import {Color, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardCo
 		} from './rules.ts';
 
 import {TableStruct1, TableState1, PlayerStruct1, PlayerState1, GameState1, GameNode1,
-		MoveTree1, BuyMove1, TakeMove1, presetOrder} from './simplified_rules.ts'
+		MoveTree1, BuyMove1, TakeMove1, presetOrder, presetStacks} from './simplified_rules.ts'
 
 
 let tree = new MoveTree1();
-tree.root.state.table.init(presetOrder);
+tree.root.state.table.init(presetStacks);
 
 const table = tree.root.state.table;
 
 console.log(table.rows);
-console.log(table.constStacks);
+//console.log(table.constStacks);
 
 
 let iter = 0;
@@ -24,9 +24,15 @@ let front = [tree.root];
 console.log(front);
 console.time('1');
 
-while (iter++ <= 5 - 2) {
+	let nBuys = 0;
+	let nTakes = 0;
+
+while (iter++ <= 5) {
 	let newFrontS: GameState1[] = [];
-	let frontSet = new Set();
+	let frontSet = new Set<string>();
+	
+	let totalLevelSize = 0;
+
 	
 	for (let i = 0; i < front.length; i++) {
 		let n = front[i]!;
@@ -34,22 +40,22 @@ while (iter++ <= 5 - 2) {
 		
 		const newFollowers = n.possibleBuy.concat(n.possibleTake);
 		
-		newFrontS = newFrontS.concat(newFollowers);
+			nBuys += n.possibleBuy.length;
+			nTakes += n.possibleTake.length;
 		
-		const strings = newFollowers.map(x => x.str);
-		const newSet = new Set(strings);
-		frontSet = frontSet.union(newSet);
+		totalLevelSize += newFollowers.length;
+		newFrontS = newFrontS.concat(newFollowers);
+
 	}
 
 	const strs = newFrontS.map(x => x.str());
-
-	const strSet = new Set(strs);
+	const strSet = new Set<string>(strs);
 
 	const uniqueStrs = Array.from(strSet.values());
 	
 	const recreated = uniqueStrs.map(s => GameNode1.fromState(GameState1.fromStr(s)));
 
-	console.log('All ' + front.length + ", unique " + strSet.size + ", frontSet " + frontSet.size);
+	console.log('All ' + totalLevelSize + ", unique " + strSet.size);
 	
 	front = recreated;
 	
@@ -62,3 +68,5 @@ console.timeEnd('1');
 
 console.log('\n\n');
 console.log(front.length);
+console.log(nTakes);
+console.log(nBuys);
