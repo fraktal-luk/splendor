@@ -11,13 +11,16 @@ import {TableStruct1, TableState1, PlayerStruct1, PlayerState1, GameState1, Game
 let tree = new MoveTree1();
 
 tree.root.state.table.stacks = setupStacks(presetOrder);
+tree.root.state.table.constStacks = setupStacks(presetOrder);
+tree.root.state.table.stackNums = tree.root.state.table.stacks.map(a => a.length);
 tree.root.state.table.fillRows();
+tree.root.state.table.stackNums = tree.root.state.table.stacks.map(a => a.length);
+
 
 
 const player = tree.root.state.player;
 const table = tree.root.state.table;
-const stateCopy = tree.root.state.deepCopy();
-console.log(stateCopy);
+
 console.log(table.rows);
 console.log(table.stacks);
 

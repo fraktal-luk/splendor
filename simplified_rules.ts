@@ -70,6 +70,9 @@ export class TableState1 {
 	tokens: ValVector = [4, 4, 4, 4, 4, 0];
 	rows: CardId[][] = [[], [], []];
 	stacks: CardId[][] = [];
+		stackNums: number[] = [-1, -1, -1];
+		constStacks: CardId[][] = [];
+
 
 	deepCopy(): TableState1 {
 		let res = new TableState1();
@@ -79,6 +82,9 @@ export class TableState1 {
 		for (let i = 0; i < 3; i++)
 			res.stacks[i] = structuredClone(this.stacks[i]);
 		
+		res.stackNums = structuredClone(this.stackNums);
+		res.constStacks = this.constStacks;
+		
 		return res;
 	}
 	
@@ -86,13 +92,31 @@ export class TableState1 {
 		for (let r = 0; r < 3; r++)  {
 			for (let c = 0; c < 4; c++)  {
 				this.rows[r][c] = this.stacks[r].pop()!;
+				this.stackNums[r]--;
+				
+				const thisElem = this.rows[r][c];
+				const stackElem = this.constStacks[r]!.at(this.stackNums[r]);
+				
+				if (thisElem != stackElem)
+					throw new Error("mismatched stacks");
 			}
 		}
 	}
 	
 	takeCard(r: number, c: number): CardId {
 		const res = this.rows[r-1][c-1];
+
 		this.rows[r-1][c-1] = this.stacks[r-1].pop()!;
+		this.stackNums[r-1]--;
+
+		const thisElem = this.rows[r-1][c-1];
+		const stackElem = this.constStacks[r-1]!.at(this.stackNums[r-1]);
+		
+		if (thisElem != stackElem) {
+			//console.log(this);
+			console.log("st: " + this.stacks[r-1].length + ", cst: " + this.stackNums[r-1]);
+			throw new Error("mismatched stacks");
+		}
 		return res;
 	}
 
@@ -143,16 +167,26 @@ export class TableState1 {
 			res.tokens[i] = struct.tokLevels[i]!;
 		
 		res.stacks = setupStacks(presetOrder);
+		res.constStacks = setupStacks(presetOrder);
+		res.stackNums = res.stacks.map(a => a.length);
 		res.fillRows();
+		res.stackNums = struct.stackLevels;
 		res.rows = [struct.cardsRow1, struct.cardsRow2, struct.cardsRow3];
-
 
 		for (let i = 0; i < 3; i++) {
 			const level = struct.stackLevels[i]!;
 			res.stacks[i] = res.stacks[i]!.slice(0, level);
+			
 		}
 		return res;
 	}
+
+		
+		TMP_check(): void {
+			for (let i = 0; i < 3; i++)
+				if (this.stacks[i].length != this.stackNums[i]) throw new Error("wrong st size");
+
+		}
 }
 
 
