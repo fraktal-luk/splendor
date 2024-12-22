@@ -17,56 +17,118 @@ console.log(table.rows);
 //console.log(table.constStacks);
 
 
-let iter = 0;
-
-let front = [tree.root];
-
-console.log(front);
-console.time('1');
-
+function iters1(times: number): void {
 	let nBuys = 0;
 	let nTakes = 0;
 
-while (iter++ <= 5) {
-	let newFrontS: GameState1[] = [];
-	let frontSet = new Set<string>();
-	
-	let totalLevelSize = 0;
+	let front = [tree.root];
 
-	
-	for (let i = 0; i < front.length; i++) {
-		let n = front[i]!;
-		n.fillFollowers();
-		
-		const newFollowers = n.possibleBuy.concat(n.possibleTake);
-		
+	let iter = 0;
+
+	while (iter++ <= times) {
+		let newFrontS: GameState1[] = [];
+		let frontSet = new Set<string>();
+
+		let totalLevelSize = 0;
+
+		for (let i = 0; i < front.length; i++) {
+			let n = front[i]!;
+			n.fillFollowers();
+
+			const newFollowers = n.possibleBuy.concat(n.possibleTake);
+
 			nBuys += n.possibleBuy.length;
 			nTakes += n.possibleTake.length;
-		
-		totalLevelSize += newFollowers.length;
-		newFrontS = newFrontS.concat(newFollowers);
 
+			totalLevelSize += newFollowers.length;
+			newFrontS = newFrontS.concat(newFollowers);
+		}
+
+		const strs = newFrontS.map(x => x.str());
+		const strSet = new Set<string>(strs);
+
+		const uniqueStrs = Array.from(strSet.values());
+		
+		const recreated = uniqueStrs.map(s => GameNode1.fromState(GameState1.fromStr(s)));
+
+		console.log('All ' + totalLevelSize + ", unique " + strSet.size);
+		
+		front = recreated;
+		
+		const playerPoints = front.map(x => x.state.player.points);
+		console.log("<" + Math.min(...playerPoints) + ":" + Math.max(...playerPoints) + ">");
 	}
 
-	const strs = newFrontS.map(x => x.str());
-	const strSet = new Set<string>(strs);
-
-	const uniqueStrs = Array.from(strSet.values());
-	
-	const recreated = uniqueStrs.map(s => GameNode1.fromState(GameState1.fromStr(s)));
-
-	console.log('All ' + totalLevelSize + ", unique " + strSet.size);
-	
-	front = recreated;
-	
-	const playerPoints = front.map(x => x.state.player.points);
-	console.log("<" + Math.min(...playerPoints) + ":" + Math.max(...playerPoints) + ">");
+	console.log('\n\n');
+	console.log(front.length);
+	console.log(nTakes);
+	console.log(nBuys);
 }
 
-console.log('\n');
-console.timeEnd('1');
+
+function iters2(times: number): void {
+	let nBuys = 0;
+	let nTakes = 0;
+
+	let front = [tree.root];
+
+	let iter = 0;
+	
+	while (iter++ <= times) {
+		let newFrontS: GameState1[] = [];
+		let frontSet = new Set<string>();
+
+		let totalLevelSize = 0;
+
+		let strSet = new Set<string>();
+
+		for (let i = 0; i < front.length; i++) {
+			let n = front[i]!;
+			n.fillFollowers();
+
+			const newFollowers = n.possibleBuy.concat(n.possibleTake);
+
+			nBuys += n.possibleBuy.length;
+			nTakes += n.possibleTake.length;
+
+			totalLevelSize += newFollowers.length;
+			//newFrontS = newFrontS.concat(newFollowers);
+			
+			const newStrs = newFollowers.map(x => x.str());
+			const newSet = new Set<string>(newStrs);
+			strSet = strSet.union(newSet);
+		}
+
+		//const strs = newFrontS.map(x => x.str());
+		//const strSet = new Set<string>(strs);
+
+		const uniqueStrs = Array.from(strSet.values());
+		
+		const recreated = uniqueStrs.map(s => GameNode1.fromState(GameState1.fromStr(s)));
+
+		console.log('All ' + totalLevelSize + ", unique " + strSet.size);
+		
+		front = recreated;
+		
+		const playerPoints = front.map(x => x.state.player.points);
+		console.log("<" + Math.min(...playerPoints) + ":" + Math.max(...playerPoints) + ">");
+	}
+
+	console.log('\n');
+	console.log(front.length);
+	console.log(nTakes);
+	console.log(nBuys);
+}
+
+
+const times = 8;
+
+// console.time('1');
+// iters1(times);
+// console.timeEnd('1');
 
 console.log('\n\n');
-console.log(front.length);
-console.log(nTakes);
-console.log(nBuys);
+
+console.time('1');
+iters2(times);
+console.timeEnd('1');
