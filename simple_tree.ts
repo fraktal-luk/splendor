@@ -70,7 +70,7 @@ function iters2(times: number): void {
 	let nBuys = 0;
 	let nTakes = 0;
 
-	let front = [tree.root];
+	let front = [tree.root.state];
 
 	let iter = 0;
 	
@@ -83,13 +83,16 @@ function iters2(times: number): void {
 		let strSet = new Set<string>();
 
 		for (let i = 0; i < front.length; i++) {
-			let n = front[i]!;
-			n.fillFollowers();
+			let s = front[i]!;
+			//n.fillFollowers();
 
-			const newFollowers = n.possibleBuy.concat(n.possibleTake);
+			const newTakes = s.findTakes();
+			const newBuys = s.findBuys();
 
-			nBuys += n.possibleBuy.length;
-			nTakes += n.possibleTake.length;
+			const newFollowers = newBuys.concat(newTakes);
+
+			nBuys += newBuys.length;
+			nTakes += newTakes.length;
 
 			totalLevelSize += newFollowers.length;
 			//newFrontS = newFrontS.concat(newFollowers);
@@ -104,13 +107,13 @@ function iters2(times: number): void {
 
 		const uniqueStrs = Array.from(strSet.values());
 		
-		const recreated = uniqueStrs.map(s => GameNode1.fromState(GameState1.fromStr(s)));
+		const recreated = uniqueStrs.map(s => GameState1.fromStr(s));
 
 		console.log('All ' + totalLevelSize + ", unique " + strSet.size);
 		
 		front = recreated;
 		
-		const playerPoints = front.map(x => x.state.player.points);
+		const playerPoints = front.map(x => x.player.points);
 		console.log("<" + Math.min(...playerPoints) + ":" + Math.max(...playerPoints) + ">");
 	}
 
@@ -121,14 +124,13 @@ function iters2(times: number): void {
 }
 
 
-const times = 8;
+const times = 5;
 
-// console.time('1');
-// iters1(times);
-// console.timeEnd('1');
 
 console.log('\n\n');
 
 console.time('1');
 iters2(times);
 console.timeEnd('1');
+
+console.log(process.memoryUsage());
