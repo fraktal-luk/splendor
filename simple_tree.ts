@@ -85,21 +85,96 @@ function cmpStates1(a: GameState1, b: GameState1): number {
 
 const fs = require("fs");
 
-if (setVar.size > 2000) {//throw new Error("Too big to write to file");
+if (setVar.size > 10000) {//throw new Error("Too big to write to file");
 	console.log("Too big to write to file");
 	process.exit(0);
 }
-let writer = fs.createWriteStream("states.txt");
+//let writer = fs.createWriteStream("states.txt");
 
 const states = [...setVar].map(s => GameState1.fromStr(s));
 const sorted = states.sort(cmpStates1);
 
-for (const x of sorted) {
-	const state = x;//GameState1.fromStr(x);
-					
-	const bonusSum = state.player.bonuses.reduce((a,b) => a+b);
-	const tokenSum = state.player.tokens.reduce((a,b) => a+b);
-	const str = "" + state.player.points + "; " + state.player.bonuses + " (" + bonusSum + "); " + state.player.tokens + " (" + tokenSum + ")\n";
-	writer.write(str);
+//let stateMap = new Map();
+
+function makeStateStruct(sorted: GameState1[]): string[][][][] {
+	let stateStruct: string[][][][] = [];
+
+	for (const x of sorted) {
+		const state = x;//GameState1.fromStr(x);
+
+		const bonusSum = state.player.bonuses.reduce((a,b) => a+b);
+		const tokenSum = state.player.tokens.reduce((a,b) => a+b);
+		
+		const index = [state.player.points, bonusSum, tokenSum];
+		
+		if (stateStruct[index[0]] == undefined) {
+			stateStruct[index[0]] = [];
+		}
+
+		if (stateStruct[index[0]][index[1]] == undefined) {
+			stateStruct[index[0]][index[1]] = [];
+		}
+
+		if (stateStruct[index[0]][index[1]][index[2]] == undefined) {
+			stateStruct[index[0]][index[1]][index[2]] = [];
+		}
+
+		stateStruct[index[0]][index[1]][index[2]].push(state.player.str());
+		
+		//const str = "" + state.player.points + "; " + state.player.bonuses + " (" + bonusSum + "); " + state.player.tokens + " (" + tokenSum + ")\n";
+		//writer.write(str);
+	}
+	
+	return stateStruct;
 }
-writer.end();
+
+const stateStruct = makeStateStruct(sorted);
+//writer.end();
+
+//console.log(stateStruct[0][0][5]);
+
+
+function writeStructured(states: string[][][][], fname: string): void {
+		
+	const writer = fs.createWriteStream(fname);
+
+	for (const a0 of states) {
+		
+		if (a0 == undefined) continue;
+		for (const a1 of a0) {
+			
+			if (a1 == undefined) continue;
+			for (const a2 of a1) {
+				if (a2 == undefined) continue;
+				
+				const state = GameState1.fromStr(a2[0]);
+				const bonusSum = state.player.bonuses.reduce((a,b) => a+b);
+				const tokenSum = state.player.tokens.reduce((a,b) => a+b);
+				
+				const index = [state.player.points, bonusSum, tokenSum];
+				
+				const str = ">>>  " + state.player.points + "; " + bonusSum + "; " + tokenSum + "\n";
+				writer.write(str);
+				writer.write(a2.join('\n'));
+				writer.write('\n');
+			}
+		}
+	}
+
+	writer.end();
+}
+
+writeStructured(stateStruct, "states_structured.txt");
+
+function pruneStates(states: string[][][][]): string[][][][] {
+	let res: string[][][][] = [];
+	
+	
+	
+	return res;
+}
+
+const prunedStruct = pruneStates(stateStruct);
+
+writeStructured(prunedStruct, "states_pruned.txt");
+
