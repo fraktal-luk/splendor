@@ -20,6 +20,9 @@ export const presetOrder: number[] = [
    5,  3,  3,  0,  0,  0
 ];
 
+export const presetStacks: CardId[][] = setupStacks(presetOrder);
+
+
 ////////////////////////////////////////
 
 // 1 player tree analysis
@@ -70,7 +73,6 @@ export class TableState1 {
 	tokens: ValVector = [4, 4, 4, 4, 4, 0];
 	rows: CardId[][] = [[], [], []];
 	stackNums: number[] = [-1, -1, -1];
-	constStacks: CardId[][] = [];
 
 
 	deepCopy(): TableState1 {
@@ -80,30 +82,35 @@ export class TableState1 {
 			res.rows[i] = structuredClone(this.rows[i]);
 
 		res.stackNums = structuredClone(this.stackNums);
-		res.constStacks = this.constStacks;
 		
 		return res;
 	}
 	
-	init(cardOrder: number[]): void {
-		this.constStacks = setupStacks(cardOrder);
-		this.stackNums = this.constStacks.map(a => a.length);
+	init(presetStacks: CardId[][]): void {
+		this.stackNums = presetStacks.map(a => a.length);
 		this.fillRows();
 	}
 	
 	fillRows(): void {
-		for (let r = 0; r < 3; r++) {
-			for (let c = 0; c < 4; c++) {
-				this.takeCard(r+1, c+1);
-			}
+		for (let row = 0; row < 3; row++) {
+			for (let col = 0; col < 4; col++) {				
+				this.stackNums[row]--;
+				this.rows[row][col] = presetStacks[row]!.at(this.stackNums[row])!;
+			}		
+			this.rows[row]!.sort((a: number, b: number) => a-b);
 		}
 	}
 	
 	takeCard(r: number, c: number): CardId {
-		const res = this.rows[r-1][c-1];
+		const row = r-1;
+		const col = c-1;
+		
+		const res = this.rows[row][col];
 
-		this.stackNums[r-1]--;
-		this.rows[r-1][c-1] = this.constStacks[r-1]!.at(this.stackNums[r-1])!;
+		this.stackNums[row]--;
+		this.rows[row][col] = presetStacks[row]!.at(this.stackNums[row])!;
+		// Sort row
+		this.rows[row]!.sort((a: number, b: number) => a-b);
 
 		return res;
 	}
@@ -150,7 +157,7 @@ export class TableState1 {
 		let res = new TableState1(); 
 		
 		const struct = TableStruct1.fromStr(s);		
-		res.init(presetOrder);
+		res.init(presetStacks);
 		
 		res.stackNums = struct.stackLevels;
 		res.rows = [struct.cardsRow1, struct.cardsRow2, struct.cardsRow3];
@@ -290,6 +297,62 @@ export class GameState1 {
 		return res;
 	}
 
+
+	findBuys(): GameState1[] {
+		let res: GameState1[] = [];
+
+		const player = this.player;
+		const table = this.table;
+		
+		for (let r = 1; r < 4; r++) {
+			for (let c = 1; c < 5; c++) {
+				const id = table.rows[r-1][c-1];
+				const price = getCardPrice(id);
+				const budget = vecAdd(player.tokens, player.bonuses);
+				if (!vecEnough(budget, price)) continue;
+
+				const realPrice = vecLimit0(vecSub(price, player.bonuses));
+				
+				let newState = this.deepCopy();
+				newState.player.addCard(newState.table.takeCard(r, c));
+				newState.player.takeToks(realPrice);
+				newState.table.addToks(realPrice);
+				
+				res.push(newState);
+			}
+		}
+		
+		return res;
+	}
+
+
+	findTakes(): GameState1[] {
+		let res: GameState1[] = [];
+		
+		const playerToks = this.player.tokens;
+		const tableToks = this.table.tokens;
+		
+		// all Take moves possible
+		const allTakeMoves = makeAllTakeMoves(playerToks, tableToks);
+		const decoded = uniqueMoves(allTakeMoves);
+		
+		// Check which moves are impossible because would leave player with negative token states
+		
+		for (const v of decoded) {
+			const resulting = vecAdd(playerToks, v);
+			if (!vecNonNegative(resulting)) continue;
+
+			let newState = this.deepCopy();
+			newState.table.takeToks(v);
+			newState.player.addToks(v);
+			
+			res.push(newState);
+		}
+		
+		return res;
+	}
+
+
 	str(): string {
 		return this.table.str() + this.player.str(); 
 	}
@@ -334,11 +397,7 @@ function findCanonicalTake(v: ValVector): string {
 
 export class GameNode1 {
 	state: GameState1 = new GameState1();
-	
-	// possible next nodes
-	followersTake: Map<TakeMove1, GameNode1> = new Map<TakeMove1, GameNode1>();
-	followersBuy: Map<BuyMove1, GameNode1> = new Map<BuyMove1, GameNode1>();
-	
+
 		possibleBuy: GameState1[] = [];
 		possibleTake: GameState1[] = [];
 	
@@ -354,63 +413,11 @@ export class GameNode1 {
 	}
 
 	TMP_fillBuys(): void {
-		const player = this.state.player;
-		const table = this.state.table;
-		
-		for (let r = 1; r < 4; r++) {
-			for (let c = 1; c < 5; c++) {
-				const id = this.state.table.rows[r-1][c-1];
-				const price = getCardPrice(id);
-				const budget = vecAdd(this.state.player.tokens, this.state.player.bonuses);
-				if (!vecEnough(budget, price)) continue;
-
-				const realPrice = vecLimit0(vecSub(price, this.state.player.bonuses));
-				
-				let newState = this.state.deepCopy();
-				newState.player.addCard(newState.table.takeCard(r, c));
-				newState.player.takeToks(realPrice);
-				newState.table.addToks(realPrice);
-				
-				const newMove: BuyMove1 = {toks: realPrice, loc: [r, c]};
-				
-				let newNode = new GameNode1();
-				newNode.state = newState;
-				
-				//this.followersBuy.set(newMove, newNode);
-				
-					this.possibleBuy.push(newState.deepCopy());
-			}
-		}
-	}	
-
+		this.possibleBuy = this.state.findBuys();
+	}
 
 	TMP_fillTakes(): void {
-		const playerToks = this.state.player.tokens;
-		const tableToks = this.state.table.tokens;
-		
-		// all Take moves possible
-		const allTakeMoves = makeAllTakeMoves(playerToks, tableToks);
-		const decoded = uniqueMoves(allTakeMoves);
-		
-		// Check which moves are impossible because would leave player with negative token states
-		
-		for (const v of decoded) {
-			const resulting = vecAdd(playerToks, v);
-			if (!vecNonNegative(resulting))
-				continue;
-			let newState = this.state.deepCopy();
-			newState.table.takeToks(v);
-			newState.player.addToks(v);
-			const newMove: TakeMove1 = {toks: v};
-			
-			let newNode = new GameNode1();
-			newNode.state = newState;
-			
-			//this.followersTake.set(newMove, newNode);
-			
-				this.possibleTake.push(newState.deepCopy());
-		}
-		
+		this.possibleTake = this.state.findTakes();
 	}
 	
 }

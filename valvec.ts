@@ -71,5 +71,12 @@ export function vv2str(v: ValVector): string {
 	return "[" + v + "]";
 }
 
+export function vvLessThan(a: ValVector, b: ValVector): boolean {
+	let foundLower = false;
+	for (let i = 0; i < 6; i++) {
+		if (a[i] > b[i]) return false;
+		if (a[i] < b[i]) foundLower = true;
+	}
 
-
+	return foundLower;
+}
