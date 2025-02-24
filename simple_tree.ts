@@ -1,11 +1,11 @@
 
 import {ValVector, satisfies, vecAdd, vecSub, vecEnough, vecSum,
-		vecNonNegative, vecLimit0, str2vv, vv2str, vvLessThan} from './valvec.ts'
+		vecNonNegative, vecLimit0, str2vv, vv2str, vvLessThan} from './lib/valvec.ts'
 import {Color, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardColor,
-		} from './rules.ts';
+		} from './lib/rules.ts';
 
 import {TableStruct1, TableState1, PlayerStruct1, PlayerState1, GameState1, GameNode1,
-		MoveTree1, BuyMove1, TakeMove1, presetOrder, presetStacks} from './simplified_rules.ts'
+		MoveTree1, BuyMove1, TakeMove1, presetOrder, presetStacks} from './lib/simplified_rules.ts'
 
 
 let tree = new MoveTree1();

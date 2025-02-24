@@ -1,7 +1,5 @@
 
 import {ValVector, satisfies, vecAdd, vecSub, vecEnough, vecSum, str2vv, vv2str } from './valvec.ts';
-import {Color, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardColor,
-		} from './rules.ts';
 
 
 // Sum 1

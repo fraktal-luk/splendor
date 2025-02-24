@@ -1,5 +1,5 @@
 
-import {Game} from './rules.ts';
+import {Game} from './lib/rules.ts';
 
 const presetOrder: number[] = [
    7, 23, 52, 12, 66, 52, 74, 79, 79, 43,  7, 74,

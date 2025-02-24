@@ -1,10 +1,7 @@
 
-import {ValVector, satisfies, vecAdd, vecSub, vecEnough, vecSum} from './valvec.ts'
-
 import {Color, CardId, Game, setupStacks, getCardPrice, getCardPoints, getCardColor,
-		} from './rules.ts';
+		} from './lib/rules.ts';
 
-import { } from './comb.ts';
 
 const presetOrder: number[] = [
    7, 23, 52, 12, 66, 52, 74, 79, 79, 43,  7, 74,
