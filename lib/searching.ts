@@ -10,6 +10,11 @@ STR_3x1,
 getReturns
 } from './comb.ts';
 
+import {cardStringList} from './rules.ts';
+
+
+export const CARD_SPECS: string[] = [''].concat(cardStringList.flat());
+
 
 // each stack is drained form the end, 4 last elements in each are on the table from the start
 export const TABLE_STACKS: number[][] =
@@ -43,7 +48,7 @@ function take2ifPossible(take: string, table: string): string | null {
 	return take;
 }
 
-export function sumState(stateA: string): number {
+function sumState(stateA: string): number {
 	const lenA = stateA.length;
 	let res = 0;
 	for (let i = 0; i < 6; i++) {
@@ -57,6 +62,16 @@ function minStates(stateA: string, stateB: string): string {
 	let res = "      ".split('');
 	for (let i = 0; i < 6; i++) {
 		res[i] = Math.min(parseInt(stateA[i], 16), parseInt(stateB[i], 16)).toString(16);
+	}
+	res[5] = '0';
+	return res.join('');
+}
+
+function maxStates(stateA: string, stateB: string): string {
+	const lenA = stateA.length;
+	let res = "      ".split('');
+	for (let i = 0; i < 6; i++) {
+		res[i] = Math.max(parseInt(stateA[i], 16), parseInt(stateB[i], 16)).toString(16);
 	}
 	res[5] = '0';
 	return res.join('');
@@ -80,6 +95,14 @@ function subStates(stateA: string, stateB: string): string {
 	}
 	res[5] = '0';
 	return res.join('');
+}
+
+function enoughStates(stateA: string, stateB: string): boolean {
+	const lenA = stateA.length;
+	for (let i = 0; i < 6; i++) {
+		if (parseInt(stateA[i], 16) < parseInt(stateB[i], 16)) return false;
+	}
+	return true;
 }
 
 function applyTakes(state: string): string[] {
@@ -117,6 +140,11 @@ export class TokenState {
 		this.player = p;
 		this.table = t;
 	}
+
+		// CAREFUL: bonuses must be already applied because this class doesn't know about cards
+		playerCanBuy(price: string): boolean {
+			return enoughStates(this.player, price);
+		}
 
 	playerTokSum(): number {
 		return sumState(this.player);
@@ -188,28 +216,64 @@ class PlayerCardState {
 	// 90 cards, numbers 1 to 90
 	// 8*12 = 96 -> 12 bytes contains all possible subsets of cards
 	// bit [0] is unused, [1:90] represent cards
-	str: string = "";
+	// Bytes are represented as hex
+	// Each byte is big endian: [7 6 5 4 3 2 1 0][f e d c b a 9 8] ...
+	//str: string = ['00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00',].join('');
 	
+	bitmap: boolean[] = '0'.repeat(91).split('').map(_ => false);
+
 	has(c: number): boolean {
 		return false;
 	}
 	
 	acquire(c: number): void {
-		
+		this.bitmap[c] = true;
 	}
 	
 	toArr(): number[] {
-		return [];
+		let res: number[] = [];
+		for (let i = 0; i < this.bitmap.length; i++)
+			if (this.bitmap[i]) res.push(i);
+		return res;
 	}
+	
+	toStr(): string {
+		return this.toArr().toString();
+	}
+	
+	
+	getBonuses(): string {
+		let hist = [0, 0, 0, 0, 0, 0];
+		// with colors 0:5
+		// color of card K: (K-1) % 5
+		this.toArr().forEach(k => hist[(k-1) % 5]++);
+		
+		return hist.map(n => Math.min(n, 15).toString(16)).join('');
+	}		
+	
+	
+	// Price to pay regarding this player's bonuses
+	effectivePrice(n: number): string {
+		const basePrice = getCardPrice(n);
+		const bonuses = this.getBonuses();
+		
+		// max(0, a - b)
+		//  a => b -> a-b, b == min(a, b) 
+		//  a < b  -> 0 == a-a, a == min(a, b)
+		// max(0, a-b) == a - min(a, b)
+		const reduction = minStates(bonuses, basePrice);
+		return subStates(basePrice, reduction);
+	}
+	
 }
 
 
 
-const INITIAL_TABLE_NUMS: number[] =
-		[ 53, 67, 75, 88,
-		  24, 31, 39, 44, 
-		   2,  8, 13, 20 ];
-const INITIAL_TABLE_STR: string = INITIAL_TABLE_NUMS.map(n => (n+256).toString(16).substr(1,2)).join('');
+const INITIAL_TABLE_NUMS: number[][] =
+		[ [53, 67, 75, 88],
+		  [24, 31, 39, 44], 
+		  [ 2,  8, 13, 20] ];
+//const INITIAL_TABLE_STR: string = INITIAL_TABLE_NUMS.map(n => (n+256).toString(16).substr(1,2)).join('');
 
 
 class TableCardState {
@@ -220,19 +284,32 @@ class TableCardState {
 	// 1 [][][][] bytes 0:3
 	// 2 [][][][] bytes 4:7
 	// 3 [][][][] - highest card values, bytes 8:11
-	rows: number[] = // rows on the table are always sorted (per row!) to prevent exploding number of equivalent states
+	rows: number[][] = // rows on the table are always sorted (per row!) to prevent exploding number of equivalent states
 		INITIAL_TABLE_NUMS;
 	
 	// indexing from 0
 	getRow(n: number): number[] {
-		return this.rows.slice(4*n, 4*n + 4);
+		return this.rows[n];
 	}
 	
 	rowStr(): string {
-		return this.rows.map(n => (n+256).toString(16).substr(1,2)).join('');
+		//return this.rows.flat().map(n => (n+256).toString(16).substr(1,2)).join('');
+		return this.rows.flat().toString();
 	}
 	levelStr(): string {
-		return this.levels.map(n => (n+256).toString(16).substr(1,2)).join('');
+		//return this.levels.map(n => (n+256).toString(16).substr(1,2)).join('');
+		return this.levels.toString();
+	}
+	
+	// index from 0 to 11, card in this.rows
+	grab(index: number): void {
+		const row = Math.floor(index/4);
+		const col = index % 4;
+		this.levels[row]--;
+		const replacement = TABLE_STACKS[row][this.levels[row]];
+		this.rows[row][col] = replacement;
+
+		this.rows[row].sort((a: number, b: number) => a-b);
 	}
 }
 
@@ -241,4 +318,10 @@ export class CardState {
 	player: PlayerCardState = new PlayerCardState();
 	table: TableCardState = new TableCardState();
 }
+
+export function getCardPrice(n: number): string {
+	const str = CARD_SPECS[n];
+	return str.split(':')[1] + "0";
+}
+
 

@@ -1,6 +1,6 @@
 
 import {TokenState, statesUnique, moveFront, 
-		CardState,
+		CardState,     CARD_SPECS, getCardPrice,
 } from './lib/searching.ts';
 
 
@@ -49,6 +49,24 @@ console.log(cs.table.rows);
 console.log(cs.table.getRow(0));
 console.log(cs.table.getRow(2));
 
-console.log(cs.table.rowStr());
-console.log(cs.table.levelStr());
+console.log(cs.table);
+
+//console.log(cs.player.toArr());
+
+cs.table.grab(10);
+console.log(cs.table);
+
+console.log(CARD_SPECS);
+console.log(getCardPrice(7));
+console.log(getCardPrice(88));
+
+const exampleTokState = new TokenState("201200", "243240");
+console.log( exampleTokState.playerCanBuy("000000"));
+console.log( exampleTokState.playerCanBuy("201200"));
+console.log( exampleTokState.playerCanBuy("210200"));
+
+console.log(cs.player.getBonuses());
+
+cs.player.acquire(3);
+console.log(cs.player.getBonuses());
 
