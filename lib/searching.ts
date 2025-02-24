@@ -220,8 +220,20 @@ class TableCardState {
 	// 1 [][][][] bytes 0:3
 	// 2 [][][][] bytes 4:7
 	// 3 [][][][] - highest card values, bytes 8:11
-	rows: string = // rows on the table are always sorted (per row!) to prevent exploding number of equivalent states
-		INITIAL_TABLE_STR;
+	rows: number[] = // rows on the table are always sorted (per row!) to prevent exploding number of equivalent states
+		INITIAL_TABLE_NUMS;
+	
+	// indexing from 0
+	getRow(n: number): number[] {
+		return this.rows.slice(4*n, 4*n + 4);
+	}
+	
+	rowStr(): string {
+		return this.rows.map(n => (n+256).toString(16).substr(1,2)).join('');
+	}
+	levelStr(): string {
+		return this.levels.map(n => (n+256).toString(16).substr(1,2)).join('');
+	}
 }
 
 
