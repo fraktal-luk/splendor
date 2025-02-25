@@ -1,6 +1,6 @@
 
 import {TokenState, statesUnique, moveFront, 
-		CardState,     CARD_SPECS, getCardPrice,
+		CardState,   FullState,  /*CARD_SPECS,*/ getCardPrice,
 } from './lib/searching.ts';
 
 
@@ -56,7 +56,6 @@ console.log(cs.table);
 cs.table.grab(10);
 console.log(cs.table);
 
-console.log(CARD_SPECS);
 console.log(getCardPrice(7));
 console.log(getCardPrice(88));
 
@@ -69,4 +68,9 @@ console.log(cs.player.getBonuses());
 
 cs.player.acquire(3);
 console.log(cs.player.getBonuses());
+
+let state = new FullState();
+let stateN = state.copy();
+
+const buys = stateN.nextStatesBuy();
 

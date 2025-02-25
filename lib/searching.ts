@@ -141,6 +141,10 @@ export class TokenState {
 		this.table = t;
 	}
 
+	copy(): TokenState {
+		return new TokenState(this.player, this.table);
+	}
+
 		// CAREFUL: bonuses must be already applied because this class doesn't know about cards
 		playerCanBuy(price: string): boolean {
 			return enoughStates(this.player, price);
@@ -222,6 +226,12 @@ class PlayerCardState {
 	
 	bitmap: boolean[] = '0'.repeat(91).split('').map(_ => false);
 
+	copy(): PlayerCardState {
+		let res = new PlayerCardState();
+		res.bitmap = structuredClone(this.bitmap);
+		return res;		
+	}
+
 	has(c: number): boolean {
 		return false;
 	}
@@ -287,6 +297,14 @@ class TableCardState {
 	rows: number[][] = // rows on the table are always sorted (per row!) to prevent exploding number of equivalent states
 		INITIAL_TABLE_NUMS;
 	
+	copy(): TableCardState {
+		let res = new TableCardState();
+		res.levels = structuredClone(this.levels);
+		res.rows = structuredClone(this.rows);
+		return res;
+	}
+	
+	
 	// indexing from 0
 	getRow(n: number): number[] {
 		return this.rows[n];
@@ -299,6 +317,13 @@ class TableCardState {
 	levelStr(): string {
 		//return this.levels.map(n => (n+256).toString(16).substr(1,2)).join('');
 		return this.levels.toString();
+	}
+	
+	getCard(index: number): number {
+		const row = Math.floor(index/4);
+		const col = index % 4;
+		this.levels[row]--;
+		return this.rows[row][col];
 	}
 	
 	// index from 0 to 11, card in this.rows
@@ -317,11 +342,59 @@ class TableCardState {
 export class CardState {
 	player: PlayerCardState = new PlayerCardState();
 	table: TableCardState = new TableCardState();
+	
+	copy(): CardState {
+		let res = new CardState();
+		res.player = new PlayerCardState();
+		res.table = new TableCardState();
+		return res;
+	}
 }
+
+export class FullState {
+	tokState: TokenState = new TokenState("000000", "444440");
+	cardState: CardState = new CardState();
+	
+	copy(): FullState {
+		let res = new FullState();
+		res.tokState = this.tokState.copy();		
+		res.cardState = this.cardState.copy();		
+		return res;
+	}
+	
+	nextStatesBuy(): FullState[] {
+		let res: FullState[] = [];
+		
+		for (let i = 0; i < 12; i++) {
+			const cardId = this.cardState.table.getCard(i);
+			//const basePrice = getCardPrice(cardId);
+			const effPrice = this.cardState.player.effectivePrice(cardId);
+			
+			if (this.tokState.playerCanBuy(effPrice)) {
+				const newTokState = new TokenState(subStates(this.tokState.player, effPrice), addStates(this.tokState.table, effPrice));
+				const newCardState = this.cardState.copy();
+				newCardState.player.acquire(cardId);
+				newCardState.table.grab(i);
+				let newFullState = new FullState();
+				newFullState.tokState = newTokState;
+				newFullState.cardState = newCardState;
+				
+				res.push(newFullState);
+			}
+			
+		}
+		
+		return res;
+	}
+	
+}
+
+
 
 export function getCardPrice(n: number): string {
 	const str = CARD_SPECS[n];
 	return str.split(':')[1] + "0";
 }
+
 
 
