@@ -81,15 +81,5 @@ for (const bg of buysG) {
 const takesG = stateGroup0N.nextStateGroupTake();
 console.log(takesG);
 
-console.log('\n\n\n\n');
+//console.log('\n\n\n\n');
 
-// Let's change tok config
-stateGroup0N.tokState[0] = new TokenState("323200", "12124");
-
-const buysGn = stateGroup0N.nextStatesBuy();
-for (const bg of buysGn) {
-	console.log(bg);
-}
-
-const takesGn = stateGroup0N.nextStateGroupTake();
-console.log(takesGn);

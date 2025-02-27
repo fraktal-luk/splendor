@@ -297,12 +297,13 @@ class TableCardState {
 	// 2 [][][][] bytes 4:7
 	// 3 [][][][] - highest card values, bytes 8:11
 	rows: number[][] = // rows on the table are always sorted (per row!) to prevent exploding number of equivalent states
-		INITIAL_TABLE_NUMS;
+		structuredClone(INITIAL_TABLE_NUMS);
 	
 	copy(): TableCardState {
 		let res = new TableCardState();
 		res.levels = structuredClone(this.levels);
-		res.rows = structuredClone(this.rows);
+		res.rows = //this.rows.map(a => structuredClone(a));
+				   structuredClone(this.rows);
 		return res;
 	}
 	
@@ -344,8 +345,8 @@ export class CardState {
 	
 	copy(): CardState {
 		let res = new CardState();
-		res.player = new PlayerCardState();
-		res.table = new TableCardState();
+		res.player = this.player.copy();
+		res.table = this.table.copy();
 		return res;
 	}
 }
@@ -391,22 +392,25 @@ export class FullState {
 	
 }
 
-
+// This represents a bundle of states with common CardState
 export class StateGroup {
 	tokState: TokenState[] = [new TokenState("000000", "444440")];
 	cardState: CardState = new CardState();
 	
 	copy(): StateGroup {
 		let res = new StateGroup();
-		res.tokState = this.tokState.map(x => x.copy())
+		res.tokState = this.tokState.map(x => x.copy());
 		res.cardState = this.cardState.copy();		
 		return res;
 	}
 	
 	nextStatesBuy(): StateGroup[] {
 		let res: StateGroup[] = [];
-		
+				
 		for (let i = 0; i < 12; i++) { // for each card on table
+		
+				//	console.log(this.cardState.table.rows);
+
 			const cardId = this.cardState.table.getCard(i);
 			const effPrice = this.cardState.player.effectivePrice(cardId);
 
@@ -419,9 +423,12 @@ export class StateGroup {
 			
 			newStateGroup.tokState = [];
 			
+			//console.log(`try buying er each tokstte (${this.tokState.length})`);
 			for (const ts of this.tokState) { // for each tokState
 				if (!ts.playerCanBuy(effPrice)) continue;
 
+					//console.log(`${ts.player}, buying ${cardId} for ${effPrice}`);
+					
 				const newTokState = new TokenState(subStates(ts.player, effPrice), addStates(ts.table, effPrice));
 				newStateGroup.tokState.push(newTokState);
 			}
