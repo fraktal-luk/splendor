@@ -38,6 +38,10 @@ export const TABLE_STACKS: number[][] =
   ]
 ];
 
+export function getCardPrice(n: number): string {
+	const str = CARD_SPECS[n];
+	return str.split(':')[1] + "0";
+}
 
 
 function take2ifPossible(take: string, table: string): string | null {
@@ -145,10 +149,9 @@ export class TokenState {
 		return new TokenState(this.player, this.table);
 	}
 
-		// CAREFUL: bonuses must be already applied because this class doesn't know about cards
-		playerCanBuy(price: string): boolean {
-			return enoughStates(this.player, price);
-		}
+	playerCanBuy(price: string): boolean {
+		return enoughStates(this.player, price);
+	}
 
 	playerTokSum(): number {
 		return sumState(this.player);
@@ -283,7 +286,6 @@ const INITIAL_TABLE_NUMS: number[][] =
 		[ [53, 67, 75, 88],
 		  [24, 31, 39, 44], 
 		  [ 2,  8, 13, 20] ];
-//const INITIAL_TABLE_STR: string = INITIAL_TABLE_NUMS.map(n => (n+256).toString(16).substr(1,2)).join('');
 
 
 class TableCardState {
@@ -304,18 +306,15 @@ class TableCardState {
 		return res;
 	}
 	
-	
 	// indexing from 0
 	getRow(n: number): number[] {
 		return this.rows[n];
 	}
 	
 	rowStr(): string {
-		//return this.rows.flat().map(n => (n+256).toString(16).substr(1,2)).join('');
 		return this.rows.flat().toString();
 	}
 	levelStr(): string {
-		//return this.levels.map(n => (n+256).toString(16).substr(1,2)).join('');
 		return this.levels.toString();
 	}
 	
@@ -367,10 +366,9 @@ export class FullState {
 		
 		for (let i = 0; i < 12; i++) {
 			const cardId = this.cardState.table.getCard(i);
-			//const basePrice = getCardPrice(cardId);
 			const effPrice = this.cardState.player.effectivePrice(cardId);
 			
-			if (this.tokState.playerCanBuy(effPrice)) {
+			if (this.tokState.playerCanBuy(effPrice)) {				
 				const newTokState = new TokenState(subStates(this.tokState.player, effPrice), addStates(this.tokState.table, effPrice));
 				const newCardState = this.cardState.copy();
 				newCardState.player.acquire(cardId);
@@ -387,14 +385,68 @@ export class FullState {
 		return res;
 	}
 	
+	nextStatesTake(): FullState[] {
+		return [];
+	}
+	
 }
 
 
+export class StateGroup {
+	tokState: TokenState[] = [new TokenState("000000", "444440")];
+	cardState: CardState = new CardState();
+	
+	copy(): StateGroup {
+		let res = new StateGroup();
+		res.tokState = this.tokState.map(x => x.copy())
+		res.cardState = this.cardState.copy();		
+		return res;
+	}
+	
+	nextStatesBuy(): StateGroup[] {
+		let res: StateGroup[] = [];
+		
+		for (let i = 0; i < 12; i++) { // for each card on table
+			const cardId = this.cardState.table.getCard(i);
+			const effPrice = this.cardState.player.effectivePrice(cardId);
 
-export function getCardPrice(n: number): string {
-	const str = CARD_SPECS[n];
-	return str.split(':')[1] + "0";
+			const newCardState = this.cardState.copy();
+			newCardState.player.acquire(cardId);
+			newCardState.table.grab(i);
+			
+			let newStateGroup = new StateGroup();
+			newStateGroup.cardState = newCardState;
+			
+			newStateGroup.tokState = [];
+			
+			for (const ts of this.tokState) { // for each tokState
+				if (!ts.playerCanBuy(effPrice)) continue;
+
+				const newTokState = new TokenState(subStates(ts.player, effPrice), addStates(ts.table, effPrice));
+				newStateGroup.tokState.push(newTokState);
+			}
+			
+			if (newStateGroup.tokState.length > 0)
+				res.push(newStateGroup);
+		}
+		
+		return res;
+	}
+	
+	nextStateGroupTake(): StateGroup {
+		let res = new StateGroup();
+		res.cardState = this.cardState.copy();
+		
+		let newTokStates: TokenState[] = [];
+		
+		for (const ts of this.tokState) {
+			newTokStates = newTokStates.concat(ts.nextStates());
+		}
+		
+		res.tokState = statesUnique(newTokStates);
+		
+		return res;
+	}
+	
 }
-
-
 

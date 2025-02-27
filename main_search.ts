@@ -1,6 +1,6 @@
 
-import {TokenState, statesUnique, moveFront, 
-		CardState,   FullState,  /*CARD_SPECS,*/ getCardPrice,
+import {TokenState, statesUnique, moveFront, getCardPrice,
+		CardState,   FullState,  StateGroup,
 } from './lib/searching.ts';
 
 
@@ -43,21 +43,12 @@ if (RUN_TOK_SEARCH) {
 }
 
 let cs = new CardState();
-console.log(cs);
-
-console.log(cs.table.rows);
-console.log(cs.table.getRow(0));
-console.log(cs.table.getRow(2));
 
 console.log(cs.table);
-
-//console.log(cs.player.toArr());
 
 cs.table.grab(10);
 console.log(cs.table);
 
-console.log(getCardPrice(7));
-console.log(getCardPrice(88));
 
 const exampleTokState = new TokenState("201200", "243240");
 console.log( exampleTokState.playerCanBuy("000000"));
@@ -69,8 +60,36 @@ console.log(cs.player.getBonuses());
 cs.player.acquire(3);
 console.log(cs.player.getBonuses());
 
-let state = new FullState();
-let stateN = state.copy();
+// let state = new FullState();
+// let stateN = state.copy();
+// stateN.tokState = new TokenState("320110", "12433");
+// stateN.tokState = new TokenState("222220", "22222");
+// const buys = stateN.nextStatesBuy();
+// console.log(buys);
 
-const buys = stateN.nextStatesBuy();
 
+let stateGroup0 = new StateGroup();
+let stateGroup0N = stateGroup0.copy();
+stateGroup0N.tokState[0] = new TokenState("320110", "12433");
+stateGroup0N.tokState[0] = new TokenState("222220", "22222");
+
+const buysG = stateGroup0N.nextStatesBuy();
+for (const bg of buysG) {
+	console.log(bg);
+}
+
+const takesG = stateGroup0N.nextStateGroupTake();
+console.log(takesG);
+
+console.log('\n\n\n\n');
+
+// Let's change tok config
+stateGroup0N.tokState[0] = new TokenState("323200", "12124");
+
+const buysGn = stateGroup0N.nextStatesBuy();
+for (const bg of buysGn) {
+	console.log(bg);
+}
+
+const takesGn = stateGroup0N.nextStateGroupTake();
+console.log(takesGn);
