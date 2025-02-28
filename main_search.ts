@@ -72,14 +72,18 @@ const wave0 = //stateGroup0N.nextStates();
 const wave1 = wave0.next_Repeating();
 const wave2 = wave1.next_Repeating();
 const wave3 = wave2.next_Repeating();
-const wave4 = wave3.next_Repeating();
-const wave5 = wave4.next_Repeating();
+//const wave4 = wave3.next_Repeating();
+//const wave5 = wave4.next_Repeating();
 
 console.log(`${wave0.groupSize()}, ${wave0.stateSize()}`);
 console.log(`${wave1.groupSize()}, ${wave1.stateSize()}`);
 console.log(`${wave2.groupSize()}, ${wave2.stateSize()}`);
 console.log(`${wave3.groupSize()}, ${wave3.stateSize()}`);
-console.log(`${wave4.groupSize()}, ${wave4.stateSize()}`);
-console.log(`${wave5.groupSize()}, ${wave5.stateSize()}`);
+//console.log(`${wave4.groupSize()}, ${wave4.stateSize()}`);
+//console.log(`${wave5.groupSize()}, ${wave5.stateSize()}`);
 
-wave5.stateGroups.forEach(x => console.log(x.cardState.table));
+//wave5.stateGroups.forEach(x => console.log(x.cardState.table));
+//wave3.stateGroups.forEach(x => console.log(x.cardState.table));
+console.log(stateGroup0.cardState.table);
+console.log(wave0.stateGroups[0].cardState.table);
+console.log(wave1.stateGroups[0].cardState.table);

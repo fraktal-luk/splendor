@@ -322,7 +322,7 @@ class TableCardState {
 	getCard(index: number): number {
 		const row = Math.floor(index/4);
 		const col = index % 4;
-		this.levels[row]--;
+		//this.levels[row]--;
 		return this.rows[row][col];
 	}
 	
@@ -373,6 +373,8 @@ export class StateGroup {
 
 			const cardId = this.cardState.table.getCard(i);
 			const effPrice = this.cardState.player.effectivePrice(cardId);
+
+				//console.log(`levels base: ${this.cardState.table.levels}`);
 
 			const newCardState = this.cardState.copy();
 			newCardState.player.acquire(cardId);
@@ -445,11 +447,16 @@ export class Wave {
 	next_Repeating(): Wave {
 		let res = new Wave();
 		
+		//	console.log('>> next stage!');
+		
 		//  [ [...], [...], [...], ...]
 		const followers = this.stateGroups.map(x => x.nextStates()).flat();
 		// 
 		
 		res.stateGroups = followers;
+		
+		//	res.stateGroups.forEach(x => console.log(x.cardState.table));
+		
 		return res;
 	}
 
