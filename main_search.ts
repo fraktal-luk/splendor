@@ -69,21 +69,42 @@ const wave0 = //stateGroup0N.nextStates();
 			   Wave.fromSG(stateGroup0);
 //const anotherWave = wave.map(x => x.nextStates());
 
+
 const wave1 = wave0.next_Repeating();
 const wave2 = wave1.next_Repeating();
 const wave3 = wave2.next_Repeating();
-//const wave4 = wave3.next_Repeating();
-//const wave5 = wave4.next_Repeating();
 
-console.log(`${wave0.groupSize()}, ${wave0.stateSize()}`);
-console.log(`${wave1.groupSize()}, ${wave1.stateSize()}`);
-console.log(`${wave2.groupSize()}, ${wave2.stateSize()}`);
-console.log(`${wave3.groupSize()}, ${wave3.stateSize()}`);
-//console.log(`${wave4.groupSize()}, ${wave4.stateSize()}`);
-//console.log(`${wave5.groupSize()}, ${wave5.stateSize()}`);
+console.time('1');
+const wave4 = wave3.next_Repeating();
+const wave5 = wave4.next_Repeating();
+const wave6 = wave5.next_Repeating();
+const wave7 = wave6.next_Repeating();
 
-//wave5.stateGroups.forEach(x => console.log(x.cardState.table));
-//wave3.stateGroups.forEach(x => console.log(x.cardState.table));
-console.log(stateGroup0.cardState.table);
-console.log(wave0.stateGroups[0].cardState.table);
-console.log(wave1.stateGroups[0].cardState.table);
+console.timeEnd('1');
+console.log('');
+
+
+// console.log(`${wave0.groupSize()}, ${wave0.stateSize()}`);
+// console.log(`${wave1.groupSize()}, ${wave1.stateSize()}`);
+// console.log(`${wave2.groupSize()}, ${wave2.stateSize()}`);
+// console.log(`${wave3.groupSize()}, ${wave3.stateSize()}`);
+// console.log(`${wave4.groupSize()}, ${wave4.stateSize()}`);
+// console.log(`${wave5.groupSize()}, ${wave5.stateSize()}`);
+
+
+console.time('2');
+
+const wave4u = wave3.next();
+const wave5u = wave4u.next();
+const wave6u = wave5u.next();
+const wave7u = wave6u.next();
+
+console.timeEnd('2');
+console.log('');
+
+
+ console.log(`${wave6.groupSize()}, ${wave6.stateSize()}`);
+ console.log(`${wave6u.groupSize()}, ${wave6u.stateSize()}`);
+
+ //console.log(`${wave7.groupSize()}, ${wave7.stateSize()}`);
+ //console.log(`${wave7u.groupSize()}, ${wave7u.stateSize()}`);

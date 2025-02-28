@@ -297,13 +297,14 @@ class TableCardState {
 	// 2 [][][][] bytes 4:7
 	// 3 [][][][] - highest card values, bytes 8:11
 	rows: number[][] = // rows on the table are always sorted (per row!) to prevent exploding number of equivalent states
-						INITIAL_TABLE_NUMS.map(x => structuredClone(x));
+						//INITIAL_TABLE_NUMS.map(x => structuredClone(x));
+						structuredClone(INITIAL_TABLE_NUMS);
 	
 	copy(): TableCardState {
 		let res = new TableCardState();
 		res.levels = structuredClone(this.levels);
-		res.rows = this.rows.map(a => structuredClone(a));
-				   //structuredClone(this.rows);
+		res.rows = //this.rows.map(a => structuredClone(a));
+				   structuredClone(this.rows);
 		return res;
 	}
 	
@@ -363,7 +364,14 @@ export class StateGroup {
 		res.cardState = this.cardState.copy();		
 		return res;
 	}
-	
+
+	mergeWith(sg: StateGroup): StateGroup {
+		let res = this.copy();
+		res.tokState = res.tokState.concat(sg.tokState);
+		return res;
+	}
+
+
 	nextStatesBuy(): StateGroup[] {
 		let res: StateGroup[] = [];
 				
@@ -447,16 +455,9 @@ export class Wave {
 	next_Repeating(): Wave {
 		let res = new Wave();
 		
-		//	console.log('>> next stage!');
-		
 		//  [ [...], [...], [...], ...]
-		const followers = this.stateGroups.map(x => x.nextStates()).flat();
-		// 
-		
-		res.stateGroups = followers;
-		
-		//	res.stateGroups.forEach(x => console.log(x.cardState.table));
-		
+		const followers = this.stateGroups.map(x => x.nextStates()).flat();		
+		res.stateGroups = followers;		
 		return res;
 	}
 
@@ -465,10 +466,20 @@ export class Wave {
 		
 		//  [ [...], [...], [...], ...]
 		const followers = this.stateGroups.map(x => x.nextStates()).flat();
-		// 
 		
-		res.stateGroups = followers;
+		// find duplicates in cardState
+		let map = new Map<string, StateGroup>();
+		for (const f of followers) {
+			const s = f.cardState.player.toStr(); // TODO: this temporary solution is based only on 1 player's cards
+			if (map.has(s)) map.set(s, map.get(s)!.mergeWith(f));
+			else map.set(s, f);
+		}
+		
+		res.stateGroups = map.values().toArray();
+		
+		//res.stateGroups = followers;
 		return res;
 	}
+	
 
 }
