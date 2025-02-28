@@ -1,6 +1,6 @@
 
 import {TokenState, statesUnique, moveFront, getCardPrice,
-		CardState,   FullState,  StateGroup,
+		CardState,  StateGroup,  Wave
 } from './lib/searching.ts';
 
 
@@ -45,27 +45,9 @@ if (RUN_TOK_SEARCH) {
 let cs = new CardState();
 
 console.log(cs.table);
-
 cs.table.grab(10);
 console.log(cs.table);
 
-
-const exampleTokState = new TokenState("201200", "243240");
-console.log( exampleTokState.playerCanBuy("000000"));
-console.log( exampleTokState.playerCanBuy("201200"));
-console.log( exampleTokState.playerCanBuy("210200"));
-
-console.log(cs.player.getBonuses());
-
-cs.player.acquire(3);
-console.log(cs.player.getBonuses());
-
-// let state = new FullState();
-// let stateN = state.copy();
-// stateN.tokState = new TokenState("320110", "12433");
-// stateN.tokState = new TokenState("222220", "22222");
-// const buys = stateN.nextStatesBuy();
-// console.log(buys);
 
 
 let stateGroup0 = new StateGroup();
@@ -73,13 +55,31 @@ let stateGroup0N = stateGroup0.copy();
 stateGroup0N.tokState[0] = new TokenState("320110", "12433");
 stateGroup0N.tokState[0] = new TokenState("222220", "22222");
 
-const buysG = stateGroup0N.nextStatesBuy();
-for (const bg of buysG) {
-	console.log(bg);
-}
+// const buysG = stateGroup0N.nextStatesBuy();
+// for (const bg of buysG) {
+	// console.log(bg);
+// }
 
-const takesG = stateGroup0N.nextStateGroupTake();
-console.log(takesG);
+// const takesG = stateGroup0N.nextStateGroupTake();
+// console.log(takesG);
 
 //console.log('\n\n\n\n');
 
+const wave0 = //stateGroup0N.nextStates();
+			   Wave.fromSG(stateGroup0);
+//const anotherWave = wave.map(x => x.nextStates());
+
+const wave1 = wave0.next_Repeating();
+const wave2 = wave1.next_Repeating();
+const wave3 = wave2.next_Repeating();
+const wave4 = wave3.next_Repeating();
+const wave5 = wave4.next_Repeating();
+
+console.log(`${wave0.groupSize()}, ${wave0.stateSize()}`);
+console.log(`${wave1.groupSize()}, ${wave1.stateSize()}`);
+console.log(`${wave2.groupSize()}, ${wave2.stateSize()}`);
+console.log(`${wave3.groupSize()}, ${wave3.stateSize()}`);
+console.log(`${wave4.groupSize()}, ${wave4.stateSize()}`);
+console.log(`${wave5.groupSize()}, ${wave5.stateSize()}`);
+
+wave5.stateGroups.forEach(x => console.log(x.cardState.table));

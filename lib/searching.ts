@@ -297,13 +297,13 @@ class TableCardState {
 	// 2 [][][][] bytes 4:7
 	// 3 [][][][] - highest card values, bytes 8:11
 	rows: number[][] = // rows on the table are always sorted (per row!) to prevent exploding number of equivalent states
-		structuredClone(INITIAL_TABLE_NUMS);
+						INITIAL_TABLE_NUMS.map(x => structuredClone(x));
 	
 	copy(): TableCardState {
 		let res = new TableCardState();
 		res.levels = structuredClone(this.levels);
-		res.rows = //this.rows.map(a => structuredClone(a));
-				   structuredClone(this.rows);
+		res.rows = this.rows.map(a => structuredClone(a));
+				   //structuredClone(this.rows);
 		return res;
 	}
 	
@@ -351,46 +351,6 @@ export class CardState {
 	}
 }
 
-export class FullState {
-	tokState: TokenState = new TokenState("000000", "444440");
-	cardState: CardState = new CardState();
-	
-	copy(): FullState {
-		let res = new FullState();
-		res.tokState = this.tokState.copy();		
-		res.cardState = this.cardState.copy();		
-		return res;
-	}
-	
-	nextStatesBuy(): FullState[] {
-		let res: FullState[] = [];
-		
-		for (let i = 0; i < 12; i++) {
-			const cardId = this.cardState.table.getCard(i);
-			const effPrice = this.cardState.player.effectivePrice(cardId);
-			
-			if (this.tokState.playerCanBuy(effPrice)) {				
-				const newTokState = new TokenState(subStates(this.tokState.player, effPrice), addStates(this.tokState.table, effPrice));
-				const newCardState = this.cardState.copy();
-				newCardState.player.acquire(cardId);
-				newCardState.table.grab(i);
-				let newFullState = new FullState();
-				newFullState.tokState = newTokState;
-				newFullState.cardState = newCardState;
-				
-				res.push(newFullState);
-			}
-			
-		}
-		
-		return res;
-	}
-	
-	nextStatesTake(): FullState[] {
-		return [];
-	}
-	
-}
 
 // This represents a bundle of states with common CardState
 export class StateGroup {
@@ -455,5 +415,53 @@ export class StateGroup {
 		return res;
 	}
 	
+	nextStates(): StateGroup[] {
+		let res = this.nextStatesBuy();
+		res.push(this.nextStateGroupTake());
+		return res;
+	}
+	
 }
 
+// Represents an array of StateGroups
+export class Wave {
+	
+	stateGroups: StateGroup[] = [];
+	
+	static fromSG(sg: StateGroup): Wave {
+		let res = new Wave();
+		res.stateGroups.push(sg.copy());
+		return res;
+	}
+	
+	groupSize(): number {
+		return this.stateGroups.length;
+	}
+
+	stateSize(): number {
+		return this.stateGroups.map(x => x.tokState.length).reduce((a,b)=>a+b, 0);
+	}
+	
+	next_Repeating(): Wave {
+		let res = new Wave();
+		
+		//  [ [...], [...], [...], ...]
+		const followers = this.stateGroups.map(x => x.nextStates()).flat();
+		// 
+		
+		res.stateGroups = followers;
+		return res;
+	}
+
+	next(): Wave {
+		let res = new Wave();
+		
+		//  [ [...], [...], [...], ...]
+		const followers = this.stateGroups.map(x => x.nextStates()).flat();
+		// 
+		
+		res.stateGroups = followers;
+		return res;
+	}
+
+}
