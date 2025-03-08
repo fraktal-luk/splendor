@@ -1,5 +1,4 @@
 
-
 import {
 STR_1x1,
 STR_2x1,
@@ -38,11 +37,16 @@ export const TABLE_STACKS: number[][] =
   ]
 ];
 
+const INITIAL_TABLE_NUMS: number[][] =
+		[ [53, 67, 75, 88],
+		  [24, 31, 39, 44], 
+		  [ 2,  8, 13, 20] ];
+
+
 export function getCardPrice(n: number): string {
 	const str = CARD_SPECS[n];
 	return str.split(':')[1] + "0";
 }
-
 
 function take2ifPossible(take: string, table: string): string | null {
 	const lenA = take.length;
@@ -132,6 +136,16 @@ function returnsForPlayer(player: string, reductions: string[]): string[] {
 	return reductions.map(r => reductionForState(player, r)).filter(s => s != null);
 }
 
+export function statesUnique(states: TokenState[]): TokenState[] {
+	return states2map(states).values().toArray();
+}
+
+
+export function states2map(states: TokenState[]): Map<string, TokenState> {
+	let res = new Map<string, TokenState>();
+	states.forEach(s => {if (!res.has(s.player)) res.set(s.player, s); });
+	return res;
+}
 
 
 const ENABLE_SMALL_TAKES = true;
@@ -199,26 +213,6 @@ export class TokenState {
 }
 
 
-export function statesUnique(states: TokenState[]): TokenState[] {
-	return states2map(states).values().toArray();
-}
-
-
-export function states2map(states: TokenState[]): Map<string, TokenState> {
-	let res = new Map<string, TokenState>();
-	
-	states.forEach(s => {if (!res.has(s.player)) res.set(s.player, s); });
-	
-	return res;
-}
-
-export function moveFront(states: TokenState[]): TokenState[] {
-	const next = states.map(s => s.nextStatesUnique()).flat();
-	return statesUnique(next);
-}
-
-
-
 class PlayerCardState {
 	// 90 cards, numbers 1 to 90
 	// 8*12 = 96 -> 12 bytes contains all possible subsets of cards
@@ -254,13 +248,10 @@ class PlayerCardState {
 		return this.toArr().toString();
 	}
 	
-	
 	getBonuses(): string {
 		let hist = [0, 0, 0, 0, 0, 0];
-		// with colors 0:5
-		// color of card K: (K-1) % 5
+		// with colors 0:5, color of card K: (K-1) % 5
 		this.toArr().forEach(k => hist[(k-1) % 5]++);
-		
 		return hist.map(n => Math.min(n, 15).toString(16)).join('');
 	}		
 	
@@ -281,15 +272,8 @@ class PlayerCardState {
 }
 
 
-
-const INITIAL_TABLE_NUMS: number[][] =
-		[ [53, 67, 75, 88],
-		  [24, 31, 39, 44], 
-		  [ 2,  8, 13, 20] ];
-
-
 class TableCardState {
-	// the order of cards on stacks is determined by a global variable (so far const presetOrder)
+	// the order of cards on stacks is determined by a global variable (so far const INITIAL_TABLE_NUMS)
 	
 	levels: number[] = [36, 26, 16];
 	// 12 bytes: 1 per card
@@ -297,14 +281,12 @@ class TableCardState {
 	// 2 [][][][] bytes 4:7
 	// 3 [][][][] - highest card values, bytes 8:11
 	rows: number[][] = // rows on the table are always sorted (per row!) to prevent exploding number of equivalent states
-						//INITIAL_TABLE_NUMS.map(x => structuredClone(x));
 						structuredClone(INITIAL_TABLE_NUMS);
 	
 	copy(): TableCardState {
 		let res = new TableCardState();
 		res.levels = structuredClone(this.levels);
-		res.rows = //this.rows.map(a => structuredClone(a));
-				   structuredClone(this.rows);
+		res.rows = structuredClone(this.rows);
 		return res;
 	}
 	
@@ -323,7 +305,6 @@ class TableCardState {
 	getCard(index: number): number {
 		const row = Math.floor(index/4);
 		const col = index % 4;
-		//this.levels[row]--;
 		return this.rows[row][col];
 	}
 	
@@ -376,13 +357,8 @@ export class StateGroup {
 		let res: StateGroup[] = [];
 				
 		for (let i = 0; i < 12; i++) { // for each card on table
-		
-				//	console.log(this.cardState.table.rows);
-
 			const cardId = this.cardState.table.getCard(i);
 			const effPrice = this.cardState.player.effectivePrice(cardId);
-
-				//console.log(`levels base: ${this.cardState.table.levels}`);
 
 			const newCardState = this.cardState.copy();
 			newCardState.player.acquire(cardId);
@@ -393,11 +369,8 @@ export class StateGroup {
 			
 			newStateGroup.tokState = [];
 			
-			//console.log(`try buying er each tokstte (${this.tokState.length})`);
 			for (const ts of this.tokState) { // for each tokState
 				if (!ts.playerCanBuy(effPrice)) continue;
-
-					//console.log(`${ts.player}, buying ${cardId} for ${effPrice}`);
 					
 				const newTokState = new TokenState(subStates(ts.player, effPrice), addStates(ts.table, effPrice));
 				newStateGroup.tokState.push(newTokState);
@@ -432,6 +405,7 @@ export class StateGroup {
 	}
 	
 }
+
 
 // Represents an array of StateGroups
 export class Wave {
@@ -477,7 +451,6 @@ export class Wave {
 		
 		res.stateGroups = map.values().toArray();
 		
-		//res.stateGroups = followers;
 		return res;
 	}
 	
