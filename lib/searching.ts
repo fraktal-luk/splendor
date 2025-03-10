@@ -48,6 +48,12 @@ export function getCardPrice(n: number): string {
 	return str.split(':')[1] + "0";
 }
 
+export function getCardPoints(n: number): number {
+	const str = CARD_SPECS[n];
+	return parseInt(str[0]);
+}
+
+
 function take2ifPossible(take: string, table: string): string | null {
 	const lenA = take.length;
 	for (let i = 0; i < 6; i++) {
@@ -214,27 +220,25 @@ export class TokenState {
 
 
 class PlayerCardState {
-	// 90 cards, numbers 1 to 90
-	// 8*12 = 96 -> 12 bytes contains all possible subsets of cards
-	// bit [0] is unused, [1:90] represent cards
-	// Bytes are represented as hex
-	// Each byte is big endian: [7 6 5 4 3 2 1 0][f e d c b a 9 8] ...
-	//str: string = ['00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00', '00',].join('');
-	
 	bitmap: boolean[] = '0'.repeat(91).split('').map(_ => false);
+
+		vec: number[] = [0, 0, 0, 0, 0, 0]; // 0:4 - num cards per color, [5] - points
 
 	copy(): PlayerCardState {
 		let res = new PlayerCardState();
 		res.bitmap = structuredClone(this.bitmap);
+			res.vec = structuredClone(this.vec);
 		return res;		
 	}
 
-	has(c: number): boolean {
-		return false;
-	}
+	// has(c: number): boolean {
+		// return false;
+	// }
 	
 	acquire(c: number): void {
 		this.bitmap[c] = true;
+			this.vec[(c-1) % 5]++;
+			this.vec[5] += getCardPoints(c);
 	}
 	
 	toArr(): number[] {
@@ -248,19 +252,34 @@ class PlayerCardState {
 		return this.toArr().toString();
 	}
 	
+	tag(): string {
+		return this.vec.map((x) => (256+x).toString(16).substr(0,2)).join('');
+	}
+
+	
 	getBonuses(): string {
 		let hist = [0, 0, 0, 0, 0, 0];
 		// with colors 0:5, color of card K: (K-1) % 5
 		this.toArr().forEach(k => hist[(k-1) % 5]++);
 		return hist.map(n => Math.min(n, 15).toString(16)).join('');
 	}		
-	
-	
+
+		getBonuses_N(): string {
+			return this.vec.slice(0,5).map(n => Math.min(n, 15).toString(16)).join('') + '0';
+		}
+
+
 	// Price to pay regarding this player's bonuses
 	effectivePrice(n: number): string {
 		const basePrice = getCardPrice(n);
 		const bonuses = this.getBonuses();
+			const bonuses_N = this.getBonuses_N();
 		
+			if (bonuses != bonuses_N) {
+				console.log(this);
+				throw new Error("bonus wring");
+			
+			}
 		// max(0, a - b)
 		//  a => b -> a-b, b == min(a, b) 
 		//  a < b  -> 0 == a-a, a == min(a, b)
