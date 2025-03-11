@@ -250,10 +250,11 @@ class PlayerCardState {
 	
 	toStr(): string {
 		return this.toArr().toString();
+		//return this.tag();
 	}
 	
 	tag(): string {
-		return this.vec.map((x) => (256+x).toString(16).substr(0,2)).join('');
+		return this.vec.map((x) => (100+x).toString().substr(1,2)).join('');
 	}
 
 	
@@ -315,10 +316,14 @@ class TableCardState {
 	}
 	
 	rowStr(): string {
-		return this.rows.flat().toString();
+		return this.rows.flat().map(x => (100+x).toString().substr(1,2)).join('');
 	}
 	levelStr(): string {
-		return this.levels.toString();
+		return this.levels.map(x => (100+x).toString().substr(1,2)).join('');
+	}
+	
+	toStr(): string {
+		return this.levelStr() + this.rowStr();
 	}
 	
 	getCard(index: number): number {

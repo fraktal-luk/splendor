@@ -41,3 +41,10 @@ console.log('');
 
  console.log(`${wave6.groupSize()}, ${wave6.stateSize()}`);
  console.log(`${wave6u.groupSize()}, ${wave6u.stateSize()}`);
+	
+	const x = wave6u.stateGroups[7].cardState.player;
+	const y = wave6u.stateGroups[7].cardState.table;
+	console.log(x);
+	console.log(x.tag());
+	console.log(x.toStr());
+	console.log(y.toStr());
