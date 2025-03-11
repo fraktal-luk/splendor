@@ -119,16 +119,6 @@ function enoughStates(stateA: string, stateB: string): boolean {
 	return true;
 }
 
-function applyTakes(state: string): string[] {
-	const take3 = STR_3x1.map(s => addStates(s, state));
-	const take2 = STR_1x2.map(s => addStates(s, state));
-	return take3.concat(take2);
-}
-
-function applyTakesEach(states: string[]): string[] {
-	const arr = states.map(s => applyTakes(s));
-	return arr.flat();
-}
 
 function reductionForState(stateA: string, red: string): string | null{
 	const lenA = stateA.length;
@@ -155,6 +145,7 @@ export function states2map(states: TokenState[]): Map<string, TokenState> {
 
 
 const ENABLE_SMALL_TAKES = true;
+
 
 export class TokenState {
 	player: string;// = "000000";
@@ -218,6 +209,14 @@ export class TokenState {
 	}
 }
 
+function tokStateMap(states: TokenState[]): Map<string, TokenState> {
+		return new Map(); // Uncomment to switch on real map
+	
+	const pairs: [string, TokenState][] = states.map(s => [s.table, s]);
+	return new Map(pairs);
+}
+
+
 
 class PlayerCardState {
 	bitmap: boolean[] = '0'.repeat(91).split('').map(_ => false);
@@ -230,10 +229,6 @@ class PlayerCardState {
 			res.vec = structuredClone(this.vec);
 		return res;		
 	}
-
-	// has(c: number): boolean {
-		// return false;
-	// }
 	
 	acquire(c: number): void {
 		this.bitmap[c] = true;
@@ -257,30 +252,14 @@ class PlayerCardState {
 		return this.vec.map((x) => (100+x).toString().substr(1,2)).join('');
 	}
 
-	
 	getBonuses(): string {
-		let hist = [0, 0, 0, 0, 0, 0];
-		// with colors 0:5, color of card K: (K-1) % 5
-		this.toArr().forEach(k => hist[(k-1) % 5]++);
-		return hist.map(n => Math.min(n, 15).toString(16)).join('');
-	}		
-
-		getBonuses_N(): string {
-			return this.vec.slice(0,5).map(n => Math.min(n, 15).toString(16)).join('') + '0';
-		}
-
+		return this.vec.slice(0,5).map(n => Math.min(n, 15).toString(16)).join('') + '0';
+	}
 
 	// Price to pay regarding this player's bonuses
 	effectivePrice(n: number): string {
 		const basePrice = getCardPrice(n);
 		const bonuses = this.getBonuses();
-			const bonuses_N = this.getBonuses_N();
-		
-			if (bonuses != bonuses_N) {
-				console.log(this);
-				throw new Error("bonus wring");
-			
-			}
 		// max(0, a - b)
 		//  a => b -> a-b, b == min(a, b) 
 		//  a < b  -> 0 == a-a, a == min(a, b)
@@ -361,18 +340,23 @@ export class CardState {
 // This represents a bundle of states with common CardState
 export class StateGroup {
 	tokState: TokenState[] = [new TokenState("000000", "444440")];
+		tokStates_N: Map<string,TokenState> = new Map<string,TokenState>([["000000", new TokenState("000000", "444440")]]);
+	
 	cardState: CardState = new CardState();
 	
 	copy(): StateGroup {
 		let res = new StateGroup();
 		res.tokState = this.tokState.map(x => x.copy());
-		res.cardState = this.cardState.copy();		
+			res.tokStates_N = new Map(this.tokStates_N);
+		res.cardState = this.cardState.copy();
+			
 		return res;
 	}
 
 	mergeWith(sg: StateGroup): StateGroup {
 		let res = this.copy();
 		res.tokState = res.tokState.concat(sg.tokState);
+			res.tokStates_N = tokStateMap(res.tokState);
 		return res;
 	}
 
@@ -400,6 +384,8 @@ export class StateGroup {
 				newStateGroup.tokState.push(newTokState);
 			}
 			
+			newStateGroup.tokStates_N = tokStateMap(newStateGroup.tokState);
+			
 			if (newStateGroup.tokState.length > 0)
 				res.push(newStateGroup);
 		}
@@ -418,6 +404,7 @@ export class StateGroup {
 		}
 		
 		res.tokState = statesUnique(newTokStates);
+			res.tokStates_N = tokStateMap(res.tokState);
 		
 		return res;
 	}
@@ -478,5 +465,4 @@ export class Wave {
 		return res;
 	}
 	
-
 }

@@ -44,7 +44,9 @@ console.log('');
 	
 	const x = wave6u.stateGroups[7].cardState.player;
 	const y = wave6u.stateGroups[7].cardState.table;
-	console.log(x);
+	const z = wave6u.stateGroups[7].tokStates_N;
+	//console.log(x);
 	console.log(x.tag());
 	console.log(x.toStr());
 	console.log(y.toStr());
+	// console.log(z);
