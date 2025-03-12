@@ -1,8 +1,11 @@
 
-import {TokenState, statesUnique, getCardPrice,
-		CardState,  StateGroup,  Wave
+import {
+		StateGroup,  Wave
 } from './lib/searching.ts';
 
+import {
+	getCardPrice, TokenState, statesUnique, CardState,  
+} from './lib/searching_base.ts';
 
 
 let stateGroup0 = new StateGroup();
