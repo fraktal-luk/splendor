@@ -22,7 +22,8 @@ console.time('1');
 const wave4 = wave3.next_Repeating();
 const wave5 = wave4.next_Repeating();
 const wave6 = wave5.next_Repeating();
-//const wave7 = wave6.next_Repeating();
+const wave7 = wave6.next_Repeating();
+//const wave8 = wave7.next_Repeating();
 
 console.timeEnd('1');
 console.log('');
@@ -33,7 +34,8 @@ console.time('2');
 const wave4u = wave3.next();
 const wave5u = wave4u.next();
 const wave6u = wave5u.next();
-//const wave7u = wave6u.next();
+const wave7u = wave6u.next();
+//const wave8u = wave7u.next();
 
 console.timeEnd('2');
 console.log('');

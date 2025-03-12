@@ -7,9 +7,9 @@ STR_1x3,
 STR_1x2_1x1,
 STR_3x1,
 getReturns
-} from './comb.ts';
+} from './searching_base.ts';
 
-import {cardStringList} from './rules.ts';
+import {cardStringList} from './searching_base.ts';
 
 
 export const CARD_SPECS: string[] = [''].concat(cardStringList.flat());
@@ -210,7 +210,7 @@ export class TokenState {
 }
 
 function tokStateMap(states: TokenState[]): Map<string, TokenState> {
-		return new Map(); // Uncomment to switch on real map
+	//	return new Map(); // Uncomment to switch on real map
 	
 	const pairs: [string, TokenState][] = states.map(s => [s.table, s]);
 	return new Map(pairs);
