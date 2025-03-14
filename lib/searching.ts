@@ -96,7 +96,7 @@ export class StateGroup {
 		let newTokStates: TokenState[] = [];
 		
 		for (const ts of this.tokState) {
-			newTokStates = newTokStates.concat(ts.nextStates());
+			newTokStates = newTokStates.concat(ts.nextStatesUnique());
 		}
 		
 		res.tokState = statesUnique(newTokStates);
@@ -138,7 +138,10 @@ export class Wave {
 		
 		//  [ [...], [...], [...], ...]
 		const followers = this.stateGroups.map(x => x.nextStates()).flat();		
-		res.stateGroups = followers;		
+		res.stateGroups = followers;
+
+		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(a.player) - sumState(b.player)));
+		
 		return res;
 	}
 
@@ -158,7 +161,22 @@ export class Wave {
 		
 		res.stateGroups = map.values().toArray();
 		
+		// Sort
+		sortStateGroups(res.stateGroups);
+		
+		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(a.player) - sumState(b.player)));
+		
 		return res;
 	}
 	
 }
+
+
+function compareSG(a: StateGroup, b: StateGroup): number {
+	return b.cardState.player.numOwned() - a.cardState.player.numOwned();
+}
+
+function sortStateGroups(stateGroups: StateGroup[]): void {
+	stateGroups.sort(compareSG);	
+}
+

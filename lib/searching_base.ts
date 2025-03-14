@@ -78,6 +78,9 @@ export const STR_1x2_1x1 = [
 ];		
 export const STR_3x1 = ["00111", "01110", "11100", "11001", "10011", "01011", "10110", "01101", "11010", "10101",];
 
+//const STR_RET3 = STR_3x1.concat(STR_1x2_1x1).concat(STR_1x3);
+//const STR_RET2 = STR_2x1.concat(STR_1x2);
+
 
 export function getReturns(surplus: number): string[] {
 	switch (surplus) {
@@ -280,7 +283,13 @@ export class PlayerCardState {
 			res.vec = structuredClone(this.vec);
 		return res;		
 	}
+
 	
+	numOwned(): number {
+		return this.vec.slice(0, 5).reduce((a,b)=>a+b, 0);
+	}
+	
+
 	acquire(c: number): void {
 		this.bitmap[c] = true;
 			this.vec[(c-1) % 5]++;
