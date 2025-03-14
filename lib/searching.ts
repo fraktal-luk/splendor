@@ -51,7 +51,7 @@ export class StateGroup {
 
 	mergeWith(sg: StateGroup): StateGroup {
 		let res = this.copy();
-		res.tokState = res.tokState.concat(sg.tokState);
+		res.tokState = statesUnique(res.tokState.concat(sg.tokState));
 			res.tokStates_N = tokStateMap(res.tokState);
 		return res;
 	}
@@ -80,10 +80,12 @@ export class StateGroup {
 				newStateGroup.tokState.push(newTokState);
 			}
 			
-			newStateGroup.tokStates_N = tokStateMap(newStateGroup.tokState);
 			
-			if (newStateGroup.tokState.length > 0)
+			if (newStateGroup.tokState.length > 0) {
+				newStateGroup.tokState = statesUnique(newStateGroup.tokState);
+				newStateGroup.tokStates_N = tokStateMap(newStateGroup.tokState);
 				res.push(newStateGroup);
+			}
 		}
 		
 		return res;
@@ -137,10 +139,10 @@ export class Wave {
 		let res = new Wave();
 		
 		//  [ [...], [...], [...], ...]
-		const followers = this.stateGroups.map(x => x.nextStates()).flat();		
+		const followers = this.stateGroups.map(x => x.nextStates()).flat();
 		res.stateGroups = followers;
 
-		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(a.player) - sumState(b.player)));
+		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(b.player) - sumState(a.player)));
 		
 		return res;
 	}
@@ -164,7 +166,7 @@ export class Wave {
 		// Sort
 		sortStateGroups(res.stateGroups);
 		
-		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(a.player) - sumState(b.player)));
+		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(b.player) - sumState(a.player)));
 		
 		return res;
 	}

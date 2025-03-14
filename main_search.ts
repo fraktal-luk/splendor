@@ -23,7 +23,7 @@ const wave3 = wave2.next_Repeating();
 
 let wave6 = new Wave();
 
-const RUN_REPEATS = false;
+const RUN_REPEATS = true;//false;
 if (RUN_REPEATS) {
 	console.time('1');
 	const wave4 = wave3.next_Repeating();
@@ -63,7 +63,10 @@ console.log(wave7u.stateGroups.map(x => x.cardState.player.toStr()));
 const grouped = Map.groupBy(wave7u.stateGroups, x => x.cardState.player.numOwned());
 
 
-//TMP_cardSubsets(grouped);
+TMP_cardSubsets(grouped);
+TMP_tokSubsets(grouped.get(3)![0]!.tokState);
+TMP_tokSubsets(grouped.get(3)![1]!.tokState);
+
 
 function TMP_cardSubsets(stateMap: Map<number, StateGroup[]>): void {
 	console.log(stateMap.keys().toArray());
@@ -113,6 +116,7 @@ function TMP_bitmapIncluded(subset: PlayerCardState, superset: PlayerCardState):
 }
 
 
-function TMP_tokSubsets(): void {
-	
+function TMP_tokSubsets(tokStates: TokenState[]): void {
+console.log(tokStates);
+console.log('#')
 }
