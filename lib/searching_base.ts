@@ -205,6 +205,14 @@ export function tokStateMap(states: TokenState[]): Map<string, TokenState> {
 }
 
 
+function TMP_bitmapIncluded(subset: PlayerCardState, superset: PlayerCardState): boolean {
+	for (let i = 0; i < subset.bitmap.length; i++)
+		if (subset.bitmap[i] && !superset.bitmap[i]) return false;
+	return true;
+}
+
+
+
 // CAREFUL: small takes not needed in 1 player search. In real game will be needed when larger are not available
 const ENABLE_SMALL_TAKES = false;//true;
 
@@ -269,6 +277,11 @@ export class TokenState {
 	nextStatesUnique(): TokenState[] {
 		return statesUnique(this.nextStates());
 	}
+	
+	isPlayerSubsetOf(other: TokenState): boolean {
+		return enoughStates(other.player, this.player);
+	}
+	
 }
 
 
@@ -326,6 +339,10 @@ export class PlayerCardState {
 		// max(0, a-b) == a - min(a, b)
 		const reduction = minStates(bonuses, basePrice);
 		return subStates(basePrice, reduction);
+	}
+	
+	isSubsetOf(other: PlayerCardState): boolean {
+		return TMP_bitmapIncluded(this, other);
 	}
 	
 }

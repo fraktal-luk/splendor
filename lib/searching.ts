@@ -182,3 +182,71 @@ function sortStateGroups(stateGroups: StateGroup[]): void {
 	stateGroups.sort(compareSG);	
 }
 
+
+
+export function TMP_cardSubsets(stateMap: Map<number, StateGroup[]>): void {	
+	const setSizes = stateMap.keys().toArray();
+
+	for (let i = 0; i < setSizes.length; i++) {
+		const subsetSize = setSizes[i];
+		const subsetArr = stateMap.get(subsetSize)!;
+
+		// browse larger sets: [0:i)
+		// Remember that empty card set is legit
+		for (let j = 0; j < i; j++) {
+			const supersetSize = setSizes[j];
+			const supersetArr = stateMap.get(supersetSize)!;
+			
+			console.log(`${subsetSize} of ${supersetSize}`);
+			
+			TMP_cardArrSubsets(subsetArr, supersetArr);
+		}
+	}
+}
+
+
+function TMP_cardArrSubsets(subsets: StateGroup[], supersets: StateGroup[]): void {
+	for (const sub of subsets) {
+		for (const larger of supersets) {
+			const included = sub.cardState.player.isSubsetOf(larger.cardState.player);
+			// CAREFUL: if matching, it doesn't mean that further search is not needed.
+			// A match reduces some token states from subset but there may be token states in subset that are not in superset
+			console.log(`${included}: [${sub.cardState.player.toStr()}](${sub.tokState.length}) in [${larger.cardState.player.toStr()}](${larger.tokState.length})`);
+		}
+	}
+}
+
+
+export function TMP_tokSubsets(tokStates: TokenState[]): void {
+	const grouped = Map.groupBy(tokStates, x => x.playerTokSum());
+	const setSizes = grouped.keys().toArray();
+
+	for (let i = 0; i < setSizes.length; i++) {
+		const subsetSize = setSizes[i];
+		const subsetArr = grouped.get(subsetSize)!;
+
+		// browse larger sets: [0:i)
+		// Remember that empty card set is legit
+		for (let j = 0; j < i; j++) {
+			const supersetSize = setSizes[j];
+			const supersetArr = grouped.get(supersetSize)!;
+			
+			console.log(`${subsetSize} of ${supersetSize}`);
+			
+			TMP_tokArrSubsets(subsetArr, supersetArr);
+		}
+	}
+
+}
+
+function TMP_tokArrSubsets(subsets: TokenState[], supersets: TokenState[]): TokenState[] {
+	let res: TokenState[] = [];
+	for (const sub of subsets) {
+		for (const larger of supersets) {
+			const included = sub.isPlayerSubsetOf(larger);
+			console.log(`${included}: [${sub.player}] in [${larger.player}]`);
+			if (!included) res.push(sub);
+		}
+	}
+	return res;
+}
