@@ -205,8 +205,8 @@ export function tokStateMap(states: TokenState[]): Map<string, TokenState> {
 }
 
 
-
-const ENABLE_SMALL_TAKES = true;
+// CAREFUL: small takes not needed in 1 player search. In real game will be needed when larger are not available
+const ENABLE_SMALL_TAKES = false;//true;
 
 
 export class TokenState {
