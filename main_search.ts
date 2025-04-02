@@ -23,7 +23,7 @@ const wave3 = wave2.next_Repeating();
 
 let wave6 = new Wave();
 
-const RUN_REPEATS = false;
+const RUN_REPEATS = true;//false;
 if (RUN_REPEATS) {
 	console.time('1');
 	const wave4 = wave3.next_Repeating();
@@ -44,6 +44,7 @@ const wave5u = wave4u.next();
 const wave6u = wave5u.next();
 const wave7u = wave6u.next();
 const wave8u = wave7u.next();
+//const wave9u = wave8u.next();
 
 console.timeEnd('2');
 console.log('');
@@ -63,7 +64,14 @@ console.log(wave7u.stateGroups.map(x => x.cardState.player.toStr()));
 const grouped = Map.groupBy(wave7u.stateGroups, x => x.cardState.player.numOwned());
 
 
-TMP_cardSubsets(grouped);
+//TMP_cardSubsets(grouped);
 //TMP_tokSubsets(grouped.get(3)![0]!.tokState);
-TMP_tokSubsets(grouped.get(2)![0]!.tokState);
 
+const exampleTokStates = grouped.get(2)![0]!.tokState;
+const reducedTokStates = TMP_tokSubsets(exampleTokStates);
+//const reduced2TokStates = TMP_tokSubsets(exampleTokStates);
+
+//console.log(exampleTokStates);
+//console.log(reducedTokStates);
+
+TMP_cardSubsets(grouped);
