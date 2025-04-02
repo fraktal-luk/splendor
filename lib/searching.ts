@@ -188,50 +188,62 @@ function sortStateGroups(stateGroups: StateGroup[]): void {
 
 
 
-export function TMP_cardSubsets(stateMap: Map<number, StateGroup[]>): void {	
+export function TMP_cardSubsets(stateMap: Map<number, StateGroup[]>): StateGroup[] {	
 	const setSizes = stateMap.keys().toArray();
+
+	let reduced: StateGroup[][] = [];
 
 	for (let i = 0; i < setSizes.length; i++) {
 		const subsetSize = setSizes[i];
-		const subsetArr = stateMap.get(subsetSize)!;
+		let subsetArr = stateMap.get(subsetSize)!.map(x => x.copy());
 
 		// browse larger sets: [0:i)
 		// Remember that empty card set is legit
-		for (let j = 0; j < i; j++) {
+		for (let j = 0; j < setSizes.length; j++) {
 			const supersetSize = setSizes[j];
+			
+			if (supersetSize <= subsetSize) continue;
+			
 			const supersetArr = stateMap.get(supersetSize)!;
 			
-			console.log(`${subsetSize} of ${supersetSize}`);
+			//console.log(`${subsetSize} of ${supersetSize}`);
 			
-			TMP_cardArrSubsets(subsetArr, supersetArr);
+			subsetArr = TMP_cardArrSubsets(subsetArr, supersetArr);
 		}
+		
+		reduced.push(subsetArr);
 	}
+	
+	return reduced.flat();
 }
 
-
-function TMP_cardArrSubsets(subsets: StateGroup[], supersets: StateGroup[]): void {
+// make new array where states are removed if they have worse cards than other state with at least equally good tokens
+function TMP_cardArrSubsets(subsets: StateGroup[], supersets: StateGroup[]): StateGroup[] {
+	let res: StateGroup[] = [];
+	
 	for (const sub of subsets) {
+		let reducedTS = sub.tokState.map(x => x.copy());
+		
 		for (const larger of supersets) {
 			const included = sub.cardState.player.isSubsetOf(larger.cardState.player);
 			// CAREFUL: if matching, it doesn't mean that further search is not needed.
 			// A match reduces some token states from subset but there may be token states in subset that are not in superset
-			console.log(`${included}: [${sub.cardState.player.toStr()}](${sub.tokState.length}) in [${larger.cardState.player.toStr()}](${larger.tokState.length})`);
+			//console.log(`${included}: [${sub.cardState.player.toStr()}](${reducedTS.length}) in [${larger.cardState.player.toStr()}](${larger.tokState.length})`);
 		
 			// if 'included' then from 'sub' remove tokStates that are dominated by 'larger' tokStates
 			if (included) {
-				const trimmed = TMP_tokDiffSubsets(sub.tokState, larger.tokState);
+				reducedTS = TMP_tokDiffSubsets(reducedTS, larger.tokState);
 				
-				// if (//sub.tokState.length < 200 && 
-						// trimmed.length < sub.tokState.length) {
-					// console.log('[[ ' + sub.tokState.map(x => x.player).join('  '));
-					// console.log('[[ ' + larger.tokState.map(x => x.player).join('  '));
-					// console.log('[[ ' + trimmed.map(x => x.player).join('  '));
-				// }
-				
-				console.log("   >>> " + trimmed.length);
+				//console.log("   >>> " + reducedTS.length);
 			}
 		}
+		
+		let copiedSG = sub.copy();
+		copiedSG.tokState = reducedTS;
+		res.push(copiedSG);
 	}
+	
+	return res;
 }
 
 

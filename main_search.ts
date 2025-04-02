@@ -17,13 +17,13 @@ stateGroup0N.tokState[0] = new TokenState("222220", "22222");
 const wave0 = Wave.fromSG(stateGroup0);
 
 
-const wave1 = wave0.next_Repeating();
-const wave2 = wave1.next_Repeating();
-const wave3 = wave2.next_Repeating();
+const wave1 = wave0.next();
+const wave2 = wave1.next();
+const wave3 = wave2.next();
 
 let wave6 = new Wave();
 
-const RUN_REPEATS = true;//false;
+const RUN_REPEATS = false;
 if (RUN_REPEATS) {
 	console.time('1');
 	const wave4 = wave3.next_Repeating();
@@ -39,39 +39,35 @@ if (RUN_REPEATS) {
 
 console.time('2');
 
-const wave4u = wave3.next();
-const wave5u = wave4u.next();
-const wave6u = wave5u.next();
-const wave7u = wave6u.next();
-const wave8u = wave7u.next();
-//const wave9u = wave8u.next();
+
+let waves = [wave0, wave1, wave2, wave3];
+let newWave = wave3;
+
+for (let iter = 4; iter < 10; iter++) {
+	newWave = newWave.next();
+	waves.push(newWave);
+}
+
 
 console.timeEnd('2');
 console.log('');
 
-if (RUN_REPEATS) {
-	console.log(`${wave6.groupSize()}, ${wave6.stateSize()}`);
-	console.log(`${wave6u.groupSize()}, ${wave6u.stateSize()}`);
+
+const selectedWave = waves[9]!;
+
+console.log(selectedWave.groupSize());
+console.log(selectedWave.stateSize());
+console.log(selectedWave.stateGroups.map(sgStr).reverse().slice(0, 50));
+
+const grouped = Map.groupBy(selectedWave.stateGroups, x => x.cardState.player.numOwned());
+
+let reducedWave = new Wave();
+reducedWave.stateGroups = TMP_cardSubsets(grouped);
+
+console.log(reducedWave.groupSize());
+console.log(reducedWave.stateSize());
+console.log(reducedWave.stateGroups.map(sgStr).reverse().slice(0, 50));
+
+function sgStr(sg: StateGroup): string {
+	return sg.cardState.player.toStr() + '/(' + sg.tokState.length + ')'
 }
-
-const x = wave6u.stateGroups[7].cardState.player;
-const y = wave6u.stateGroups[7].cardState.table;
-const z = wave6u.stateGroups[7].tokStates_N;
-
-console.log(wave7u.stateGroups.length);
-console.log(wave7u.stateGroups.map(x => x.cardState.player.toStr()));
-
-const grouped = Map.groupBy(wave7u.stateGroups, x => x.cardState.player.numOwned());
-
-
-//TMP_cardSubsets(grouped);
-//TMP_tokSubsets(grouped.get(3)![0]!.tokState);
-
-const exampleTokStates = grouped.get(2)![0]!.tokState;
-const reducedTokStates = TMP_tokSubsets(exampleTokStates);
-//const reduced2TokStates = TMP_tokSubsets(exampleTokStates);
-
-//console.log(exampleTokStates);
-//console.log(reducedTokStates);
-
-TMP_cardSubsets(grouped);
