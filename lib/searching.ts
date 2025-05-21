@@ -31,6 +31,13 @@ import {getCardPrice, getCardPoints,
 } from './searching_base.ts';
 
 
+const PRUNE_TOKS = true;
+const PRUNE_CARDS = true;//false;
+
+function compareSG(a: StateGroup, b: StateGroup): number {
+	return b.cardState.player.numOwned() - a.cardState.player.numOwned();
+}
+
 
 
 // This represents a bundle of states with common CardState
@@ -79,7 +86,6 @@ export class StateGroup {
 				const newTokState = new TokenState(subStates(ts.player, effPrice), addStates(ts.table, effPrice));
 				newStateGroup.tokState.push(newTokState);
 			}
-			
 			
 			if (newStateGroup.tokState.length > 0) {
 				newStateGroup.tokState = statesUnique(newStateGroup.tokState);
@@ -134,43 +140,30 @@ export class Wave {
 	stateSize(): number {
 		return this.stateGroups.map(x => x.tokState.length).reduce((a,b)=>a+b, 0);
 	}
-	
-	next_Repeating(): Wave {
-		let res = new Wave();
-		
-		//  [ [...], [...], [...], ...]
-		const followers = this.stateGroups.map(x => x.nextStates()).flat();
-		res.stateGroups = followers;
 
-		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(b.player) - sumState(a.player)));
-		
-		return res;
-	}
 
 	next(): Wave {
 		let res = new Wave();
-		
-		//  [ [...], [...], [...], ...]
-		const followers = this.stateGroups.map(x => x.nextStates()).flat();
-		
-		// find duplicates in cardState
-		let map = new Map<string, StateGroup>();
-		for (const f of followers) {
-			const s = f.cardState.player.toStr(); // TODO: this temporary solution is based only on 1 player's cards
-			if (map.has(s)) map.set(s, map.get(s)!.mergeWith(f));
-			else map.set(s, f);
-		}
-		
-		res.stateGroups = map.values().toArray();
-		
-		// Sort
-		sortStateGroups(res.stateGroups);
-		
-		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(b.player) - sumState(a.player)));
 
-		const PRUNE_TOKS = true;
+		const followers = this.stateGroups.map(x => x.nextStates()).flat(); //  [ [...], [...], [...], ...]
+		
+		// Remove duplicates in cardState
+		{
+			let map = new Map<string, StateGroup>();
+			for (const f of followers) {
+				const s = f.cardState.player.toStr(); // TODO: this temporary solution is based only on 1 player's cards
+				if (map.has(s)) map.set(s, map.get(s)!.mergeWith(f));
+				else map.set(s, f);
+			}
+			
+			res.stateGroups = map.values().toArray();
+		}//
+
+		res.stateGroups.sort(compareSG); // Sort: which state has more owned cards
+		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(b.player) - sumState(a.player))); // Sort each state group by num of tokens  
 
 		if (PRUNE_TOKS) res.stateGroups.forEach(pruneTokStates);
+		if (PRUNE_CARDS) res.stateGroups = Wave_pruneCardStates(res);
 		
 		return res;
 	}
@@ -178,44 +171,10 @@ export class Wave {
 }
 
 
-function compareSG(a: StateGroup, b: StateGroup): number {
-	return b.cardState.player.numOwned() - a.cardState.player.numOwned();
-}
-
-function sortStateGroups(stateGroups: StateGroup[]): void {
-	stateGroups.sort(compareSG);	
-}
 
 
+/////////////////////////////////////////
 
-export function TMP_cardSubsets(stateMap: Map<number, StateGroup[]>): StateGroup[] {	
-	const setSizes = stateMap.keys().toArray();
-
-	let reduced: StateGroup[][] = [];
-
-	for (let i = 0; i < setSizes.length; i++) {
-		const subsetSize = setSizes[i];
-		let subsetArr = stateMap.get(subsetSize)!.map(x => x.copy());
-
-		// browse larger sets: [0:i)
-		// Remember that empty card set is legit
-		for (let j = 0; j < setSizes.length; j++) {
-			const supersetSize = setSizes[j];
-			
-			if (supersetSize <= subsetSize) continue;
-			
-			const supersetArr = stateMap.get(supersetSize)!;
-			
-			//console.log(`${subsetSize} of ${supersetSize}`);
-			
-			subsetArr = TMP_cardArrSubsets(subsetArr, supersetArr);
-		}
-		
-		reduced.push(subsetArr);
-	}
-	
-	return reduced.flat();
-}
 
 // make new array where states are removed if they have worse cards than other state with at least equally good tokens
 function TMP_cardArrSubsets(subsets: StateGroup[], supersets: StateGroup[]): StateGroup[] {
@@ -228,13 +187,10 @@ function TMP_cardArrSubsets(subsets: StateGroup[], supersets: StateGroup[]): Sta
 			const included = sub.cardState.player.isSubsetOf(larger.cardState.player);
 			// CAREFUL: if matching, it doesn't mean that further search is not needed.
 			// A match reduces some token states from subset but there may be token states in subset that are not in superset
-			//console.log(`${included}: [${sub.cardState.player.toStr()}](${reducedTS.length}) in [${larger.cardState.player.toStr()}](${larger.tokState.length})`);
 		
 			// if 'included' then from 'sub' remove tokStates that are dominated by 'larger' tokStates
 			if (included) {
 				reducedTS = TMP_tokDiffSubsets(reducedTS, larger.tokState);
-				
-				//console.log("   >>> " + reducedTS.length);
 			}
 		}
 		
@@ -247,42 +203,40 @@ function TMP_cardArrSubsets(subsets: StateGroup[], supersets: StateGroup[]): Sta
 }
 
 
-function pruneTokStates(sg: StateGroup): void {
-	sg.tokState = TMP_tokSubsets(sg.tokState);
-}
-
-
-// Make new array with only maximum player states
-export function TMP_tokSubsets(tokStates: TokenState[]): TokenState[] {
-	let reduced: TokenState[][] = [];
-	
-	const grouped = Map.groupBy(tokStates, x => x.playerTokSum());
-	const setSizes = grouped.keys().toArray();
-
-	//console.log(setSizes);
+function Wave_pruneCardStates(wave: Wave): StateGroup[] {	
+	const stateMap = Map.groupBy(wave.stateGroups, x => x.cardState.player.numOwned());
+	const setSizes = stateMap.keys().toArray();
+	let reduced: StateGroup[][] = [];
 
 	for (let i = 0; i < setSizes.length; i++) {
 		const subsetSize = setSizes[i];
-		let subsetArr = grouped.get(subsetSize)!;
+		let subsetArr = stateMap.get(subsetSize)!.map(x => x.copy());
 
 		// browse larger sets: [0:i)
 		// Remember that empty card set is legit
 		for (let j = 0; j < setSizes.length; j++) {
 			const supersetSize = setSizes[j];
+			if (supersetSize <= subsetSize) continue;
 			
-			if (supersetSize <= subsetSize) continue; // If sizes equal, don't proceed to prevent self-elimination
-			
-			const supersetArr = grouped.get(supersetSize)!;
-			
-			//console.log(`${subsetSize} of ${supersetSize}`);
-			
-			subsetArr = TMP_tokArrSubsets(subsetArr, supersetArr); // Remove those that are dominated by something
+			const supersetArr = stateMap.get(supersetSize)!;			
+			subsetArr = TMP_cardArrSubsets(subsetArr, supersetArr);
 		}
+		
 		reduced.push(subsetArr);
 	}
-
+	
 	return reduced.flat();
 }
+
+
+
+// TODO: inline
+function pruneTokStates(sg: StateGroup): void {
+	sg.tokState = TMP_tokSubsets(sg.tokState);
+}
+
+
+
 
 function TMP_tokArrSubsets(subsets: TokenState[], supersets: TokenState[]): TokenState[] {
 	let res: TokenState[] = [];
@@ -290,7 +244,6 @@ function TMP_tokArrSubsets(subsets: TokenState[], supersets: TokenState[]): Toke
 		let includedYet = false;
 		for (const larger of supersets) {
 			const included = sub.isPlayerSubsetOf(larger);
-			//console.log(`${included}: [${sub.player}] in [${larger.player}]`);
 			includedYet ||= included;
 		}
 		if (!includedYet) res.push(sub);
@@ -300,16 +253,41 @@ function TMP_tokArrSubsets(subsets: TokenState[], supersets: TokenState[]): Toke
 
 
 
+// Make new array with only maximum player states
+function TMP_tokSubsets(tokStates: TokenState[]): TokenState[] {
+	let reduced: TokenState[][] = [];
+	
+	const grouped = Map.groupBy(tokStates, x => x.playerTokSum());
+	const setSizes = grouped.keys().toArray();
+
+	for (let i = 0; i < setSizes.length; i++) {
+		const subsetSize = setSizes[i];
+		let subsetArr = grouped.get(subsetSize)!;
+
+		// browse larger sets: [0:i)
+		// Remember that empty card set is legit
+		for (let j = 0; j < setSizes.length; j++) {
+			const supersetSize = setSizes[j];
+			if (supersetSize <= subsetSize) continue; // If sizes equal, don't proceed to prevent self-elimination
+			
+			const supersetArr = grouped.get(supersetSize)!;			
+			subsetArr = TMP_tokArrSubsets(subsetArr, supersetArr); // Remove those that are dominated by something
+		}
+		reduced.push(subsetArr);
+	}
+
+	return reduced.flat();
+}
+
+
 // Make new array with states not dominated by other array
-export function TMP_tokDiffSubsets(tokStates: TokenState[], otherStates: TokenState[]): TokenState[] {
+function TMP_tokDiffSubsets(tokStates: TokenState[], otherStates: TokenState[]): TokenState[] {
 	let reduced: TokenState[][] = [];
 	
 	const groupedThese = Map.groupBy(tokStates, x => x.playerTokSum());
 	const groupedOthers = Map.groupBy(otherStates, x => x.playerTokSum());
 	const setSizes = groupedThese.keys().toArray();
 	const supersetSizes = groupedOthers.keys().toArray();
-
-	//console.log(setSizes);
 
 	for (let i = 0; i < setSizes.length; i++) {
 		const subsetSize = setSizes[i];
@@ -319,13 +297,9 @@ export function TMP_tokDiffSubsets(tokStates: TokenState[], otherStates: TokenSt
 		// Remember that empty card set is legit
 		for (let j = 0; j < supersetSizes.length; j++) {
 			const supersetSize = supersetSizes[j];
-			
 			if (supersetSize < subsetSize) continue; // Relation of inclusion is satisfied for equal sets, so here we allow equal to proceed 
 			
 			const supersetArr = groupedOthers.get(supersetSize)!;
-			
-			//console.log(`${subsetSize} of ${supersetSize}`);
-			
 			subsetArr = TMP_tokArrSubsets(subsetArr, supersetArr); // Remove those that are dominated by something
 		}
 		reduced.push(subsetArr);

@@ -197,9 +197,7 @@ export function states2map(states: TokenState[]): Map<string, TokenState> {
 	return res;
 }
 
-export function tokStateMap(states: TokenState[]): Map<string, TokenState> {
-	//	return new Map(); // Uncomment to switch on real map
-	
+export function tokStateMap(states: TokenState[]): Map<string, TokenState> {	
 	const pairs: [string, TokenState][] = states.map(s => [s.table, s]);
 	return new Map(pairs);
 }
