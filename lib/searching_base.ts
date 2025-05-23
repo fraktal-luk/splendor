@@ -410,3 +410,202 @@ export class CardState {
 		return res;
 	}
 }
+
+
+// export namespace ExampleNamespace {
+	// export	const qqq = "Quququ";
+	// export	const ddd = 67;
+// }
+
+export namespace GameStates {
+	// For now we assume 2 players, so 55555 token stacks
+	export const MAX_TOKEN_STACKS = "555550";
+	export const MAX_PLAYER_TOKS = 10;
+
+	
+	type StringBinFunc = (x: number, y: number) => number;
+	
+	function stringBinOp(func: StringBinFunc, a: string, b: string): string {
+		const aLen = a.length;
+		const res = a.split('');
+		
+		for (let i = 0; i < aLen; i++) {
+			const val = func(parseInt(a[i], 16), parseInt(b[i], 16));
+			res[i] = val.toString(16);
+		}
+		return res.join('');
+	}		
+	
+	
+	export class TokenVec {
+		readonly str: string;
+		
+		constructor(s: string) {
+			// TODO: check correctness
+			this.str = s;
+		}
+		
+		// tooMuch(): boolean {
+			// return this.sum() > MAX_PLAYER_TOKS;
+		// }
+		
+		sum(): number {
+			let res = 0;
+			for (const c of this.str) res += parseInt(c, 16);
+			return res;
+		}
+		
+		add(other: TokenVec): TokenVec {
+			return new TokenVec(stringBinOp((x,y) => x+y, this.str, other.str));
+		}
+
+		sub(other: TokenVec): TokenVec {
+			return new TokenVec(stringBinOp((x,y) => x-y, this.str, other.str));
+		}
+
+		elemMax(other: TokenVec): TokenVec {
+			return new TokenVec(stringBinOp(Math.max, this.str, other.str));
+		}
+
+		elemMin(other: TokenVec): TokenVec {
+			return new TokenVec(stringBinOp(Math.min, this.str, other.str));
+		}
+	
+		// // If this represents table, check if the argument is valid as take move 
+		// // Assume that arg is a well formed take
+		// enoughForTake(take: string): boolean {
+			
+		// }
+		
+		atLeast(other: TokenVec): boolean {
+			for (let i = 0; i < this.str.length; i++)
+				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
+			return true;
+		}
+		
+		enoughForTake(other: TokenVec): boolean {
+			for (let i = 0; i < this.str.length; i++) {
+				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
+				if (parseInt(this.str[i], 16) < 4 && parseInt(other.str[i], 16) > 1) return false;
+			}
+			return true;
+		}
+	
+	}
+
+
+	export class TokenState {
+		readonly tableToks: TokenVec;// = new TokenVec(MAX_TOKEN_STACK);
+		readonly playerToks: TokenVec[];//[new TokenVec("000000"), new TokenVec("000000")];
+		
+		constructor(t: TokenVec, p: TokenVec[]) {
+			this.tableToks = t;
+			this.playerToks = p;	
+		}
+		
+		toString(): string {
+			return `   ${this.tableToks.str} ;  ` +  this.playerToks.map(x => x.str).join(' | ');
+		}
+	};
+	
+	
+	export class PlayerCards {
+		
+	}
+	
+	export class TableCards {
+		
+	}
+	
+	export class CardState {
+		readonly tableCards: TableCards;
+		readonly playerCards: PlayerCards[];
+		
+		constructor(t: TableCards, p: PlayerCards[]) {
+			this.tableCards = t;
+			this.playerCards = p;
+		}
+		
+		
+	}
+	
+	
+	export class State {
+		readonly cardState: CardState;
+		readonly tokenState: TokenState;
+		
+		constructor(c: CardState, t: TokenState) {
+			this.cardState = c;
+			this.tokenState = t;
+		}
+		
+		tokenStr(): string {
+			return this.tokenState.toString();
+		}
+	}
+	
+	export class Wavefront0 {
+		readonly nPlayers = 2; 
+		round = 0;     // Round that lasts until all players make move 
+		playerTurn = 0; // Player to move next
+		states: State[] = [INITIAL_STATE];
+	
+		
+		move(): void {
+			this.__playerMove();
+			
+			this.playerTurn++;
+			if (this.playerTurn == this.nPlayers) {
+				this.playerTurn = 0;
+				this.round++;
+			}
+		}
+		
+		__playerMove(): void {
+			const tokState = this.states[0]!.tokenState;
+			const tableToks = tokState.tableToks;
+			const playerToks = tokState.playerToks[this.playerTurn]!;
+			// Make a random move
+			// find possible moves: [take 3, take 2], if can't, take 1, else take 0
+			
+			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
+			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
+			
+			if (goodTakes.length == 0) goodTakes = STR_2x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
+			if (goodTakes.length == 0) goodTakes = STR_1x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
+			if (goodTakes.length == 0) goodTakes = ["000000"];
+			
+			//	console.log("how many? " + goodTakes.length);
+			//	console.log("what: " + goodTakes);
+			
+			// Choose random move of those possible
+			const chosenInd = Math.round(Math.random() * 1000000) % goodTakes.length;
+			//	console.log("choose " + goodTakes[chosenInd]);
+			const move = new TokenVec(goodTakes[chosenInd]!);
+			
+			const newPT = playerToks.add(move);
+			const newTT = tableToks.sub(move);
+			
+				console.log(`{${this.round},${this.playerTurn}}` + " choose " + goodTakes[chosenInd] + " -> " + newTT.str + " ; " + newPT.str);
+			
+			const newTokState = new TokenState(newTT, tokState.playerToks.with(this.playerTurn, newPT));
+			
+				this.states[0] = new State(this.states[0]!.cardState, newTokState);
+		}
+		
+	}
+	
+	export const INITIAL_STATE = new State(
+		new CardState(
+			new TableCards(),
+			[new PlayerCards, new PlayerCards]
+		),
+		new TokenState(
+			new TokenVec(MAX_TOKEN_STACKS),
+			[new TokenVec("000000"), new TokenVec("000000")]
+		)
+	);
+	
+
+}
+

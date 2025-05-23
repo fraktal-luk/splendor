@@ -4,7 +4,9 @@ import {
 } from './lib/searching.ts';
 
 import {
-	getCardPrice, TokenState, statesUnique, PlayerCardState, CardState, enoughStates
+	getCardPrice, TokenState, statesUnique, PlayerCardState, CardState, enoughStates,
+		//ExampleNamespace
+		GameStates
 } from './lib/searching_base.ts';
 
 
@@ -20,21 +22,33 @@ console.time('2');
 let waves = [wave0, wave1, wave2, wave3];
 let newWave = wave3;
 
-for (let iter = 4; iter < 10; iter++) {
-	newWave = newWave.next();
-	waves.push(newWave);
+if (false)
+{
+	for (let iter = 4; iter < 10; iter++) {
+		newWave = newWave.next();
+		waves.push(newWave);
+	}
+
+	console.timeEnd('2');
+	console.log('');
+
+
+	const selectedWave = waves[9]!;
+
+	console.log(selectedWave.groupSize());
+	console.log(selectedWave.stateSize());
+	console.log(selectedWave.stateGroups.map(sgStr).reverse().slice(0, 50));
+
 }
-
-console.timeEnd('2');
-console.log('');
-
-
-const selectedWave = waves[9]!;
-
-console.log(selectedWave.groupSize());
-console.log(selectedWave.stateSize());
-console.log(selectedWave.stateGroups.map(sgStr).reverse().slice(0, 50));
 
 function sgStr(sg: StateGroup): string {
 	return sg.cardState.player.toStr() + '/(' + sg.tokState.length + ')'
+}
+
+
+let waveN = new GameStates.Wavefront0();
+
+for (let i = 0; i < 15 ; i++) {
+	console.log(waveN.states[0]!.tokenStr());
+	waveN.move();
 }

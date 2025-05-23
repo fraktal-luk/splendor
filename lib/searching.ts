@@ -28,6 +28,8 @@ import {getCardPrice, getCardPoints,
 	PlayerCardState,
 	TableCardState,
 	CardState,
+	//	ExampleNamespace
+		GameStates
 } from './searching_base.ts';
 
 
@@ -221,6 +223,21 @@ function pruneTokStates(sg: StateGroup): void {
 }
 
 
+
+function TMP_tokArrSubsets(subsets: TokenState[], supersets: TokenState[]): TokenState[] {
+	let res: TokenState[] = [];
+	for (const sub of subsets) {
+		let includedYet = false;
+		for (const larger of supersets) {
+			const included = sub.isPlayerSubsetOf(larger);
+			includedYet ||= included;
+		}
+		if (!includedYet) res.push(sub);
+	}
+	return res;
+}
+
+
 // Make new array with only maximum player states
 function TMP_tokSubsets(tokStates: TokenState[]): TokenState[] {
 	let reduced: TokenState[][] = [];
@@ -238,23 +255,6 @@ function TMP_tokSubsets(tokStates: TokenState[]): TokenState[] {
 
 	return reduced.flat();
 }
-
-
-
-
-function TMP_tokArrSubsets(subsets: TokenState[], supersets: TokenState[]): TokenState[] {
-	let res: TokenState[] = [];
-	for (const sub of subsets) {
-		let includedYet = false;
-		for (const larger of supersets) {
-			const included = sub.isPlayerSubsetOf(larger);
-			includedYet ||= included;
-		}
-		if (!includedYet) res.push(sub);
-	}
-	return res;
-}
-
 
 
 // Make new array with states not dominated by other array
