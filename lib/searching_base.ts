@@ -561,13 +561,9 @@ export namespace GameStates {
 			}
 		}
 		
-		__playerMove(): void {
+		findPossibleTakes(): string[] {
 			const tokState = this.states[0]!.tokenState;
 			const tableToks = tokState.tableToks;
-			const playerToks = tokState.playerToks[this.playerTurn]!;
-			// Make a random move
-			// find possible moves: [take 3, take 2], if can't, take 1, else take 0
-			
 			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
 			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
 			
@@ -575,22 +571,39 @@ export namespace GameStates {
 			if (goodTakes.length == 0) goodTakes = STR_1x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
 			if (goodTakes.length == 0) goodTakes = ["000000"];
 			
-			//	console.log("how many? " + goodTakes.length);
-			//	console.log("what: " + goodTakes);
-			
-			// Choose random move of those possible
-			const chosenInd = Math.round(Math.random() * 1000000) % goodTakes.length;
-			//	console.log("choose " + goodTakes[chosenInd]);
-			const move = new TokenVec(goodTakes[chosenInd]!);
+			return goodTakes;
+		}
+		
+		applyTake(move: TokenVec): TokenState {
+			const tokState = this.states[0]!.tokenState;
+			const tableToks = tokState.tableToks;
+			const playerToks = tokState.playerToks[this.playerTurn]!;
 			
 			const newPT = playerToks.add(move);
 			const newTT = tableToks.sub(move);
+			return new TokenState(newTT, tokState.playerToks.with(this.playerTurn, newPT));
+		}
+		
+		__playerMove(): void {
+			const tokState = this.states[0]!.tokenState;
+			const tableToks = tokState.tableToks;
+			const playerToks = tokState.playerToks[this.playerTurn]!;
+
+			const goodTakes = this.findPossibleTakes();
 			
-				console.log(`{${this.round},${this.playerTurn}}` + " choose " + goodTakes[chosenInd] + " -> " + newTT.str + " ; " + newPT.str);
+			// Choose random move of those possible
+			const chosenInd = Math.round(Math.random() * 1000000) % goodTakes.length;
+			const move = new TokenVec(goodTakes[chosenInd]!);
+
+			const newTS = this.applyTake(move);
 			
-			const newTokState = new TokenState(newTT, tokState.playerToks.with(this.playerTurn, newPT));
+			const allMoved = goodTakes.map(s => this.applyTake(new TokenVec(s)));
+
+			console.log(allMoved.map(x => x.toString()));
+			console.log(`{${this.round},${this.playerTurn}}` + " choose " + goodTakes[chosenInd] + " -> " + 
+								newTS.tableToks.str + " ; " + newTS.playerToks[this.playerTurn]!.str);
 			
-				this.states[0] = new State(this.states[0]!.cardState, newTokState);
+				this.states[0] = new State(this.states[0]!.cardState, newTS);
 		}
 		
 	}
