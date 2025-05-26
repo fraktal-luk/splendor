@@ -544,6 +544,45 @@ export namespace GameStates {
 		}
 	}
 	
+	
+	export class TokenStateSet {
+		states: TokenState[] = [];
+		
+		static fromArray(sa: TokenState[]) {
+			//this.states = structuredClone(sa); // TODO: is this correct? Preserves object types?
+			let res = new TokenStateSet();
+			res.states = //structuredClone(sa); // TODO: is this correct? Preserves object types?
+						 [...sa];//sa.map(x => x);
+			return res;
+		}
+		
+		addState(s: TokenState): void {
+			
+		}
+		
+		addStates(sa: TokenState[]): void {
+			
+		}
+	}
+
+	
+	export class StateSet {
+		states: State[] = [];
+		
+		// static fromArray(sa: State[]) {
+			// return new T.states = structuredClone(sa); // TODO: is this correct? Preserves object types?
+		// }
+		
+		addState(s: State): void {
+			
+		}
+		
+		addStates(sa: State[]): void {
+			
+		}
+	}
+	
+	
 	export class Wavefront0 {
 		readonly nPlayers = 2; 
 		round = 0;     // Round that lasts until all players make move 
@@ -561,8 +600,9 @@ export namespace GameStates {
 			}
 		}
 		
-		findPossibleTakes(): string[] {
-			const tokState = this.states[0]!.tokenState;
+		
+		static findPossibleTakes(ts: TokenState): string[] {
+			const tokState = ts;//this.states[0]!.tokenState;
 			const tableToks = tokState.tableToks;
 			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
 			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
@@ -574,34 +614,38 @@ export namespace GameStates {
 			return goodTakes;
 		}
 		
-		applyTake(move: TokenVec): TokenState {
-			const tokState = this.states[0]!.tokenState;
-			const tableToks = tokState.tableToks;
-			const playerToks = tokState.playerToks[this.playerTurn]!;
+		// TODO: move to TokenState 
+		static applyTake(ts: TokenState, player: number, move: TokenVec): TokenState {
+			const tableToks = ts.tableToks;
+			const playerToks = ts.playerToks[player]!;
 			
 			const newPT = playerToks.add(move);
 			const newTT = tableToks.sub(move);
-			return new TokenState(newTT, tokState.playerToks.with(this.playerTurn, newPT));
+			return new TokenState(newTT, ts.playerToks.with(player, newPT));
 		}
+
+		// TODO: move to TokenState 
+		static applyTakes(ts: TokenState, player: number, moves: string[]): TokenStateSet { //TokenState[] {
+			const newStates = moves.map(s => Wavefront0.applyTake(ts, player, new TokenVec(s)));
+			//return newStates;
+			return TokenStateSet.fromArray(newStates);
+		}
+		
 		
 		__playerMove(): void {
 			const tokState = this.states[0]!.tokenState;
-			const tableToks = tokState.tableToks;
-			const playerToks = tokState.playerToks[this.playerTurn]!;
-
-			const goodTakes = this.findPossibleTakes();
+			const goodTakes = Wavefront0.findPossibleTakes(tokState);
+			
+			const allMoved = Wavefront0.applyTakes(tokState, this.playerTurn, goodTakes);
 			
 			// Choose random move of those possible
 			const chosenInd = Math.round(Math.random() * 1000000) % goodTakes.length;
 			const move = new TokenVec(goodTakes[chosenInd]!);
 
-			const newTS = this.applyTake(move);
-			
-			const allMoved = goodTakes.map(s => this.applyTake(new TokenVec(s)));
-
-			console.log(allMoved.map(x => x.toString()));
-			console.log(`{${this.round},${this.playerTurn}}` + " choose " + goodTakes[chosenInd] + " -> " + 
-								newTS.tableToks.str + " ; " + newTS.playerToks[this.playerTurn]!.str);
+			const newTS = Wavefront0.applyTake(tokState, this.playerTurn, move);
+				
+				console.log(allMoved.states.map(x => x.toString()));
+				console.log(`{${this.round},${this.playerTurn}}` + " choose " + goodTakes[chosenInd]);// + " -> " + 
 			
 				this.states[0] = new State(this.states[0]!.cardState, newTS);
 		}
