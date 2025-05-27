@@ -506,6 +506,46 @@ export namespace GameStates {
 		toString(): string {
 			return `   ${this.tableToks.str} ;  ` +  this.playerToks.map(x => x.str).join(' | ');
 		}
+		
+		keyString(): string {
+			return this.tableToks.str + this.playerToks.map(x => x.str).join('');
+		}
+		
+		static fromKeyString(s: string): TokenState {
+			const sixes = s.match(/....../g)!;
+			const tv = sixes.map(x => new TokenVec(x));
+				return new TokenState(tv[0]!, tv.slice(1));
+		}
+		
+		findPossibleTakes(): string[] {
+			const tokState = this;//this.states[0]!.tokenState;
+			const tableToks = tokState.tableToks;
+			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
+			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
+			
+			if (goodTakes.length == 0) goodTakes = STR_2x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
+			if (goodTakes.length == 0) goodTakes = STR_1x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
+			if (goodTakes.length == 0) goodTakes = ["000000"];
+			
+			return goodTakes;
+		}
+		
+		applyTake(player: number, move: TokenVec): TokenState {
+			const tableToks = this.tableToks;
+			const playerToks = this.playerToks[player]!;
+			
+			const newPT = playerToks.add(move);
+			const newTT = tableToks.sub(move);
+			return new TokenState(newTT, this.playerToks.with(player, newPT));
+		}
+
+		applyTakes(player: number, moves: string[]): TokenStateSet {
+			const newStates = moves.map(s => this.applyTake(player, new TokenVec(s)));
+			return TokenStateSet.fromArray(newStates);
+		}
+		
+
+
 	};
 	
 	
@@ -548,21 +588,47 @@ export namespace GameStates {
 	export class TokenStateSet {
 		states: TokenState[] = [];
 		
+		size(): number {
+			return this.states.length;
+		}
+		
 		static fromArray(sa: TokenState[]) {
-			//this.states = structuredClone(sa); // TODO: is this correct? Preserves object types?
 			let res = new TokenStateSet();
-			res.states = //structuredClone(sa); // TODO: is this correct? Preserves object types?
-						 [...sa];//sa.map(x => x);
+			res.states = [...sa];//sa.map(x => x);
 			return res;
 		}
 		
-		addState(s: TokenState): void {
-			
+		makeUnique(): void {
+			const uniqueSet = new Set(this.states.map(x => x.keyString()));
+			this.states = uniqueSet.values().toArray().map(x => TokenState.fromKeyString(x));
 		}
 		
-		addStates(sa: TokenState[]): void {
+		// addState(s: TokenState): void {
 			
+		// }
+		
+		addStates(sa: TokenState[]): void {
+			this.states = this.states.concat(sa);
+			this.makeUnique();
 		}
+		
+		addSet(other: TokenStateSet): void {
+			this.addStates(other.states);
+		}
+		
+		applyNewTakes(player: number): TokenStateSet {
+			let res = new TokenStateSet();
+			
+			this.states.forEach(x => {
+				const moves = x.findPossibleTakes();
+				res.addSet(x.applyTakes(player, moves));
+				
+			});
+			
+			return res;
+		}
+		
+		
 	}
 
 	
@@ -584,11 +650,11 @@ export namespace GameStates {
 	
 	
 	export class Wavefront0 {
-		readonly nPlayers = 2; 
+		readonly nPlayers = 2;
 		round = 0;     // Round that lasts until all players make move 
 		playerTurn = 0; // Player to move next
 		states: State[] = [INITIAL_STATE];
-	
+			__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
 		
 		move(): void {
 			this.__playerMove();
@@ -601,53 +667,26 @@ export namespace GameStates {
 		}
 		
 		
-		static findPossibleTakes(ts: TokenState): string[] {
-			const tokState = ts;//this.states[0]!.tokenState;
-			const tableToks = tokState.tableToks;
-			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
-			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
-			
-			if (goodTakes.length == 0) goodTakes = STR_2x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
-			if (goodTakes.length == 0) goodTakes = STR_1x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
-			if (goodTakes.length == 0) goodTakes = ["000000"];
-			
-			return goodTakes;
-		}
-		
-		// TODO: move to TokenState 
-		static applyTake(ts: TokenState, player: number, move: TokenVec): TokenState {
-			const tableToks = ts.tableToks;
-			const playerToks = ts.playerToks[player]!;
-			
-			const newPT = playerToks.add(move);
-			const newTT = tableToks.sub(move);
-			return new TokenState(newTT, ts.playerToks.with(player, newPT));
-		}
-
-		// TODO: move to TokenState 
-		static applyTakes(ts: TokenState, player: number, moves: string[]): TokenStateSet { //TokenState[] {
-			const newStates = moves.map(s => Wavefront0.applyTake(ts, player, new TokenVec(s)));
-			//return newStates;
-			return TokenStateSet.fromArray(newStates);
-		}
-		
-		
 		__playerMove(): void {
 			const tokState = this.states[0]!.tokenState;
-			const goodTakes = Wavefront0.findPossibleTakes(tokState);
+			const goodTakes = tokState.findPossibleTakes();
 			
-			const allMoved = Wavefront0.applyTakes(tokState, this.playerTurn, goodTakes);
+			const allMoved = tokState.applyTakes(this.playerTurn, goodTakes);
 			
 			// Choose random move of those possible
 			const chosenInd = Math.round(Math.random() * 1000000) % goodTakes.length;
 			const move = new TokenVec(goodTakes[chosenInd]!);
 
-			const newTS = Wavefront0.applyTake(tokState, this.playerTurn, move);
+			const newTS = tokState.applyTake(this.playerTurn, move);
 				
-				console.log(allMoved.states.map(x => x.toString()));
+				//console.log(allMoved.states.map(x => x.toString()));
+				allMoved.makeUnique();
+				
 				console.log(`{${this.round},${this.playerTurn}}` + " choose " + goodTakes[chosenInd]);// + " -> " + 
 			
 				this.states[0] = new State(this.states[0]!.cardState, newTS);
+				
+				this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
 		}
 		
 	}
@@ -665,4 +704,3 @@ export namespace GameStates {
 	
 
 }
-
