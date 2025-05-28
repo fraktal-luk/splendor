@@ -449,11 +449,24 @@ export namespace GameStates {
 			// return this.sum() > MAX_PLAYER_TOKS;
 		// }
 		
+		toLongString(): string {
+			return ' (' + this.sum().toString(16) + ')' + this.str;
+		}
+		
 		sum(): number {
 			let res = 0;
 			for (const c of this.str) res += parseInt(c, 16);
 			return res;
 		}
+		
+			compare(other: TokenVec): number {
+				const thisSum = this.sum();
+				const otherSum = other.sum();
+				
+				if (thisSum != otherSum) return thisSum - otherSum;
+				
+				return (this.str).localeCompare(other.str);
+			}
 		
 		add(other: TokenVec): TokenVec {
 			return new TokenVec(stringBinOp((x,y) => x+y, this.str, other.str));
@@ -503,8 +516,23 @@ export namespace GameStates {
 			this.playerToks = p;	
 		}
 		
+		compare(other: TokenState): number {
+			const cmpT = this.tableToks.compare(other.tableToks);
+			if (cmpT != 0) return cmpT;
+			
+			for (let i = 0; i < this.playerToks.length; i++) {
+				const cmpP = this.playerToks[i]!.compare(other.playerToks[i]!);
+				if (cmpP != 0) return cmpP;
+			}
+			return 0;
+		}
+		
 		toString(): string {
 			return `   ${this.tableToks.str} ;  ` +  this.playerToks.map(x => x.str).join(' | ');
+		}
+		
+		toLongString(): string {
+			return this.tableToks.toLongString() + this.playerToks.map(x => x.toLongString()).join('');
 		}
 		
 		keyString(): string {
@@ -625,6 +653,8 @@ export namespace GameStates {
 				
 			});
 			
+			res.states.sort((x,y) => x.compare(y));
+			
 			return res;
 		}
 		
@@ -654,10 +684,13 @@ export namespace GameStates {
 		round = 0;     // Round that lasts until all players make move 
 		playerTurn = 0; // Player to move next
 		states: State[] = [INITIAL_STATE];
-			__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
+		  __tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
 		
 		move(): void {
 			this.__playerMove();
+
+			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
+
 			
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
@@ -669,6 +702,7 @@ export namespace GameStates {
 		
 		__playerMove(): void {
 			const tokState = this.states[0]!.tokenState;
+			
 			const goodTakes = tokState.findPossibleTakes();
 			
 			const allMoved = tokState.applyTakes(this.playerTurn, goodTakes);
@@ -678,15 +712,12 @@ export namespace GameStates {
 			const move = new TokenVec(goodTakes[chosenInd]!);
 
 			const newTS = tokState.applyTake(this.playerTurn, move);
-				
-				//console.log(allMoved.states.map(x => x.toString()));
+
 				allMoved.makeUnique();
-				
+
 				console.log(`{${this.round},${this.playerTurn}}` + " choose " + goodTakes[chosenInd]);// + " -> " + 
-			
+
 				this.states[0] = new State(this.states[0]!.cardState, newTS);
-				
-				this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
 		}
 		
 	}
