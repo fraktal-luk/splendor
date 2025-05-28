@@ -78,8 +78,9 @@ export const STR_1x2_1x1 = [
 ];		
 export const STR_3x1 = ["00111", "01110", "11100", "11001", "10011", "01011", "10110", "01101", "11010", "10101",];
 
-//const STR_RET3 = STR_3x1.concat(STR_1x2_1x1).concat(STR_1x3);
-//const STR_RET2 = STR_2x1.concat(STR_1x2);
+const STR_RET3 = STR_3x1.concat(STR_1x2_1x1).concat(STR_1x3);
+const STR_RET2 = STR_2x1.concat(STR_1x2);
+const STR_RET1 = STR_1x1;
 
 
 export function getReturns(surplus: number): string[] {
@@ -418,8 +419,8 @@ export class CardState {
 // }
 
 export namespace GameStates {
-	// For now we assume 2 players, so 55555 token stacks
-	export const MAX_TOKEN_STACKS = "555550";
+	// For now we assume 2 players, so 44444 token stacks
+	export const MAX_TOKEN_STACKS = "444440";
 	export const MAX_PLAYER_TOKS = 10;
 
 	
@@ -445,9 +446,9 @@ export namespace GameStates {
 			this.str = s;
 		}
 		
-		// tooMuch(): boolean {
-			// return this.sum() > MAX_PLAYER_TOKS;
-		// }
+		excessive(): boolean {
+			return this.sum() > MAX_PLAYER_TOKS;
+		}
 		
 		toLongString(): string {
 			return ' (' + this.sum().toString(16) + ')' + this.str;
@@ -467,6 +468,10 @@ export namespace GameStates {
 				
 				return (this.str).localeCompare(other.str);
 			}
+		
+			// covers(other: TokenVec): boolean {
+				
+			// }
 		
 		add(other: TokenVec): TokenVec {
 			return new TokenVec(stringBinOp((x,y) => x+y, this.str, other.str));
@@ -491,9 +496,20 @@ export namespace GameStates {
 		// }
 		
 		atLeast(other: TokenVec): boolean {
-			for (let i = 0; i < this.str.length; i++)
+			for (let i = 0; i < this.str.length; i++) {
 				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
+			}
 			return true;
+		}
+
+		// If greater than other
+		covers(other: TokenVec): boolean {
+			let hasGreater = false;
+			for (let i = 0; i < this.str.length; i++) {
+				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
+				else if (parseInt(this.str[i], 16) > parseInt(other.str[i], 16)) hasGreater = true;
+			}
+			return hasGreater;
 		}
 		
 		enoughForTake(other: TokenVec): boolean {
@@ -539,6 +555,10 @@ export namespace GameStates {
 			return this.tableToks.str + this.playerToks.map(x => x.str).join('');
 		}
 		
+		playerString(): string {
+			return this.playerToks.map(x => `(${x.sum().toString(16)})` + x.str).join('|');
+		}
+		
 		static fromKeyString(s: string): TokenState {
 			const sixes = s.match(/....../g)!;
 			const tv = sixes.map(x => new TokenVec(x));
@@ -546,8 +566,7 @@ export namespace GameStates {
 		}
 		
 		findPossibleTakes(): string[] {
-			const tokState = this;//this.states[0]!.tokenState;
-			const tableToks = tokState.tableToks;
+			const tableToks = this.tableToks;
 			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
 			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
 			
@@ -557,6 +576,21 @@ export namespace GameStates {
 			
 			return goodTakes;
 		}
+
+
+		findReductions(player: number): string[] {
+			const playerToks = this.playerToks[player]!;
+			const surplus = playerToks.sum() - MAX_PLAYER_TOKS;
+			if (surplus > 3 || surplus < 1) throw new Error("Wrong, over 3 too much or not too much");
+			
+			const giveString = (surplus == 3) ? STR_RET3 : (surplus == 2) ? STR_RET2 : STR_RET1;
+			const gives = giveString.map(s => s + "0");
+			
+			let res = gives.filter(s => playerToks.atLeast(new TokenVec(s)));
+
+			return res;
+		}
+
 		
 		applyTake(player: number, move: TokenVec): TokenState {
 			const tableToks = this.tableToks;
@@ -573,6 +607,19 @@ export namespace GameStates {
 		}
 		
 
+		applyGive(player: number, move: TokenVec): TokenState {
+			const tableToks = this.tableToks;
+			const playerToks = this.playerToks[player]!;
+			
+			const newPT = playerToks.sub(move);
+			const newTT = tableToks.add(move);
+			return new TokenState(newTT, this.playerToks.with(player, newPT));
+		}
+
+		applyGives(player: number, moves: string[]): TokenStateSet {
+			const newStates = moves.map(s => this.applyGive(player, new TokenVec(s)));
+			return TokenStateSet.fromArray(newStates);
+		}
 
 	};
 	
@@ -644,13 +691,15 @@ export namespace GameStates {
 			this.addStates(other.states);
 		}
 		
+		// For every state in set, make all possible takes
 		applyNewTakes(player: number): TokenStateSet {
 			let res = new TokenStateSet();
 			
 			this.states.forEach(x => {
 				const moves = x.findPossibleTakes();
-				res.addSet(x.applyTakes(player, moves));
-				
+				const y: TokenStateSet = x.applyTakes(player, moves);
+				const z = y.handleExcess(player);
+				res.addSet(z);
 			});
 			
 			res.states.sort((x,y) => x.compare(y));
@@ -658,6 +707,76 @@ export namespace GameStates {
 			return res;
 		}
 		
+		// For states with too many tokens, generate reductions
+		handleExcess(player: number): TokenStateSet {
+			let arr: TokenState[] = [];
+			
+			this.states.forEach(x => {
+				if (x.playerToks[player]!.excessive()) {
+					
+						//console.log("Handlnig excess");
+					
+					const gives = x.findReductions(player);
+					const y: TokenStateSet = x.applyGives(player, gives);
+					arr = arr.concat(y.states);
+					
+					{
+					//	console.log(x);
+					//	console.log(y.states.map(s => s.toLongString()));
+					}
+					
+					//throw new  Error("Excessve state!");
+
+				}
+				else
+					arr.push(x);
+			});
+			
+			return TokenStateSet.fromArray(arr);
+		}
+		
+		
+		
+		organize(): void {
+			const grouped = Map.groupBy(this.states, x => x.tableToks.str);
+			
+			console.log(`${this.states.length} states:`);
+			for (let [tableStr, pl] of grouped) {
+				console.log(`[${pl.length}] ${tableStr} => ` + pl.map(x => x.playerString()).join(', '))
+				//console.log(pl);
+			}
+		}
+		
+		// Remove non-optimal states for given player
+		__prune(player: number): void {
+				console.log('prune for player ' + player);
+			
+			const statesCopy = [...this.states];
+			statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
+			
+			let res: TokenState[] = [];
+			
+				//console.log('Sorted by player:\n' + statesCopy.map(x => x.playerString()).join(', '))
+				console.log("Pruning - before " + statesCopy.length);
+			
+				while (statesCopy.length > 0) {
+					const last = statesCopy.pop()!;
+					
+					// if (true) {//last.playerToks[player!].sum() == 4) {
+						// console.log(last);
+						// console.log(statesCopy.map(x => x.toLongString()));
+						// console.log(statesCopy.map(x => x.playerToks[player!].covers(last.playerToks[player]!)))
+					// }
+					
+					if (!statesCopy.some(x => x.playerToks[player]!.covers(last.playerToks[player]!)))
+						res.push(last);
+				}
+			
+				console.log("Pruning - after " + res.length);
+
+			this.states = res;
+
+		}
 		
 	}
 
@@ -705,7 +824,7 @@ export namespace GameStates {
 			
 			const goodTakes = tokState.findPossibleTakes();
 			
-			const allMoved = tokState.applyTakes(this.playerTurn, goodTakes);
+			//const allMoved = tokState.applyTakes(this.playerTurn, goodTakes);
 			
 			// Choose random move of those possible
 			const chosenInd = Math.round(Math.random() * 1000000) % goodTakes.length;
@@ -713,7 +832,7 @@ export namespace GameStates {
 
 			const newTS = tokState.applyTake(this.playerTurn, move);
 
-				allMoved.makeUnique();
+				//allMoved.makeUnique();
 
 				console.log(`{${this.round},${this.playerTurn}}` + " choose " + goodTakes[chosenInd]);// + " -> " + 
 
