@@ -49,17 +49,11 @@ function sgStr(sg: StateGroup): string {
 let waveN = new GameStates.Wavefront0();
 
 console.time('3');
-for (let i = 0; i < 8+1 ; i++) {
-
+for (let i = 0; i < 8+2 ; i++) {
 	waveN.move();
-	
-		//waveN.__tokStates.organize();
-		waveN.__tokStates.__prune((waveN.playerTurn-1 + waveN.nPlayers) % waveN.nPlayers);
-		//waveN.__tokStates.organize();
-		
-		console.log('\n');
+	console.log('\n');
 }
 
 console.timeEnd('3');
 
-waveN.__tokStates.organize();
+//waveN.__tokStates.organize();
