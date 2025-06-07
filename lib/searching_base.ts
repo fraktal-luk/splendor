@@ -754,6 +754,9 @@ export namespace GameStates {
 			}
 
 				console.log(`Pruned: ${this.states.length} -> ` + res.length);
+				
+				//const binned = putIntoBins(res);
+				
 			this.states = res;
 		}
 		
@@ -855,4 +858,10 @@ export namespace GameStates {
 		
 		return new TokenVec(s);
 	}
+	
+
+	function putIntoBins(vecs: TokenVec[]): Map<string, TokenVec[]> {
+		return Map.groupBy(vecs, v => GameStates.vec2bin(v).str);
+	}
+	
 }
