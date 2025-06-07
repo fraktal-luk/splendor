@@ -828,4 +828,31 @@ export namespace GameStates {
 	);
 	
 
+	
+
+	export function genVectors(max: number): TokenVec[] {
+		let vecs: TokenVec[] = [];
+		
+		for (let n = 0; n < 100_000; n++) {
+			const s = (100_000 + n).toString(10).substring(1) + '0';
+			
+			if (!s.split('').some(s => parseInt(s, 10) > max))
+				vecs.push(new TokenVec(s));
+		}
+		
+		//console.log(vecs.map(x => x.str).join('  '));
+		return vecs.filter(x => x.sum() <= MAX_PLAYER_TOKS);
+	}
+	
+	export function showVecs(vecs: TokenVec[]): void {
+		console.log(vecs.map(x => x.str).join('  '));
+	}
+	
+	
+	export function vec2bin(v: TokenVec): TokenVec {
+		const BIN_INTERVAL = 2;
+		const s = v.str.split('').map(x => (BIN_INTERVAL*Math.floor(parseInt(x, 16)/BIN_INTERVAL)).toString(16)).join('');
+		
+		return new TokenVec(s);
+	}
 }
