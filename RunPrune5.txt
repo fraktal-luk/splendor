@@ -1,0 +1,117 @@
+Run for initial state:  (19)555550 (0)000000 (0)000000
+
+{0,0}
+takes: 20.029ms
+New states: 1 -> (15) -> 15
+prune for player 0
+prune: 0.305ms
+Pruned: 15 -> 15
+
+
+{0,1}
+takes: 3.662ms
+New states: 15 -> (220) -> 220
+prune for player 1
+prune: 15.254ms
+Pruned: 220 -> 220
+
+
+{1,0}
+takes: 30.977ms
+New states: 220 -> (2980) -> 1505
+prune for player 0
+prune: 425.461ms
+Pruned: 1505 -> 1095
+
+
+{1,1}
+takes: 154.529ms
+New states: 1095 -> (13490) -> 7395
+prune for player 1
+prune: 10.903s
+Pruned: 7395 -> 5445
+
+
+{2,0}
+takes: 757.562ms
+New states: 5445 -> (55650) -> 23850
+prune for player 0
+prune: 1:14.622 (m:ss.mmm)
+Pruned: 23850 -> 13555
+
+
+{2,1}
+takes: 1.252s
+New states: 13555 -> (97890) -> 41220
+prune for player 1
+prune: 3:14.412 (m:ss.mmm)
+Pruned: 41220 -> 22605
+
+
+{3,0}
+takes: 6.908s
+New states: 22605 -> (869460) -> 29275
+prune for player 0
+prune: 4:31.094 (m:ss.mmm)
+Pruned: 29275 -> 29275
+
+
+{3,1}
+takes: 5.124s
+New states: 29275 -> (672230) -> 35361
+prune for player 1
+prune: 6:12.770 (m:ss.mmm)
+Pruned: 35361 -> 35361
+
+
+{4,0}
+takes: 9.642s
+New states: 35361 -> (1354080) -> 37041
+prune for player 0
+prune: 6:49.000 (m:ss.mmm)
+Pruned: 37041 -> 37041
+
+
+{4,1}
+takes: 9.887s
+New states: 37041 -> (1383240) -> 39351
+prune for player 1
+prune: 8:28.777 (m:ss.mmm)
+Pruned: 39351 -> 39351
+
+
+{5,0}
+takes: 10.765s
+New states: 39351 -> (1425420) -> 39351
+prune for player 0
+prune: 8:09.985 (m:ss.mmm)
+Pruned: 39351 -> 39351
+
+
+{5,1}
+takes: 10.447s
+New states: 39351 -> (1425420) -> 39351
+prune for player 1
+prune: 6:00.658 (m:ss.mmm)
+Pruned: 39351 -> 39351
+
+
+{6,0}
+takes: 10.771s
+New states: 39351 -> (1425420) -> 39351
+prune for player 0
+prune: 6:06.576 (m:ss.mmm)
+Pruned: 39351 -> 39351
+
+
+{6,1}
+takes: 10.557s
+New states: 39351 -> (1425420) -> 39351
+prune for player 1
+prune: 6:03.479 (m:ss.mmm)
+Pruned: 39351 -> 39351
+
+
+3: 58:19.049 (m:ss.mmm)
+
+

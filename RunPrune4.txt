@@ -1,0 +1,117 @@
+Run for initial state:  (14)444440 (0)000000 (0)000000
+
+{0,0}
+takes: 14.086ms
+New states: 1 -> (15) -> 15
+prune for player 0
+prune: 0.261ms
+Pruned: 15 -> 15
+
+
+{0,1}
+takes: 3.126ms
+New states: 15 -> (190) -> 190
+prune for player 1
+prune: 10.696ms
+Pruned: 190 -> 190
+
+
+{1,0}
+takes: 21.581ms
+New states: 190 -> (2140) -> 1380
+prune for player 0
+prune: 248.799ms
+Pruned: 1380 -> 1000
+
+
+{1,1}
+takes: 82.928ms
+New states: 1000 -> (9620) -> 5525
+prune for player 1
+prune: 5.597s
+Pruned: 5525 -> 4305
+
+
+{2,0}
+takes: 282.151ms
+New states: 4305 -> (25270) -> 10275
+prune for player 0
+prune: 12.773s
+Pruned: 10275 -> 5745
+
+
+{2,1}
+takes: 296.129ms
+New states: 5745 -> (13770) -> 6355
+prune for player 1
+prune: 4.583s
+Pruned: 6355 -> 3395
+
+
+{3,0}
+takes: 222.58ms
+New states: 3395 -> (12055) -> 1705
+prune for player 0
+prune: 669.758ms
+Pruned: 1705 -> 1625
+
+
+{3,1}
+takes: 38.397ms
+New states: 1625 -> (1625) -> 701
+prune for player 1
+prune: 62.447ms
+Pruned: 701 -> 321
+
+
+{4,0}
+takes: 8.624ms
+New states: 321 -> (321) -> 321
+prune for player 0
+prune: 10.435ms
+Pruned: 321 -> 321
+
+
+{4,1}
+takes: 6.377ms
+New states: 321 -> (321) -> 321
+prune for player 1
+prune: 31.057ms
+Pruned: 321 -> 321
+
+
+{5,0}
+takes: 5.801ms
+New states: 321 -> (321) -> 321
+prune for player 0
+prune: 9.86ms
+Pruned: 321 -> 321
+
+
+{5,1}
+takes: 5.765ms
+New states: 321 -> (321) -> 321
+prune for player 1
+prune: 30.769ms
+Pruned: 321 -> 321
+
+
+{6,0}
+takes: 8.118ms
+New states: 321 -> (321) -> 321
+prune for player 0
+prune: 17.097ms
+Pruned: 321 -> 321
+
+
+{6,1}
+takes: 6.614ms
+New states: 321 -> (321) -> 321
+prune for player 1
+prune: 31.192ms
+Pruned: 321 -> 321
+
+
+3: 25.114s
+
+

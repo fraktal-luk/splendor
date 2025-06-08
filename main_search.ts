@@ -48,6 +48,8 @@ function sgStr(sg: StateGroup): string {
 
 let waveN = new GameStates.Wavefront0();
 
+
+console.log("Run for initial state: " + GameStates.INITIAL_STATE.tokenState.toLongString() + '\n');
 // off to check state sorting
 if (true) {
 	console.time('3');
@@ -60,4 +62,4 @@ if (true) {
 }
 
 console.log('\n');
-waveN.__tokStates.organize();
+//waveN.__tokStates.organize();

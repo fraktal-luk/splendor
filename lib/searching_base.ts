@@ -421,6 +421,8 @@ export class CardState {
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
 	export const MAX_TOKEN_STACKS = "444440";
+									//"555550";
+									//"777770";
 	export const MAX_PLAYER_TOKS = 10;
 
 	
@@ -752,6 +754,8 @@ export namespace GameStates {
 		
 		// For every state in set, make all possible takes
 		applyNewTakes(player: number): TokenStateSet {
+			console.time('takes');
+			
 			let res = new TokenStateSet();
 			let newStates: TokenState[][] = [];
 			
@@ -770,6 +774,8 @@ export namespace GameStates {
 			
 			res.states.sort((x,y) => x.compare(y));
 			
+			console.timeEnd('takes');
+			
 				console.log(`New states: ${this.states.length} -> (${newStatesFlat.length}) -> ${res.states.length}`);
 
 			
@@ -780,6 +786,8 @@ export namespace GameStates {
 		__prune(player: number): void {
 				
 				console.log('prune for player ' + player);
+			
+			console.time('prune');
 			const statesCopy = [...this.states];
 								//this.states;
 			statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
@@ -794,6 +802,7 @@ export namespace GameStates {
 						res1.push(last);
 				}
 
+			console.timeEnd('prune');
 			console.log(`Pruned: ${this.states.length} -> ` + res1.length);
 				
 				
@@ -853,7 +862,7 @@ export namespace GameStates {
 			//this.__playerMove();
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			//this.__tokStates.__prune(this.playerTurn);
+			this.__tokStates.__prune(this.playerTurn);
 			
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {

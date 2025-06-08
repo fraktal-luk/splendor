@@ -1,0 +1,75 @@
+Run for initial state:  (14)444440 (0)000000 (0)000000
+
+{0,0}
+takes: 13.519ms
+New states: 1 -> (15) -> 15
+
+
+{0,1}
+takes: 3.15ms
+New states: 15 -> (190) -> 190
+
+
+{1,0}
+takes: 21.316ms
+New states: 190 -> (2140) -> 1380
+
+
+{1,1}
+takes: 129.68ms
+New states: 1380 -> (13680) -> 8005
+
+
+{2,0}
+takes: 442.114ms
+New states: 8005 -> (55410) -> 20960
+
+
+{2,1}
+takes: 740.792ms
+New states: 20960 -> (77590) -> 29420
+
+
+{3,0}
+takes: 1.094s
+New states: 29420 -> (161350) -> 10595
+
+
+{3,1}
+takes: 187.989ms
+New states: 10595 -> (17365) -> 3131
+
+
+{4,0}
+takes: 105.463ms
+New states: 3131 -> (10411) -> 3736
+
+
+{4,1}
+takes: 54.106ms
+New states: 3736 -> (3816) -> 961
+
+
+{5,0}
+takes: 25.464ms
+New states: 961 -> (2881) -> 981
+
+
+{5,1}
+takes: 14.555ms
+New states: 981 -> (981) -> 381
+
+
+{6,0}
+takes: 5.429ms
+New states: 381 -> (381) -> 381
+
+
+{6,1}
+takes: 5.017ms
+New states: 381 -> (381) -> 381
+
+
+3: 2.848s
+
+
