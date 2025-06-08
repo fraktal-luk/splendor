@@ -502,7 +502,7 @@ export namespace GameStates {
 			return true;
 		}
 
-		// If greater than other
+		// If greater than other: any element greater than corresponding, others not smaller
 		covers(other: TokenVec): boolean {
 			let hasGreater = false;
 			for (let i = 0; i < this.str.length; i++) {
@@ -511,6 +511,16 @@ export namespace GameStates {
 			}
 			return hasGreater;
 		}
+
+		// Check if all elements are greater than corresponding
+		coversStrong(other: TokenVec): boolean {
+			let hasGreater = false;
+			for (let i = 0; i < this.str.length  - 1; i++) { // CAREFUL: omit Yellow tokens for now
+				if (parseInt(this.str[i], 16) <= parseInt(other.str[i], 16)) return false;
+			}
+			return true;
+		}
+		
 		
 		enoughForTake(other: TokenVec): boolean {
 			for (let i = 0; i < this.str.length; i++) {
@@ -744,20 +754,41 @@ export namespace GameStates {
 								//this.states;
 			statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
 			
-			let res: TokenState[] = [];
+			let res1: TokenState[] = [];
+			
+			if (true)
+				while (statesCopy.length > 0) {
+					const last = statesCopy.pop()!;
+					
+					if (!statesCopy.some(x => x.playerToks[player]!.covers(last.playerToks[player]!)))
+						res1.push(last);
+				}
 
-			while (statesCopy.length > 0) {
-				const last = statesCopy.pop()!;
+			console.log(`Pruned: ${this.states.length} -> ` + res1.length);
 				
-				if (!statesCopy.some(x => x.playerToks[player]!.covers(last.playerToks[player]!)))
-					res.push(last);
-			}
-
-				console.log(`Pruned: ${this.states.length} -> ` + res.length);
 				
-				//const binned = putIntoBins(res);
+			{	
+				const binned = binByPlayer(this.states, player);
+				const binBases = binned.keys().toArray();
+				binBases.sort((a,b) => new TokenVec(b).sum() - new TokenVec(a).sum());
 				
-			this.states = res;
+				console.log(`bin bases: (${binBases.length}): ${binBases}`)
+				
+				while (binBases.length > 0) {
+					const last = binBases.pop()!;
+					
+					if (binBases.some(x => new TokenVec(x).coversStrong(new TokenVec(last))))
+						binned.delete(last);
+				}
+				
+				
+				const remaining = binned.values().toArray().flat();
+				console.log(`after prune: ${binned.size}, ${remaining.length}`);
+					
+				//	this.states = remaining;
+			}	
+				
+			this.states = res1;
 		}
 		
 	}
@@ -858,10 +889,14 @@ export namespace GameStates {
 		
 		return new TokenVec(s);
 	}
-	
+
 
 	function putIntoBins(vecs: TokenVec[]): Map<string, TokenVec[]> {
-		return Map.groupBy(vecs, v => GameStates.vec2bin(v).str);
+		return Map.groupBy(vecs, v => vec2bin(v).str);
+	}
+	
+	function binByPlayer(states: TokenState[], player: number): Map<string, TokenState[]> {
+		return Map.groupBy(states, st => vec2bin(st.playerToks[player]!).str);
 	}
 	
 }
