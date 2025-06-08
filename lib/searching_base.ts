@@ -611,9 +611,10 @@ export namespace GameStates {
 			return new TokenState(newTT, this.playerToks.with(player, newPT));
 		}
 
-		applyTakes(player: number, moves: string[]): TokenStateSet {
+		applyTakes(player: number, moves: string[]): TokenState[] {
 			const newStates = moves.map(s => this.applyTake(player, new TokenVec(s)));
-			return TokenStateSet.fromArray(newStates);
+			//return TokenStateSet.fromArray(newStates);
+			return newStates;
 		}
 		
 
@@ -668,7 +669,25 @@ export namespace GameStates {
 			return this.tokenState.toString();
 		}
 	}
-	
+
+
+	function handleExcessive(states: TokenState[], player: number): TokenState[] {
+		let arr: TokenState[] = [];
+		
+		states.forEach(x => {
+			if (x.playerToks[player]!.excessive()) {					
+				const gives = x.findReductions(player);
+				const y: TokenStateSet = x.applyGives(player, gives);
+				arr = arr.concat(y.states);
+			}
+			else
+				arr.push(x);
+		});
+		
+		return (arr);
+	}
+
+
 	
 	export class TokenStateSet {
 		states: TokenState[] = [];
@@ -680,6 +699,7 @@ export namespace GameStates {
 		static fromArray(sa: TokenState[]) {
 			let res = new TokenStateSet();
 			res.states = [...sa];//sa.map(x => x);
+			res.makeUnique();
 			return res;
 		}
 		
@@ -708,7 +728,6 @@ export namespace GameStates {
 			console.log(`${this.states.length} states:`);
 			for (let [tableStr, pl] of grouped) {
 				console.log(`[${pl.length}] ${tableStr} => ` + pl.map(x => x.playerString()).join(', '))
-				//console.log(pl);
 			}
 		}
 
@@ -734,13 +753,20 @@ export namespace GameStates {
 		// For every state in set, make all possible takes
 		applyNewTakes(player: number): TokenStateSet {
 			let res = new TokenStateSet();
+			let newStates: TokenState[][] = [];
 			
 			this.states.forEach(x => {
 				const moves = x.findPossibleTakes();
-				const y: TokenStateSet = x.applyTakes(player, moves);
-				const z = y.handleExcess(player);
-				res.addSet(z);
+				const y = x.applyTakes(player, moves);
+				const z = handleExcessive(y, player);
+				//res.addSet(z);
+				newStates.push(z);
 			});
+			
+			let newStatesFlat = newStates.flat();
+			
+			//res.addSet(newStatesFlat);
+			res = TokenStateSet.fromArray(newStatesFlat);
 			
 			res.states.sort((x,y) => x.compare(y));
 			
@@ -767,26 +793,26 @@ export namespace GameStates {
 			console.log(`Pruned: ${this.states.length} -> ` + res1.length);
 				
 				
-			{	
-				const binned = binByPlayer(this.states, player);
-				const binBases = binned.keys().toArray();
-				binBases.sort((a,b) => new TokenVec(b).sum() - new TokenVec(a).sum());
+			// {	
+				// const binned = binByPlayer(this.states, player);
+				// const binBases = binned.keys().toArray();
+				// binBases.sort((a,b) => new TokenVec(b).sum() - new TokenVec(a).sum());
 				
-				console.log(`bin bases: (${binBases.length}): ${binBases}`)
+				// console.log(`bin bases: (${binBases.length}): ${binBases}`)
 				
-				while (binBases.length > 0) {
-					const last = binBases.pop()!;
+				// while (binBases.length > 0) {
+					// const last = binBases.pop()!;
 					
-					if (binBases.some(x => new TokenVec(x).coversStrong(new TokenVec(last))))
-						binned.delete(last);
-				}
+					// if (binBases.some(x => new TokenVec(x).coversStrong(new TokenVec(last))))
+						// binned.delete(last);
+				// }
 				
 				
-				const remaining = binned.values().toArray().flat();
-				console.log(`after prune: ${binned.size}, ${remaining.length}`);
+				// const remaining = binned.values().toArray().flat();
+				// console.log(`after prune: ${binned.size}, ${remaining.length}`);
 					
-				//	this.states = remaining;
-			}	
+				// //	this.states = remaining;
+			// }	
 				
 			this.states = res1;
 		}
