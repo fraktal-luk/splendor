@@ -51,10 +51,13 @@ let waveN = new GameStates.Wavefront0();
 // off to check state sorting
 if (true) {
 	console.time('3');
-	for (let i = 0; i < 10 ; i++) {
+	for (let i = 0; i < 14 ; i++) {
 		waveN.move();
 		console.log('\n');
 	}
 
 	console.timeEnd('3');
 }
+
+console.log('\n');
+waveN.__tokStates.organize();

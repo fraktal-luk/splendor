@@ -764,17 +764,21 @@ export namespace GameStates {
 			});
 			
 			let newStatesFlat = newStates.flat();
-			
+						
 			//res.addSet(newStatesFlat);
 			res = TokenStateSet.fromArray(newStatesFlat);
 			
 			res.states.sort((x,y) => x.compare(y));
+			
+				console.log(`New states: ${this.states.length} -> (${newStatesFlat.length}) -> ${res.states.length}`);
+
 			
 			return res;
 		}
 		
 		// Remove non-optimal states for given player
 		__prune(player: number): void {
+				
 				console.log('prune for player ' + player);
 			const statesCopy = [...this.states];
 								//this.states;
@@ -849,7 +853,7 @@ export namespace GameStates {
 			//this.__playerMove();
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			this.__tokStates.__prune(this.playerTurn);
+			//this.__tokStates.__prune(this.playerTurn);
 			
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
