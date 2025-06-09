@@ -53,7 +53,7 @@ console.log("Run for initial state: " + GameStates.INITIAL_STATE.tokenState.toLo
 // off to check state sorting
 if (true) {
 	console.time('3');
-	for (let i = 0; i < 14 ; i++) {
+	for (let i = 0; i < 10 ; i++) {
 		waveN.move();
 		console.log('\n');
 	}

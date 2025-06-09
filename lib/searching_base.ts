@@ -763,17 +763,13 @@ export namespace GameStates {
 				const moves = x.findPossibleTakes();
 				const y = x.applyTakes(player, moves);
 				const z = handleExcessive(y, player);
-				//res.addSet(z);
 				newStates.push(z);
 			});
 			
 			let newStatesFlat = newStates.flat();
 						
-			//res.addSet(newStatesFlat);
 			res = TokenStateSet.fromArray(newStatesFlat);
-			
-			res.states.sort((x,y) => x.compare(y));
-			
+						
 			console.timeEnd('takes');
 			
 				console.log(`New states: ${this.states.length} -> (${newStatesFlat.length}) -> ${res.states.length}`);
@@ -783,7 +779,7 @@ export namespace GameStates {
 		}
 		
 		// Remove non-optimal states for given player
-		__prune(player: number): void {
+		__prune(player: number, write: boolean, fname: string): void {
 				
 				console.log('prune for player ' + player);
 			
@@ -793,39 +789,42 @@ export namespace GameStates {
 			statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
 			
 			let res1: TokenState[] = [];
+			let copied: TokenState[] = [];
+			let counts: number[] = [];
 			
-			if (true)
-				while (statesCopy.length > 0) {
-					const last = statesCopy.pop()!;
+			let totalCount = 0;
+
+			
+			while (statesCopy.length > 0) {
+				const last = statesCopy.pop()!;
+
+				let found = false;
+				let thisCount = 0;
+				
+				for (const st of statesCopy) {
+					//if (st.playerToks[player]!.sum() <= last.playerToks[player]!.sum()) break;
+					thisCount++;
 					
-					if (!statesCopy.some(x => x.playerToks[player]!.covers(last.playerToks[player]!)))
-						res1.push(last);
+					if (st.playerToks[player]!.covers(last.playerToks[player]!)) {
+						found = true;
+						break;
+					}
 				}
+				
+				totalCount += thisCount;
+				
+				if (!found) {
+					res1.push(last);
+					thisCount = -1;
+				}
+				copied.push(last);
+				counts.push(thisCount);
+			}
 
 			console.timeEnd('prune');
-			console.log(`Pruned: ${this.states.length} -> ` + res1.length);
-				
-				
-			// {	
-				// const binned = binByPlayer(this.states, player);
-				// const binBases = binned.keys().toArray();
-				// binBases.sort((a,b) => new TokenVec(b).sum() - new TokenVec(a).sum());
-				
-				// console.log(`bin bases: (${binBases.length}): ${binBases}`)
-				
-				// while (binBases.length > 0) {
-					// const last = binBases.pop()!;
-					
-					// if (binBases.some(x => new TokenVec(x).coversStrong(new TokenVec(last))))
-						// binned.delete(last);
-				// }
-				
-				
-				// const remaining = binned.values().toArray().flat();
-				// console.log(`after prune: ${binned.size}, ${remaining.length}`);
-					
-				// //	this.states = remaining;
-			// }	
+			console.log(`Pruned: ${this.states.length} -> ` + res1.length + ` // ${totalCount} -> ${totalCount / (this.states.length*this.states.length)}`);
+
+				if (write) writePruning(fname, copied, player, counts);
 				
 			this.states = res1;
 		}
@@ -859,10 +858,11 @@ export namespace GameStates {
 		
 		move(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
-			//this.__playerMove();
+				//this.__playerMove();
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			this.__tokStates.__prune(this.playerTurn);
+			this.__tokStates.__prune(this.playerTurn, false,//this.round == 2 && this.playerTurn == 0,
+														"hehee.txt");//  this.round == 1 && this.playerTurn == 1);
 			
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
@@ -937,5 +937,20 @@ export namespace GameStates {
 	function binByPlayer(states: TokenState[], player: number): Map<string, TokenState[]> {
 		return Map.groupBy(states, st => vec2bin(st.playerToks[player]!).str);
 	}
+
 	
+	function writePruning(fname: string, states: TokenState[], player: number, counts: number[]): void { 
+		const fs = require("fs");
+		const writer = fs.createWriteStream(fname);
+		const LEN = states.length;
+		for (let i = 0; i < states.length; i++) {
+			const thisCount = counts[i]!;
+
+
+			const killer = thisCount == -1 ? "" : states[LEN-thisCount]!.playerToks[player]!.toLongString();
+			writer.write(`${i}: ${states[i]!.playerToks[player]!.toLongString()}, ${thisCount}: ${killer}\n`);
+		}
+		
+		writer.end();
+	}
 }
