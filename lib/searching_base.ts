@@ -733,6 +733,14 @@ export namespace GameStates {
 			}
 		}
 
+		showSplit(player: number): void {
+			const grouped = Map.groupBy(this.states, x => x.playerToks[player]!.sum());
+			let str = "";
+			for (const [num, list] of grouped)
+				str += `${num} => ${list.length}, `;
+			console.log(str);
+		}
+
 		
 		// For states with too many tokens, generate reductions
 		handleExcess(player: number): TokenStateSet {
@@ -767,14 +775,13 @@ export namespace GameStates {
 			});
 			
 			let newStatesFlat = newStates.flat();
-						
+			newStatesFlat.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
+			
 			res = TokenStateSet.fromArray(newStatesFlat);
 						
 			console.timeEnd('takes');
-			
-				console.log(`New states: ${this.states.length} -> (${newStatesFlat.length}) -> ${res.states.length}`);
+			console.log(`New states: ${this.states.length} -> (${newStatesFlat.length}) -> ${res.states.length}`);
 
-			
 			return res;
 		}
 		
@@ -785,8 +792,9 @@ export namespace GameStates {
 			
 			console.time('prune');
 			const statesCopy = [...this.states];
-								//this.states;
-			statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
+			
+			// Must be already sorted!
+			//statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
 			
 			let res1: TokenState[] = [];
 			let copied: TokenState[] = [];
@@ -802,7 +810,8 @@ export namespace GameStates {
 				let thisCount = 0;
 				
 				for (const st of statesCopy) {
-					//if (st.playerToks[player]!.sum() <= last.playerToks[player]!.sum()) break;
+					if (st.playerToks[player]!.sum() <= last.playerToks[player]!.sum()) break;
+					
 					thisCount++;
 					
 					if (st.playerToks[player]!.covers(last.playerToks[player]!)) {
@@ -822,11 +831,16 @@ export namespace GameStates {
 			}
 
 			console.timeEnd('prune');
-			console.log(`Pruned: ${this.states.length} -> ` + res1.length + ` // ${totalCount} -> ${totalCount / (this.states.length*this.states.length)}`);
+			console.log(`Pruned: ${this.states.length} -> ` + res1.length + ` // all ${totalCount}, avg ${totalCount / (this.states.length)}`);
+
+			res1.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
+
+			this.showSplit(player);
+			this.states = res1;
+			this.showSplit(player);
 
 				if (write) writePruning(fname, copied, player, counts);
 				
-			this.states = res1;
 		}
 		
 	}
