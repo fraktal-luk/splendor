@@ -28,8 +28,6 @@ import {getCardPrice, getCardPoints,
 	PlayerCardState,
 	TableCardState,
 	CardState,
-	//	ExampleNamespace
-		GameStates
 } from './searching_base.ts';
 
 

@@ -5,10 +5,9 @@ import {
 
 import {
 	getCardPrice, TokenState, statesUnique, PlayerCardState, CardState, enoughStates,
-		//ExampleNamespace
-		GameStates
 } from './lib/searching_base.ts';
 
+import {GameStates} from './lib/GameStates.ts'
 
 const wave0 = Wave.fromSG(new StateGroup());
 
