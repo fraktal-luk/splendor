@@ -413,11 +413,6 @@ export class CardState {
 }
 
 
-// export namespace ExampleNamespace {
-	// export	const qqq = "Quququ";
-	// export	const ddd = 67;
-// }
-
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
 	export const MAX_TOKEN_STACKS = "444440";
@@ -467,13 +462,8 @@ export namespace GameStates {
 				const otherSum = other.sum();
 				
 				if (thisSum != otherSum) return thisSum - otherSum;
-				
-				return (this.str).localeCompare(other.str);
+				else return (this.str).localeCompare(other.str);
 			}
-		
-			// covers(other: TokenVec): boolean {
-				
-			// }
 		
 		add(other: TokenVec): TokenVec {
 			return new TokenVec(stringBinOp((x,y) => x+y, this.str, other.str));
@@ -490,12 +480,6 @@ export namespace GameStates {
 		elemMin(other: TokenVec): TokenVec {
 			return new TokenVec(stringBinOp(Math.min, this.str, other.str));
 		}
-	
-		// // If this represents table, check if the argument is valid as take move 
-		// // Assume that arg is a well formed take
-		// enoughForTake(take: string): boolean {
-			
-		// }
 		
 		atLeast(other: TokenVec): boolean {
 			for (let i = 0; i < this.str.length; i++) {
@@ -597,7 +581,6 @@ export namespace GameStates {
 			
 			const giveString = (surplus == 3) ? STR_RET3 : (surplus == 2) ? STR_RET2 : STR_RET1;
 			const gives = giveString.map(s => s + "0");
-			
 			let res = gives.filter(s => playerToks.atLeast(new TokenVec(s)));
 
 			return res;
@@ -615,7 +598,6 @@ export namespace GameStates {
 
 		applyTakes(player: number, moves: string[]): TokenState[] {
 			const newStates = moves.map(s => this.applyTake(player, new TokenVec(s)));
-			//return TokenStateSet.fromArray(newStates);
 			return newStates;
 		}
 		
@@ -653,8 +635,6 @@ export namespace GameStates {
 			this.tableCards = t;
 			this.playerCards = p;
 		}
-		
-		
 	}
 	
 	
@@ -786,9 +766,8 @@ export namespace GameStates {
 		}
 		
 		// Remove non-optimal states for given player
-		__prune(player: number, write: boolean, fname: string): void {
-				
-				console.log('prune for player ' + player);
+		__prune(player: number, write: boolean, fname: string): void {		
+			console.log('prune for player ' + player);
 			
 			console.time('prune');
 			const statesCopy = [...this.states];
@@ -799,13 +778,10 @@ export namespace GameStates {
 			let res1: TokenState[] = [];
 			let copied: TokenState[] = [];
 			let counts: number[] = [];
-			
 			let totalCount = 0;
-
 			
 			while (statesCopy.length > 0) {
 				const last = statesCopy.pop()!;
-
 				let found = false;
 				let thisCount = 0;
 				
@@ -854,11 +830,9 @@ export namespace GameStates {
 		// }
 		
 		addState(s: State): void {
-			
 		}
 		
 		addStates(sa: State[]): void {
-			
 		}
 	}
 	
@@ -872,12 +846,10 @@ export namespace GameStates {
 		
 		move(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
-				//this.__playerMove();
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
 			this.__tokStates.__prune(this.playerTurn, false,//this.round == 2 && this.playerTurn == 0,
 														"hehee.txt");//  this.round == 1 && this.playerTurn == 1);
-			
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
 				this.playerTurn = 0;
@@ -893,11 +865,9 @@ export namespace GameStates {
 				// Choose random move of those possible
 				const chosenInd = Math.round(Math.random() * 1000000) % goodTakes.length;
 				const move = new TokenVec(goodTakes[chosenInd]!);
-
 				const newTS = tokState.applyTake(this.playerTurn, move);
 
 				console.log("   choose " + goodTakes[chosenInd]);// + " -> " + 
-
 				this.states[0] = new State(this.states[0]!.cardState, newTS);
 			}
 		
@@ -915,19 +885,13 @@ export namespace GameStates {
 	);
 	
 
-	
-
 	export function genVectors(max: number): TokenVec[] {
 		let vecs: TokenVec[] = [];
-		
 		for (let n = 0; n < 100_000; n++) {
 			const s = (100_000 + n).toString(10).substring(1) + '0';
-			
-			if (!s.split('').some(s => parseInt(s, 10) > max))
-				vecs.push(new TokenVec(s));
+			if (!s.split('').some(s => parseInt(s, 10) > max)) vecs.push(new TokenVec(s));
 		}
 		
-		//console.log(vecs.map(x => x.str).join('  '));
 		return vecs.filter(x => x.sum() <= MAX_PLAYER_TOKS);
 	}
 	
@@ -939,10 +903,8 @@ export namespace GameStates {
 	export function vec2bin(v: TokenVec): TokenVec {
 		const BIN_INTERVAL = 2;
 		const s = v.str.split('').map(x => (BIN_INTERVAL*Math.floor(parseInt(x, 16)/BIN_INTERVAL)).toString(16)).join('');
-		
 		return new TokenVec(s);
 	}
-
 
 	function putIntoBins(vecs: TokenVec[]): Map<string, TokenVec[]> {
 		return Map.groupBy(vecs, v => vec2bin(v).str);
@@ -959,8 +921,6 @@ export namespace GameStates {
 		const LEN = states.length;
 		for (let i = 0; i < states.length; i++) {
 			const thisCount = counts[i]!;
-
-
 			const killer = thisCount == -1 ? "" : states[LEN-thisCount]!.playerToks[player]!.toLongString();
 			writer.write(`${i}: ${states[i]!.playerToks[player]!.toLongString()}, ${thisCount}: ${killer}\n`);
 		}
