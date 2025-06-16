@@ -341,7 +341,49 @@ export namespace GameStates {
 	}
 
 
-	
+		class PruningResult {
+			res: TokenState[] = [];
+			copied: TokenState[] = [];
+			counts: number[] = [];
+			totalCount = 0;
+		};
+
+
+		function pruneInternal(statesCopy: TokenState[], player: number): PruningResult {
+			let pruningResult = new PruningResult();
+			
+			while (statesCopy.length > 0) {
+				const last = statesCopy.pop()!;
+				let found = false;
+				let thisCount = 0;
+				
+				// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
+				for (const st of statesCopy) {
+					if (st.playerToks[player]!.sum() <= last.playerToks[player]!.sum()) break;
+					
+					thisCount++;
+					
+					if (st.playerToks[player]!.covers(last.playerToks[player]!)) {
+						found = true;
+						break;
+					}
+				}
+				
+				pruningResult.totalCount += thisCount;
+				
+				if (!found) {
+					pruningResult.res.push(last);
+					thisCount = -1;
+				}
+				pruningResult.copied.push(last);
+				pruningResult.counts.push(thisCount);
+			}
+			return pruningResult;
+		}
+		
+		type PruningFunction = typeof pruneInternal;
+		
+
 	export class TokenStateSet {
 		private states: TokenState[] = [];
 		
@@ -440,8 +482,9 @@ export namespace GameStates {
 			return res;
 		}
 		
+		
 		// Remove non-optimal states for given player
-		__prune(player: number, write: boolean, fname: string): void {		
+		__prune(player: number, func: PruningFunction, write: boolean, fname: string): void {		
 			console.log('prune for player ' + player);
 			
 			console.time('prune');
@@ -450,49 +493,22 @@ export namespace GameStates {
 			// Must be already sorted!
 			//statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
 			
-			let res1: TokenState[] = [];
-			let copied: TokenState[] = [];
-			let counts: number[] = [];
-			let totalCount = 0;
+			let pruningResult = //new PruningResult();
+								func(statesCopy, player);
+
+
 			
-			while (statesCopy.length > 0) {
-				const last = statesCopy.pop()!;
-				let found = false;
-				let thisCount = 0;
-				
-				// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
-				for (const st of statesCopy) {
-					if (st.playerToks[player]!.sum() <= last.playerToks[player]!.sum()) break;
-					
-					thisCount++;
-					
-					if (st.playerToks[player]!.covers(last.playerToks[player]!)) {
-						found = true;
-						break;
-					}
-				}
-				
-				totalCount += thisCount;
-				
-				if (!found) {
-					res1.push(last);
-					thisCount = -1;
-				}
-				copied.push(last);
-				counts.push(thisCount);
-			}
-
 			console.timeEnd('prune');
-			console.log(`Pruned: ${this.size()} -> ` + res1.length + ` // all ${totalCount}, avg ${totalCount / (this.size())}`);
+			console.log(`Pruned: ${this.size()} -> ` + pruningResult.res.length + 
+							` // all ${pruningResult.totalCount}, avg ${pruningResult.totalCount / (this.size())}`);
 
-			res1.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
+			pruningResult.res.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
 
 			this.showSplit(player);
-			this.states = res1;
+			this.states = pruningResult.res;
 			this.showSplit(player);
 
-				if (write) writePruning(fname, copied, player, counts);
-				
+				if (write) writePruning(fname, pruningResult.copied, player, pruningResult.counts);	
 		}
 		
 	}
@@ -521,8 +537,8 @@ export namespace GameStates {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			this.__tokStates.__prune(this.playerTurn, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0");
-												       false, "hehee.txt");//  this.round == 1 && this.playerTurn == 1);
+			this.__tokStates.__prune(this.playerTurn, pruneInternal, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0");
+																	 false, "hehee.txt");//  this.round == 1 && this.playerTurn == 1);
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
 				this.playerTurn = 0;
