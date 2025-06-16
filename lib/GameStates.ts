@@ -190,6 +190,16 @@ export namespace GameStates {
 	}
 
 
+
+	export function getVectorsSum1(): string[] {
+		return STR_1x1.map(s => s + "0");
+	}
+
+	export function getVectorsSum2(): string[] {
+		return STR_2x1.concat(STR_1x2).map(s => s + "0");
+	}
+
+
 	export class TokenState {
 		readonly tableToks: TokenVec;// = new TokenVec(MAX_TOKEN_STACK);
 		readonly playerToks: TokenVec[];//[new TokenVec("000000"), new TokenVec("000000")];
@@ -232,6 +242,10 @@ export namespace GameStates {
 				return new TokenState(tv[0]!, tv.slice(1));
 		}
 		
+		ofPlayer(player: number): TokenVec {
+			return this.playerToks[player]!;
+		}
+		
 		findPossibleTakes(): string[] {
 			const tableToks = this.tableToks;
 			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
@@ -246,7 +260,7 @@ export namespace GameStates {
 
 
 		findReductions(player: number): string[] {
-			const playerToks = this.playerToks[player]!;
+			const playerToks = this.ofPlayer(player);
 			const surplus = playerToks.sum() - MAX_PLAYER_TOKS;
 			if (surplus > 3 || surplus < 1) throw new Error("Wrong, over 3 too much or not too much");
 			
@@ -260,7 +274,7 @@ export namespace GameStates {
 		
 		applyTake(player: number, move: TokenVec): TokenState {
 			const tableToks = this.tableToks;
-			const playerToks = this.playerToks[player]!;
+			const playerToks = this.ofPlayer(player);
 			
 			const newPT = playerToks.add(move);
 			const newTT = tableToks.sub(move);
@@ -271,11 +285,26 @@ export namespace GameStates {
 			const newStates = moves.map(s => this.applyTake(player, new TokenVec(s)));
 			return newStates;
 		}
+
+		
+		// Only changes the player toks, not affecting table
+		applyDelta(player: number, move: TokenVec): TokenState {
+			const playerToks = this.ofPlayer(player);
+			
+			const newPT = playerToks.add(move);
+			return new TokenState(this.tableToks, this.playerToks.with(player, newPT));
+		}
+
+		applyDeltas(player: number, moves: string[]): TokenState[] {
+			const newStates = moves.map(s => this.applyDelta(player, new TokenVec(s)));
+			return newStates;
+		}
+
 		
 
 		applyGive(player: number, move: TokenVec): TokenState {
 			const tableToks = this.tableToks;
-			const playerToks = this.playerToks[player]!;
+			const playerToks = this.ofPlayer(player);
 			
 			const newPT = playerToks.sub(move);
 			const newTT = tableToks.add(move);
@@ -328,7 +357,7 @@ export namespace GameStates {
 		let arr: TokenState[] = [];
 		
 		states.forEach(x => {
-			if (x.playerToks[player]!.excessive()) {					
+			if (x.ofPlayer(player).excessive()) {					
 				const gives = x.findReductions(player);
 				const y: TokenStateSet = x.applyGives(player, gives);
 				arr = arr.concat(y.asArray());
@@ -359,11 +388,11 @@ export namespace GameStates {
 				
 				// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
 				for (const st of statesCopy) {
-					if (st.playerToks[player]!.sum() <= last.playerToks[player]!.sum()) break;
+					if (st.ofPlayer(player).sum() <= last.ofPlayer(player).sum()) break;
 					
 					thisCount++;
 					
-					if (st.playerToks[player]!.covers(last.playerToks[player]!)) {
+					if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
 						found = true;
 						break;
 					}
@@ -382,6 +411,78 @@ export namespace GameStates {
 		}
 		
 		type PruningFunction = typeof pruneInternal;
+
+
+		function pruneInternal_Ex0(statesCopy: TokenState[], player: number): PruningResult {
+			const MAX_SUM = statesCopy[0]!.ofPlayer(player).sum();
+			const MIN_SUM = statesCopy[0]!.ofPlayer(player).sum();
+			
+			if (MAX_SUM - MIN_SUM > 2) throw new Error("Sum span for player is over 2!");
+			
+			let pruningResult = new PruningResult();
+			
+			const grouped = Map.groupBy(statesCopy, x => x.ofPlayer(player).str);
+			
+			
+			while (statesCopy.length > 0) {
+				const last = statesCopy.pop()!;
+				let found = false;
+				let foundUp1 = false;
+				let foundUp2 = false;
+				let thisCount = 0;
+				
+				const thisSum = last.ofPlayer(player).sum();
+				
+				// Generate all possible player token vecs larger by 1 or 2 than current one 
+				const add1 = getVectorsSum1();
+				const add2 = getVectorsSum2();
+				
+				const up1 = last.applyDeltas(player, add1);
+				const up2 = last.applyDeltas(player, add2);
+				
+				for (const s of up1) {
+					if (grouped.has(s.ofPlayer(player).str)) {
+						foundUp1 = true;
+						break;
+					}
+				}
+
+				for (const s of up2) {
+					if (grouped.has(s.ofPlayer(player).str)) {
+						foundUp2 = true;
+						break;
+					}
+				}
+				
+				
+				// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
+				for (const st of statesCopy) {
+					if (st.ofPlayer(player).sum() <= last.ofPlayer(player).sum()) break;
+					
+					thisCount++;
+					
+					if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
+						found = true;
+						break;
+					}
+				}
+				
+				pruningResult.totalCount += thisCount;
+				
+				if (found && !foundUp1 && !foundUp2) throw new Error("Wrong finings");
+				
+				if (!found) {
+					if (foundUp1 || foundUp2) throw new Error("Other wrong finings");
+					
+					pruningResult.res.push(last);
+					thisCount = -1;
+				}
+				pruningResult.copied.push(last);
+				pruningResult.counts.push(thisCount);
+			}
+			return pruningResult;
+		}
+
 		
 
 	export class TokenStateSet {
@@ -431,7 +532,7 @@ export namespace GameStates {
 		}
 
 		showSplit(player: number): void {
-			const grouped = Map.groupBy(this.states, x => x.playerToks[player]!.sum());
+			const grouped = Map.groupBy(this.states, x => x.ofPlayer(player).sum());
 			let str = "";
 			for (const [num, list] of grouped)
 				str += `${num} => ${list.length}, `;
@@ -444,7 +545,7 @@ export namespace GameStates {
 			let arr: TokenState[] = [];
 			
 			this.states.forEach(x => {
-				if (x.playerToks[player]!.excessive()) {					
+				if (x.ofPlayer(player).excessive()) {					
 					const gives = x.findReductions(player);
 					const y: TokenStateSet = x.applyGives(player, gives);
 					arr = arr.concat(y.states);
@@ -472,7 +573,7 @@ export namespace GameStates {
 			});
 			
 			let newStatesFlat = newStates.flat();
-			newStatesFlat.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
+			newStatesFlat.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
 			
 			res = TokenStateSet.fromArray(newStatesFlat);
 						
@@ -502,7 +603,7 @@ export namespace GameStates {
 			console.log(`Pruned: ${this.size()} -> ` + pruningResult.res.length + 
 							` // all ${pruningResult.totalCount}, avg ${pruningResult.totalCount / (this.size())}`);
 
-			pruningResult.res.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
+			pruningResult.res.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
 
 			this.showSplit(player);
 			this.states = pruningResult.res;
@@ -537,7 +638,7 @@ export namespace GameStates {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			this.__tokStates.__prune(this.playerTurn, pruneInternal, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0");
+			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0_Ex0");
 																	 false, "hehee.txt");//  this.round == 1 && this.playerTurn == 1);
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
