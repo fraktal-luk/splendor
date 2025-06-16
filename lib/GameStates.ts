@@ -331,7 +331,7 @@ export namespace GameStates {
 			if (x.playerToks[player]!.excessive()) {					
 				const gives = x.findReductions(player);
 				const y: TokenStateSet = x.applyGives(player, gives);
-				arr = arr.concat(y.states);
+				arr = arr.concat(y.asArray());
 			}
 			else
 				arr.push(x);
@@ -343,10 +343,14 @@ export namespace GameStates {
 
 	
 	export class TokenStateSet {
-		states: TokenState[] = [];
+		private states: TokenState[] = [];
 		
 		size(): number {
 			return this.states.length;
+		}
+		
+		asArray(): TokenState[] {
+			return this.states;
 		}
 		
 		static fromArray(sa: TokenState[]) {
@@ -378,7 +382,7 @@ export namespace GameStates {
 		organize(): void {
 			const grouped = Map.groupBy(this.states, x => x.tableToks.str);
 			
-			console.log(`${this.states.length} states:`);
+			console.log(`${this.size()} states:`);
 			for (let [tableStr, pl] of grouped) {
 				console.log(`[${pl.length}] ${tableStr} => ` + pl.map(x => x.playerString()).join(', '))
 			}
@@ -431,7 +435,7 @@ export namespace GameStates {
 			res = TokenStateSet.fromArray(newStatesFlat);
 						
 			console.timeEnd('takes');
-			console.log(`New states: ${this.states.length} -> (${newStatesFlat.length}) -> ${res.states.length}`);
+			console.log(`New states: ${this.size()} -> (${newStatesFlat.length}) -> ${res.size()}`);
 
 			return res;
 		}
@@ -456,6 +460,7 @@ export namespace GameStates {
 				let found = false;
 				let thisCount = 0;
 				
+				// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
 				for (const st of statesCopy) {
 					if (st.playerToks[player]!.sum() <= last.playerToks[player]!.sum()) break;
 					
@@ -478,7 +483,7 @@ export namespace GameStates {
 			}
 
 			console.timeEnd('prune');
-			console.log(`Pruned: ${this.states.length} -> ` + res1.length + ` // all ${totalCount}, avg ${totalCount / (this.states.length)}`);
+			console.log(`Pruned: ${this.size()} -> ` + res1.length + ` // all ${totalCount}, avg ${totalCount / (this.size())}`);
 
 			res1.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
 
@@ -496,9 +501,6 @@ export namespace GameStates {
 	export class StateSet {
 		states: State[] = [];
 		
-		// static fromArray(sa: State[]) {
-			// return new T.states = structuredClone(sa); // TODO: is this correct? Preserves object types?
-		// }
 		
 		addState(s: State): void {
 		}
@@ -513,14 +515,14 @@ export namespace GameStates {
 		round = 0;     // Round that lasts until all players make move 
 		playerTurn = 0; // Player to move next
 		states: State[] = [INITIAL_STATE];
-		  __tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
+		__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
 		
 		move(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			this.__tokStates.__prune(this.playerTurn, false,//this.round == 2 && this.playerTurn == 0,
-														"hehee.txt");//  this.round == 1 && this.playerTurn == 1);
+			this.__tokStates.__prune(this.playerTurn, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0");
+												       false, "hehee.txt");//  this.round == 1 && this.playerTurn == 1);
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
 				this.playerTurn = 0;
@@ -592,8 +594,8 @@ export namespace GameStates {
 		const LEN = states.length;
 		for (let i = 0; i < states.length; i++) {
 			const thisCount = counts[i]!;
-			const killer = thisCount == -1 ? "" : states[LEN-thisCount]!.playerToks[player]!.toLongString();
-			writer.write(`${i}: ${states[i]!.playerToks[player]!.toLongString()}, ${thisCount}: ${killer}\n`);
+			const killer = thisCount == -1 ? "" : states[LEN-thisCount]!.toLongString();
+			writer.write(`${i}: ${states[i]!.toLongString()}, ${thisCount}: ${killer}\n`);
 		}
 		
 		writer.end();
