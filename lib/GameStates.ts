@@ -86,8 +86,8 @@ const STR_RET1 = STR_1x1;
 
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
-	export const MAX_TOKEN_STACKS = "444440";
-									//"555550";
+	export const MAX_TOKEN_STACKS = //"444440";
+									"555550";
 									//"777770";
 	export const MAX_PLAYER_TOKS = 10;
 
@@ -430,6 +430,8 @@ export namespace GameStates {
 				let foundUp1 = false;
 				let foundUp2 = false;
 				let thisCount = 0;
+				let thisCountUp1 = 0;
+				let thisCountUp2 = 0;
 				
 				const thisSum = last.ofPlayer(player).sum();
 				
@@ -441,6 +443,7 @@ export namespace GameStates {
 				const up2 = last.applyDeltas(player, add2);
 				
 				for (const s of up1) {
+					thisCountUp1++;
 					if (grouped.has(s.ofPlayer(player).str)) {
 						foundUp1 = true;
 						break;
@@ -448,25 +451,31 @@ export namespace GameStates {
 				}
 
 				for (const s of up2) {
+					thisCountUp2++;
 					if (grouped.has(s.ofPlayer(player).str)) {
 						foundUp2 = true;
 						break;
 					}
 				}
 				
-				
-				// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
-				for (const st of statesCopy) {
-					if (st.ofPlayer(player).sum() <= last.ofPlayer(player).sum()) break;
-					
-					thisCount++;
-					
-					if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
-						found = true;
-						break;
+				if (false)
+				{
+					// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
+					for (const st of statesCopy) {
+						if (st.ofPlayer(player).sum() <= last.ofPlayer(player).sum()) break;
+						
+						thisCount++;
+						
+						if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
+							found = true;
+							break;
+						}
 					}
 				}
-				
+				else {
+					found = foundUp1 || foundUp2;
+					thisCount = thisCountUp1 + thisCountUp2;
+				}
 				pruningResult.totalCount += thisCount;
 				
 				if (found && !foundUp1 && !foundUp2) throw new Error("Wrong finings");
@@ -483,7 +492,12 @@ export namespace GameStates {
 			return pruningResult;
 		}
 
-		
+	
+	function uniqueTokStates(states: TokenState[]): TokenState[] {
+		const uniqueSet = new Set(states.map(x => x.keyString()));
+		return uniqueSet.values().toArray().map(x => TokenState.fromKeyString(x));
+	}
+
 
 	export class TokenStateSet {
 		private states: TokenState[] = [];
@@ -504,8 +518,9 @@ export namespace GameStates {
 		}
 		
 		makeUnique(): void {
-			const uniqueSet = new Set(this.states.map(x => x.keyString()));
-			this.states = uniqueSet.values().toArray().map(x => TokenState.fromKeyString(x));
+			//const uniqueSet = new Set(this.states.map(x => x.keyString()));
+			//this.states = uniqueSet.values().toArray().map(x => TokenState.fromKeyString(x));
+			this.states = uniqueTokStates(this.states);
 		}
 		
 		// addState(s: TokenState): void {
@@ -562,23 +577,27 @@ export namespace GameStates {
 		applyNewTakes(player: number): TokenStateSet {
 			console.time('takes');
 			
-			let res = new TokenStateSet();
+			//let res = new TokenStateSet();
 			let newStates: TokenState[][] = [];
 			
 			this.states.forEach(x => {
 				const moves = x.findPossibleTakes();
 				const y = x.applyTakes(player, moves);
 				const z = handleExcessive(y, player);
+				
 				newStates.push(z);
 			});
 			
 			let newStatesFlat = newStates.flat();
-			newStatesFlat.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
+			newStatesFlat = uniqueTokStates(newStatesFlat);
+			let newStatesAdjustedUnique = newStatesFlat;
+											
+			newStatesAdjustedUnique.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
 			
-			res = TokenStateSet.fromArray(newStatesFlat);
-						
+			const res = TokenStateSet.fromArray(newStatesAdjustedUnique);
+
 			console.timeEnd('takes');
-			console.log(`New states: ${this.size()} -> (${newStatesFlat.length}) -> ${res.size()}`);
+			console.log(`New states: ${this.size()} -> (${newStatesFlat.length}) -> ${res.size()}  // avg ${newStatesFlat.length/this.size()}`);
 
 			return res;
 		}
