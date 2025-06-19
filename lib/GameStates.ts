@@ -458,24 +458,9 @@ export namespace GameStates {
 					}
 				}
 				
-				if (false)
-				{
-					// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
-					for (const st of statesCopy) {
-						if (st.ofPlayer(player).sum() <= last.ofPlayer(player).sum()) break;
-						
-						thisCount++;
-						
-						if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
-							found = true;
-							break;
-						}
-					}
-				}
-				else {
-					found = foundUp1 || foundUp2;
-					thisCount = thisCountUp1 + thisCountUp2;
-				}
+				found = foundUp1 || foundUp2;
+				thisCount = thisCountUp1 + thisCountUp2;
+
 				pruningResult.totalCount += thisCount;
 				
 				if (found && !foundUp1 && !foundUp2) throw new Error("Wrong finings");
