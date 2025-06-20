@@ -168,16 +168,6 @@ export namespace GameStates {
 			}
 			return hasGreater;
 		}
-
-		// Check if all elements are greater than corresponding
-		coversStrong(other: TokenVec): boolean {
-			let hasGreater = false;
-			for (let i = 0; i < this.str.length  - 1; i++) { // CAREFUL: omit Yellow tokens for now
-				if (parseInt(this.str[i], 16) <= parseInt(other.str[i], 16)) return false;
-			}
-			return true;
-		}
-		
 		
 		enoughForTake(other: TokenVec): boolean {
 			for (let i = 0; i < this.str.length; i++) {
@@ -201,8 +191,8 @@ export namespace GameStates {
 
 
 	export class TokenState {
-		readonly tableToks: TokenVec;// = new TokenVec(MAX_TOKEN_STACK);
-		readonly playerToks: TokenVec[];//[new TokenVec("000000"), new TokenVec("000000")];
+		readonly tableToks: TokenVec;
+		readonly playerToks: TokenVec[];
 		
 		constructor(t: TokenVec, p: TokenVec[]) {
 			this.tableToks = t;
@@ -250,7 +240,7 @@ export namespace GameStates {
 			const tableToks = this.tableToks;
 			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
 			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
-			
+
 			if (goodTakes.length == 0) goodTakes = STR_2x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
 			if (goodTakes.length == 0) goodTakes = STR_1x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
 			if (goodTakes.length == 0) goodTakes = ["000000"];
@@ -286,7 +276,7 @@ export namespace GameStates {
 			return newStates;
 		}
 
-		
+
 		// Only changes the player toks, not affecting table
 		applyDelta(player: number, move: TokenVec): TokenState {
 			const playerToks = this.ofPlayer(player);
@@ -300,8 +290,6 @@ export namespace GameStates {
 			return newStates;
 		}
 
-		
-
 		applyGive(player: number, move: TokenVec): TokenState {
 			const tableToks = this.tableToks;
 			const playerToks = this.ofPlayer(player);
@@ -312,8 +300,7 @@ export namespace GameStates {
 		}
 
 		applyGives(player: number, moves: string[]): TokenState[] {
-			const newStates = moves.map(s => this.applyGive(player, new TokenVec(s)));
-			return newStates;//TokenStateSet.fromArray(newStates);
+			return moves.map(s => this.applyGive(player, new TokenVec(s)));
 		}
 
 	};
@@ -361,16 +348,13 @@ export namespace GameStates {
 			if (x.ofPlayer(player).excessive()) {					
 				const gives = x.findReductions(player);
 				const y = x.applyGives(player, gives);
-				//arr = arr.concat(y.asArray());
 				arrArr.push(y);
 			}
 			else {
-				//arr.push(x);
 				arrArr.push([x]);
 			}
 		});
 		
-		//return (arr);
 		return arrArr.flat();
 	}
 
@@ -427,8 +411,7 @@ export namespace GameStates {
 			let pruningResult = new PruningResult();
 			
 			const grouped = Map.groupBy(statesCopy, x => x.ofPlayer(player).str);
-			
-			
+
 			while (statesCopy.length > 0) {
 				const last = statesCopy.pop()!;
 				let found = false;
@@ -507,10 +490,6 @@ export namespace GameStates {
 			return this.states.length;
 		}
 		
-		asArray(): TokenState[] {
-			return this.states;
-		}
-		
 		static fromArray(sa: TokenState[]) {
 			let res = new TokenStateSet();
 			res.states = [...sa];//sa.map(x => x);
@@ -519,23 +498,9 @@ export namespace GameStates {
 		}
 		
 		makeUnique(): void {
-			//const uniqueSet = new Set(this.states.map(x => x.keyString()));
-			//this.states = uniqueSet.values().toArray().map(x => TokenState.fromKeyString(x));
 			this.states = uniqueTokStates(this.states);
 		}
-		
-		// addState(s: TokenState): void {
-			
-		// }
-		
-		addStates(sa: TokenState[]): void {
-			this.states = this.states.concat(sa);
-			this.makeUnique();
-		}
-		
-		addSet(other: TokenStateSet): void {
-			this.addStates(other.states);
-		}
+
 
 		// Print formatted content
 		organize(): void {
@@ -555,23 +520,6 @@ export namespace GameStates {
 			console.log(str);
 		}
 
-		
-		// For states with too many tokens, generate reductions
-		handleExcess(player: number): TokenStateSet {
-			let arr: TokenState[] = [];
-			
-			this.states.forEach(x => {
-				if (x.ofPlayer(player).excessive()) {					
-					const gives = x.findReductions(player);
-					const y = x.applyGives(player, gives);
-					arr = arr.concat(y);
-				}
-				else
-					arr.push(x);
-			});
-			
-			return TokenStateSet.fromArray(arr);
-		}
 		
 		// Apply takes to each state
 		generateNewStates(player: number): TokenState[][] {
@@ -603,10 +551,9 @@ export namespace GameStates {
 			const newStates = fixExcessiveStates(fwUnique, player);
 			console.timeEnd('takes A_2');
 
-
 			console.time('takes B');
 			
-			let newStatesFlat = newStates[0]!;//.flat();
+			const newStatesFlat = newStates[0]!
 
 			let newStatesAdjustedUnique = uniqueTokStates(newStatesFlat);
 											
@@ -630,13 +577,10 @@ export namespace GameStates {
 			console.time('prune');
 			const statesCopy = [...this.states];
 			
-			// Must be already sorted!
+			// Don't sort, must be already sorted!
 			//statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
 			
-			let pruningResult = //new PruningResult();
-								func(statesCopy, player);
-
-
+			let pruningResult = func(statesCopy, player);
 			
 			console.timeEnd('prune');
 			console.log(`Pruned: ${this.size()} -> ` + pruningResult.res.length + 
@@ -648,7 +592,7 @@ export namespace GameStates {
 			this.states = pruningResult.res;
 			this.showSplit(player);
 
-				if (write) writePruning(fname, pruningResult.copied, player, pruningResult.counts);	
+			if (write) writePruning(fname, pruningResult.copied, player, pruningResult.counts);	
 		}
 		
 	}
@@ -656,7 +600,6 @@ export namespace GameStates {
 	
 	export class StateSet {
 		states: State[] = [];
-		
 		
 		addState(s: State): void {
 		}
@@ -680,7 +623,7 @@ export namespace GameStates {
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
 			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0_Ex0");
-																	 false, "hehee.txt");//  this.round == 1 && this.playerTurn == 1);
+																	 false, "");
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
 				this.playerTurn = 0;
