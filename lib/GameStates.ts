@@ -88,7 +88,7 @@ export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
 	export const MAX_TOKEN_STACKS = //"444440";
 									"555550";
-									//"777770";
+									"777770";
 	export const MAX_PLAYER_TOKS = 10;
 
 	
@@ -355,18 +355,23 @@ export namespace GameStates {
 
 	function handleExcessive(states: TokenState[], player: number): TokenState[] {
 		let arr: TokenState[] = [];
+		let arrArr: TokenState[][] = [];
 		
 		states.forEach(x => {
 			if (x.ofPlayer(player).excessive()) {					
 				const gives = x.findReductions(player);
 				const y: TokenStateSet = x.applyGives(player, gives);
-				arr = arr.concat(y.asArray());
+				//arr = arr.concat(y.asArray());
+				arrArr.push(y.asArray());
 			}
-			else
-				arr.push(x);
+			else {
+				//arr.push(x);
+				arrArr.push([x]);
+			}
 		});
 		
-		return (arr);
+		//return (arr);
+		return arrArr.flat();
 	}
 
 
@@ -557,21 +562,70 @@ export namespace GameStates {
 			return TokenStateSet.fromArray(arr);
 		}
 		
-		
-		// For every state in set, make all possible takes
-		applyNewTakes(player: number): TokenStateSet {
-			console.time('takes');
-			
-			//let res = new TokenStateSet();
-			let newStates: TokenState[][] = [];
+		// Apply takes to each state
+		generateNewStates(player: number): TokenState[][] {
+			let res: TokenState[][] = [];
 			
 			this.states.forEach(x => {
 				const moves = x.findPossibleTakes();
 				const y = x.applyTakes(player, moves);
 				const z = handleExcessive(y, player);
 				
-				newStates.push(z);
+				res.push(z);
 			});
+			
+			return res;
+		}
+
+			generateNewStates_N(player: number): TokenState[][] {
+				let oldRes: TokenState[][] = [];
+				
+				this.states.forEach(x => {
+					const moves = x.findPossibleTakes();
+					const y = x.applyTakes(player, moves);
+					const z = y;// handleExcessive(y, player);
+					
+					oldRes.push(z);
+				});
+				
+				return oldRes;
+				
+				// let res: TokenState[][] = [];
+				
+				// oldRes.forEach(x => {
+					// const y = handleExcessive(x, player);
+					// res.push(y);
+				// });
+				
+				// return res;
+			}
+
+			fixExcessiveStates(inputStates: TokenState[][], player: number): TokenState[][] {
+				let res: TokenState[][] = [];
+				
+				inputStates.forEach(x => {
+					const y = handleExcessive(x, player);
+					res.push(y);
+				});
+				
+				return res;
+			}
+
+		
+		
+		// For every state in set, make all possible takes
+		applyNewTakes(player: number): TokenStateSet {
+			console.time('takes A_1');
+			
+			let newStates = this.generateNewStates_N(player);
+			console.timeEnd('takes A_1');
+
+			console.time('takes A_2');
+			newStates = this.fixExcessiveStates(newStates, player);
+			console.timeEnd('takes A_2');
+			
+			
+			console.time('takes B');
 			
 			let newStatesFlat = newStates.flat();
 			newStatesFlat = uniqueTokStates(newStatesFlat);
@@ -581,7 +635,8 @@ export namespace GameStates {
 			
 			const res = TokenStateSet.fromArray(newStatesAdjustedUnique);
 
-			console.timeEnd('takes');
+			console.timeEnd('takes B');
+			
 			console.log(`New states: ${this.size()} -> (${newStatesFlat.length}) -> ${res.size()}  // avg ${newStatesFlat.length/this.size()}`);
 
 			return res;
