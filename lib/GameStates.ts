@@ -617,15 +617,19 @@ export namespace GameStates {
 		applyNewTakes(player: number): TokenStateSet {
 			console.time('takes A_1');
 			
-			let newStates = this.generateNewStates_N(player);
+			let fwStates = this.generateNewStates_N(player);
 			console.timeEnd('takes A_1');
 
-				const sizeGenerated = newStates.flat().length;
+				const sizeGenerated = fwStates.flat().length;
+
+				//console.log(` Forward states: ${sizeGenerated}/${uniqueTokStates(fwStates.flat()).length}`);
+				
+				fwStates = [uniqueTokStates(fwStates.flat())];
 
 			console.time('takes A_2');
-			newStates = this.fixExcessiveStates(newStates, player);
+			const newStates = this.fixExcessiveStates(fwStates, player);
 			console.timeEnd('takes A_2');
-			
+
 
 			console.time('takes B');
 			
