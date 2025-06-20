@@ -311,9 +311,9 @@ export namespace GameStates {
 			return new TokenState(newTT, this.playerToks.with(player, newPT));
 		}
 
-		applyGives(player: number, moves: string[]): TokenStateSet {
+		applyGives(player: number, moves: string[]): TokenState[] {
 			const newStates = moves.map(s => this.applyGive(player, new TokenVec(s)));
-			return TokenStateSet.fromArray(newStates);
+			return newStates;//TokenStateSet.fromArray(newStates);
 		}
 
 	};
@@ -360,9 +360,9 @@ export namespace GameStates {
 		states.forEach(x => {
 			if (x.ofPlayer(player).excessive()) {					
 				const gives = x.findReductions(player);
-				const y: TokenStateSet = x.applyGives(player, gives);
+				const y = x.applyGives(player, gives);
 				//arr = arr.concat(y.asArray());
-				arrArr.push(y.asArray());
+				arrArr.push(y);
 			}
 			else {
 				//arr.push(x);
@@ -552,8 +552,8 @@ export namespace GameStates {
 			this.states.forEach(x => {
 				if (x.ofPlayer(player).excessive()) {					
 					const gives = x.findReductions(player);
-					const y: TokenStateSet = x.applyGives(player, gives);
-					arr = arr.concat(y.states);
+					const y = x.applyGives(player, gives);
+					arr = arr.concat(y);
 				}
 				else
 					arr.push(x);
@@ -620,16 +620,18 @@ export namespace GameStates {
 			let newStates = this.generateNewStates_N(player);
 			console.timeEnd('takes A_1');
 
+				const sizeGenerated = newStates.flat().length;
+
 			console.time('takes A_2');
 			newStates = this.fixExcessiveStates(newStates, player);
 			console.timeEnd('takes A_2');
 			
-			
+
 			console.time('takes B');
 			
 			let newStatesFlat = newStates.flat();
-			newStatesFlat = uniqueTokStates(newStatesFlat);
-			let newStatesAdjustedUnique = newStatesFlat;
+			//newStatesFlat = uniqueTokStates(newStatesFlat);
+			let newStatesAdjustedUnique = uniqueTokStates(newStatesFlat);
 											
 			newStatesAdjustedUnique.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
 			
@@ -637,7 +639,8 @@ export namespace GameStates {
 
 			console.timeEnd('takes B');
 			
-			console.log(`New states: ${this.size()} -> (${newStatesFlat.length}) -> ${res.size()}  // avg ${newStatesFlat.length/this.size()}`);
+			console.log(`New states: ${this.size()} -> (${sizeGenerated}) -> (${newStatesFlat.length}) -> ${newStatesAdjustedUnique.length} ` +
+						`// avg (${sizeGenerated/this.size()}) -> (${newStatesFlat.length/this.size()}) -> ${newStatesAdjustedUnique.length/this.size()}`);
 
 			return res;
 		}
