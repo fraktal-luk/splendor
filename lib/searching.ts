@@ -1,5 +1,4 @@
 
-
 import {
 STR_1x1,
 STR_2x1,
@@ -8,153 +7,269 @@ STR_1x3,
 STR_1x2_1x1,
 STR_3x1,
 getReturns
-} from './comb.ts';
+} from './searching_base.ts';
+
+import {cardStringList, CARD_SPECS} from './searching_base.ts';
+
+import {getCardPrice, getCardPoints,
+	take2ifPossible,
+	sumState,
+	minStates,
+	maxStates,
+	addStates,
+	subStates,
+	enoughStates,
+	reductionForState,
+	returnsForPlayer,
+	statesUnique,
+	states2map,
+	tokStateMap,
+	TokenState,
+	PlayerCardState,
+	TableCardState,
+	CardState,
+} from './searching_base.ts';
 
 
-function take2ifPossible(take: string, table: string): string | null {
-	const lenA = take.length;
-	for (let i = 0; i < 6; i++) {
-		if (parseInt(take[i], 16) > 1 && parseInt(table[i]) < 4) return null;
-	}
-	return take;
-}
+const PRUNE_TOKS = true;
+const PRUNE_CARDS = true;//false;
 
-export function sumState(stateA: string): number {
-	const lenA = stateA.length;
-	let res = 0;
-	for (let i = 0; i < 6; i++) {
-		res += parseInt(stateA[i], 16);
-	}
-	return res;
-}
-
-function minStates(stateA: string, stateB: string): string {
-	const lenA = stateA.length;
-	let res = "      ".split('');
-	for (let i = 0; i < 6; i++) {
-		res[i] = Math.min(parseInt(stateA[i], 16), parseInt(stateB[i], 16)).toString(16);
-	}
-	res[5] = '0';
-	return res.join('');
-}
-
-function addStates(stateA: string, stateB: string): string {
-	const lenA = stateA.length;
-	let res = "      ".split('');
-	for (let i = 0; i < 6; i++) {
-		res[i] = (parseInt(stateA[i], 16) + parseInt(stateB[i], 16)).toString(16);
-	}
-	res[5] = '0';
-	return res.join('');
-}
-
-function subStates(stateA: string, stateB: string): string {
-	const lenA = stateA.length;
-	let res = "      ".split('');
-	for (let i = 0; i < 6; i++) {
-		res[i] = (parseInt(stateA[i], 16) - parseInt(stateB[i], 16)).toString(16);
-	}
-	res[5] = '0';
-	return res.join('');
-}
-
-function applyTakes(state: string): string[] {
-	const take3 = STR_3x1.map(s => addStates(s, state));
-	const take2 = STR_1x2.map(s => addStates(s, state));
-	return take3.concat(take2);
-}
-
-function applyTakesEach(states: string[]): string[] {
-	const arr = states.map(s => applyTakes(s));
-	return arr.flat();
-}
-
-function reductionForState(stateA: string, red: string): string | null{
-	const lenA = stateA.length;
-	for (let i = 0; i < 6; i++) {
-		if (parseInt(stateA[i], 16) < parseInt(red[i], 16)) return null;
-	}
-	return red;
-}
-
-function returnsForPlayer(player: string, reductions: string[]): string[] {
-	return reductions.map(r => reductionForState(player, r)).filter(s => s != null);
+function compareSG(a: StateGroup, b: StateGroup): number {
+	return b.cardState.player.numOwned() - a.cardState.player.numOwned();
 }
 
 
 
-const ENABLE_SMALL_TAKES = true;
-
-export class TokenState {
-	player: string;// = "000000";
-	table: string;// = "444440"; 
-
-	constructor(p: string, t: string) {
-		this.player = p;
-		this.table = t;
-	}
-
-	playerTokSum(): number {
-		return sumState(this.player);
-	}
-
-	nextMoves(): string[] {		
-		const takes3 = STR_3x1.map(s => minStates(s, this.table)).filter(s => sumState(s) != 0);
-		const takes2 = STR_1x2.map(s => take2ifPossible(s, this.table)).filter(s => s != null) as string[];
-		
-		if (ENABLE_SMALL_TAKES) {
-			const takesSmall = STR_2x1.concat(STR_1x1).map(s => minStates(s, this.table)).filter(s => sumState(s) != 0);
-			return takes3.concat(takes2).concat(takesSmall);
-		}
-		else return takes3.concat(takes2);
-	}
+// This represents a bundle of states with common CardState
+export class StateGroup {
+	tokState: TokenState[] = [new TokenState("000000", "444440")];
+		tokStates_N: Map<string,TokenState> = new Map<string,TokenState>([["000000", new TokenState("000000", "444440")]]);
 	
-	nextStates(): TokenState[] {
-		const moves = this.nextMoves();
-		let res: TokenState[] = [];
-		
-		for (const m of moves) {
-			const playerNew = addStates(this.player, m);
-			const tableNew = subStates(this.table, m);
-			const sum = sumState(playerNew);
+	cardState: CardState = new CardState();
+	
+	copy(): StateGroup {
+		let res = new StateGroup();
+		res.tokState = this.tokState.map(x => x.copy());
+			res.tokStates_N = new Map(this.tokStates_N);
+		res.cardState = this.cardState.copy();
+			
+		return res;
+	}
 
-			if (sum > 10) {
-				const surplus = sum - 10;
-				const allReturns = getReturns(surplus);
-				const returns = returnsForPlayer(playerNew, allReturns);
-				for (const r of returns) {
-					const playerNewR = subStates(playerNew, r);
-					const tableNewR = addStates(tableNew, r);
-					res.push(new TokenState(playerNewR, tableNewR));
-				}
-			}
-			else res.push(new TokenState(playerNew, tableNew));
+	mergeWith(sg: StateGroup): StateGroup {
+		let res = this.copy();
+		res.tokState = statesUnique(res.tokState.concat(sg.tokState));
+			res.tokStates_N = tokStateMap(res.tokState);
+		return res;
+	}
+
+
+	nextStatesBuy(): StateGroup[] {
+		let res: StateGroup[] = [];
 				
+		for (let i = 0; i < 12; i++) { // for each card on table
+			const cardId = this.cardState.table.getCard(i);
+			const effPrice = this.cardState.player.effectivePrice(cardId);
+
+			const newCardState = this.cardState.copy();
+			newCardState.player.acquire(cardId);
+			newCardState.table.grab(i);
+			
+			let newStateGroup = new StateGroup();
+			newStateGroup.cardState = newCardState;
+			
+			newStateGroup.tokState = [];
+			
+			for (const ts of this.tokState) { // for each tokState
+				if (!ts.playerCanBuy(effPrice)) continue;
+					
+				const newTokState = new TokenState(subStates(ts.player, effPrice), addStates(ts.table, effPrice));
+				newStateGroup.tokState.push(newTokState);
+			}
+			
+			if (newStateGroup.tokState.length > 0) {
+				newStateGroup.tokState = statesUnique(newStateGroup.tokState);
+				newStateGroup.tokStates_N = tokStateMap(newStateGroup.tokState);
+				res.push(newStateGroup);
+			}
 		}
+		
 		return res;
 	}
 	
-	nextStatesUnique(): TokenState[] {
-		return statesUnique(this.nextStates());
+	nextStateGroupTake(): StateGroup {
+		let res = new StateGroup();
+		res.cardState = this.cardState.copy();
+		
+		let newTokStates: TokenState[] = [];
+		
+		for (const ts of this.tokState) {
+			newTokStates = newTokStates.concat(ts.nextStatesUnique());
+		}
+		
+		res.tokState = statesUnique(newTokStates);
+			res.tokStates_N = tokStateMap(res.tokState);
+		
+		return res;
 	}
-}
-
-
-export function statesUnique(states: TokenState[]): TokenState[] {
-	return states2map(states).values().toArray();
-}
-
-
-export function states2map(states: TokenState[]): Map<string, TokenState> {
-	let res = new Map<string, TokenState>();
 	
-	states.forEach(s => {if (!res.has(s.player)) res.set(s.player, s); });
+	nextStates(): StateGroup[] {
+		let res = this.nextStatesBuy();
+		res.push(this.nextStateGroupTake());
+		return res;
+	}
+	
+}
+
+
+// Represents an array of StateGroups
+export class Wave {
+	
+	stateGroups: StateGroup[] = [];
+	
+	static fromSG(sg: StateGroup): Wave {
+		let res = new Wave();
+		res.stateGroups.push(sg.copy());
+		return res;
+	}
+	
+	groupSize(): number {
+		return this.stateGroups.length;
+	}
+
+	stateSize(): number {
+		return this.stateGroups.map(x => x.tokState.length).reduce((a,b)=>a+b, 0);
+	}
+
+
+	next(): Wave {
+		let res = new Wave();
+
+		const followers = this.stateGroups.map(x => x.nextStates()).flat(); //  [ [...], [...], [...], ...]
+		
+		res.stateGroups = mergeStates(followers);
+		res.stateGroups.sort(compareSG); // Sort: which state has more owned cards
+		res.stateGroups.forEach(x => x.tokState.sort((a,b) => sumState(b.player) - sumState(a.player))); // Sort each state group by num of tokens  
+
+		if (PRUNE_TOKS) res.stateGroups.forEach(pruneTokStates);
+		if (PRUNE_CARDS) res.stateGroups = Wave_pruneCardStates(res);
+		
+		return res;
+	}
+	
+}
+
+function mergeStates(states: StateGroup[]): StateGroup[] {
+	let map = new Map<string, StateGroup>();
+	for (const f of states) {
+		const s = f.cardState.player.toStr(); // TODO: this temporary solution is based only on 1 player's cards
+		if (map.has(s)) map.set(s, map.get(s)!.mergeWith(f));
+		else map.set(s, f);
+	}
+	return map.values().toArray();
+}
+
+
+/////////////////////////////////////////
+
+
+// make new array where states are removed if they have worse cards than other state with at least equally good tokens
+function TMP_cardArrSubsets(subsets: StateGroup[], supersets: StateGroup[]): StateGroup[] {
+	let res: StateGroup[] = [];
+	
+	for (const sub of subsets) {
+		let reducedTS = sub.tokState.map(x => x.copy());
+
+		for (const larger of supersets) {
+			// CAREFUL: if matching, it doesn't mean that further search is not needed.
+			// A match reduces some token states from subset but there may be token states in subset that are not in superset
+			const included = sub.cardState.player.isSubsetOf(larger.cardState.player);
+			if (included) reducedTS = TMP_tokDiffSubsets(reducedTS, larger.tokState);
+		}
+		
+		let copiedSG = sub.copy();
+		copiedSG.tokState = reducedTS;
+		res.push(copiedSG);
+	}
 	
 	return res;
 }
 
-export function moveFront(states: TokenState[]): TokenState[] {
-	const next = states.map(s => s.nextStatesUnique()).flat();
-	return statesUnique(next);
+
+function Wave_pruneCardStates(wave: Wave): StateGroup[] {	
+	const stateMap = Map.groupBy(wave.stateGroups, x => x.cardState.player.numOwned());
+	const setSizes = stateMap.keys().toArray();
+	let reduced: StateGroup[][] = [];
+
+	for (let [subsetSize, subsetArr] of stateMap) {
+		// Browse larger sets: [0:i). Remember that empty card set is legit
+		for (let [supersetSize, supersetArr] of stateMap) {
+			if (supersetSize > subsetSize)
+				subsetArr = TMP_cardArrSubsets(subsetArr, supersetArr);
+		}
+		reduced.push(subsetArr);
+	}
+	
+	return reduced.flat();
 }
 
+
+
+// TODO: inline
+function pruneTokStates(sg: StateGroup): void {
+	sg.tokState = TMP_tokSubsets(sg.tokState);
+}
+
+
+
+function TMP_tokArrSubsets(subsets: TokenState[], supersets: TokenState[]): TokenState[] {
+	let res: TokenState[] = [];
+	for (const sub of subsets) {
+		let includedYet = false;
+		for (const larger of supersets) {
+			const included = sub.isPlayerSubsetOf(larger);
+			includedYet ||= included;
+		}
+		if (!includedYet) res.push(sub);
+	}
+	return res;
+}
+
+
+// Make new array with only maximum player states
+function TMP_tokSubsets(tokStates: TokenState[]): TokenState[] {
+	let reduced: TokenState[][] = [];
+
+	const grouped = Map.groupBy(tokStates, x => x.playerTokSum());
+
+	for (let [subsetSize, subsetArr] of grouped) {
+		// Browse larger sets: [0:i). Remember that empty card set is legit
+		for (let [supersetSize, supersetArr] of grouped) {
+			if (supersetSize > subsetSize) // If sizes equal, don't proceed to prevent self-elimination			
+				subsetArr = TMP_tokArrSubsets(subsetArr, supersetArr); // Remove those that are dominated by something
+		}
+		reduced.push(subsetArr);
+	}
+
+	return reduced.flat();
+}
+
+
+// Make new array with states not dominated by other array
+function TMP_tokDiffSubsets(tokStates: TokenState[], otherStates: TokenState[]): TokenState[] {
+	let reduced: TokenState[][] = [];
+
+	const groupedThese = Map.groupBy(tokStates, x => x.playerTokSum());
+	const groupedOthers = Map.groupBy(otherStates, x => x.playerTokSum());
+
+	for (let [subsetSize, subsetArr] of groupedThese) {
+		// Browse larger sets: [0:i). Remember that empty card set is legit
+		for (let [supersetSize, supersetArr] of groupedOthers) {
+			if (supersetSize >= subsetSize) // Relation of inclusion is satisfied for equal sets, so here we allow equal to proceed 			
+				subsetArr = TMP_tokArrSubsets(subsetArr, supersetArr); // Remove those that are dominated by something
+		}
+		reduced.push(subsetArr);
+	}
+
+	return reduced.flat();
+}

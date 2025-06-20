@@ -84,7 +84,7 @@ class Card {
 	}
 }
 
-const cardStringList = [
+export const cardStringList = [
 // Color     W     		B     	   G     	  R     	 K
 // row 3
 	[  		"5:30007", "5:73000", "5:07300", "5:00730", "5:00073", 	
