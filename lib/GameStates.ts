@@ -488,6 +488,17 @@ export namespace GameStates {
 		return uniqueSet.values().toArray().map(x => TokenState.fromKeyString(x));
 	}
 
+	function fixExcessiveStates(inputStates: TokenState[][], player: number): TokenState[][] {
+		let res: TokenState[][] = [];
+		
+		inputStates.forEach(x => {
+			const y = handleExcessive(x, player);
+			res.push(y);
+		});
+		
+		return res;
+	}
+
 
 	export class TokenStateSet {
 		private states: TokenState[] = [];
@@ -565,76 +576,38 @@ export namespace GameStates {
 		// Apply takes to each state
 		generateNewStates(player: number): TokenState[][] {
 			let res: TokenState[][] = [];
-			
+
 			this.states.forEach(x => {
 				const moves = x.findPossibleTakes();
-				const y = x.applyTakes(player, moves);
-				const z = handleExcessive(y, player);
-				
-				res.push(z);
+				const y = x.applyTakes(player, moves);				
+				res.push(y);
 			});
 			
 			return res;
 		}
 
-			generateNewStates_N(player: number): TokenState[][] {
-				let oldRes: TokenState[][] = [];
-				
-				this.states.forEach(x => {
-					const moves = x.findPossibleTakes();
-					const y = x.applyTakes(player, moves);
-					const z = y;// handleExcessive(y, player);
-					
-					oldRes.push(z);
-				});
-				
-				return oldRes;
-				
-				// let res: TokenState[][] = [];
-				
-				// oldRes.forEach(x => {
-					// const y = handleExcessive(x, player);
-					// res.push(y);
-				// });
-				
-				// return res;
-			}
-
-			fixExcessiveStates(inputStates: TokenState[][], player: number): TokenState[][] {
-				let res: TokenState[][] = [];
-				
-				inputStates.forEach(x => {
-					const y = handleExcessive(x, player);
-					res.push(y);
-				});
-				
-				return res;
-			}
-
-		
 		
 		// For every state in set, make all possible takes
 		applyNewTakes(player: number): TokenStateSet {
 			console.time('takes A_1');
 			
-			let fwStates = this.generateNewStates_N(player);
+			const fwStates = this.generateNewStates(player);
+			const fwFlat = fwStates.flat();
 			console.timeEnd('takes A_1');
 
-				const sizeGenerated = fwStates.flat().length;
-
-				//console.log(` Forward states: ${sizeGenerated}/${uniqueTokStates(fwStates.flat()).length}`);
+			const sizeGenerated = fwFlat.length;
 				
-				fwStates = [uniqueTokStates(fwStates.flat())];
+			const fwUnique = [uniqueTokStates(fwFlat)];
 
 			console.time('takes A_2');
-			const newStates = this.fixExcessiveStates(fwStates, player);
+			const newStates = fixExcessiveStates(fwUnique, player);
 			console.timeEnd('takes A_2');
 
 
 			console.time('takes B');
 			
-			let newStatesFlat = newStates.flat();
-			//newStatesFlat = uniqueTokStates(newStatesFlat);
+			let newStatesFlat = newStates[0]!;//.flat();
+
 			let newStatesAdjustedUnique = uniqueTokStates(newStatesFlat);
 											
 			newStatesAdjustedUnique.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
@@ -693,8 +666,10 @@ export namespace GameStates {
 	}
 	
 	
+	const N_PLAYERS = 2;
+	
 	export class Wavefront0 {
-		readonly nPlayers = 2;
+		readonly nPlayers = N_PLAYERS;
 		round = 0;     // Round that lasts until all players make move 
 		playerTurn = 0; // Player to move next
 		states: State[] = [INITIAL_STATE];
@@ -732,11 +707,11 @@ export namespace GameStates {
 	export const INITIAL_STATE = new State(
 		new CardState(
 			new TableCards(),
-			[new PlayerCards, new PlayerCards]
+			[new PlayerCards, new PlayerCards, new PlayerCards, new PlayerCards].slice(0, N_PLAYERS)
 		),
 		new TokenState(
 			new TokenVec(MAX_TOKEN_STACKS),
-			[new TokenVec("000000"), new TokenVec("000000")]
+			[new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000")].slice(0, N_PLAYERS)
 		)
 	);
 	
