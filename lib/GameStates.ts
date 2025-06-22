@@ -1,4 +1,7 @@
 
+import {getCardPrice, getCardPoints,} from './searching_base.ts';
+
+
 export const cardStringList = [
 // Color     W     		B     	   G     	  R     	 K
 // row 3
@@ -56,8 +59,6 @@ export const INITIAL_TABLE_NUMS: number[][] =
 		  [ 2,  8, 13, 20] ];
 
 
-
-
 export const CARD_SPECS: string[] = [''].concat(cardStringList.flat());
 
 
@@ -83,6 +84,14 @@ const STR_RET2 = STR_2x1.concat(STR_1x2);
 const STR_RET1 = STR_1x1;
 
 
+function sortRows(arr: number[]): number[] {
+	const unsorted = [arr.slice(0, 4), arr.slice(4, 8), arr.slice(8, 12)];
+		//console.log(unsorted);
+	const sorted = unsorted.map(x => x.toSorted((a,b) => a-b));
+		//console.log(sorted);
+	return sorted.flat();
+}
+
 
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
@@ -90,6 +99,9 @@ export namespace GameStates {
 									"555550";
 									"777770";
 	export const MAX_PLAYER_TOKS = 10;
+
+
+	const N_PLAYERS = 2;
 
 	
 	type StringBinFunc = (x: number, y: number) => number;
@@ -305,39 +317,6 @@ export namespace GameStates {
 
 	};
 	
-	
-	export class PlayerCards {
-		
-	}
-	
-	export class TableCards {
-		
-	}
-	
-	export class CardState {
-		readonly tableCards: TableCards;
-		readonly playerCards: PlayerCards[];
-		
-		constructor(t: TableCards, p: PlayerCards[]) {
-			this.tableCards = t;
-			this.playerCards = p;
-		}
-	}
-	
-	
-	export class State {
-		readonly cardState: CardState;
-		readonly tokenState: TokenState;
-		
-		constructor(c: CardState, t: TokenState) {
-			this.cardState = c;
-			this.tokenState = t;
-		}
-		
-		tokenStr(): string {
-			return this.tokenState.toString();
-		}
-	}
 
 
 	function handleExcessive(states: TokenState[], player: number): TokenState[] {
@@ -604,6 +583,136 @@ export namespace GameStates {
 	}
 
 	
+	export type Card = number;
+
+	function numStringD(c: number): string {
+		return (c + 100).toString(10).substring(1,3);
+	}
+
+	function numStringH(c: number): string {
+		return (c + 256).toString(16).substring(1,3);
+	}
+
+	function cardStringD(c: Card): string {
+		return (c + 100).toString(10).substring(1,3);
+	}
+
+	function cardStringH(c: Card): string {
+		return (c + 256).toString(16).substring(1,3);
+	}
+
+
+	export class PlayerCards {
+		readonly bonuses: TokenVec;
+		readonly points: number;
+		readonly reserved: Card[];
+		
+		constructor(b: TokenVec, p: number, r: Card[]) {
+			this.bonuses = b;
+			this.points = p;
+			this.reserved = r;
+		}
+		
+		str(): string {
+			return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD);
+		}
+		
+		acquire(c: Card): PlayerCards {
+			const ind = c % 5;
+			const strBase = ["100000", "010000", "001000", "000100", "000010",];
+			const increment = strBase[ind]!;
+			
+			const newBonuses = this.bonuses.add(new TokenVec(increment));
+			const newPoints = this.points + getCardPoints(c);
+
+			return new PlayerCards(newBonuses, newPoints, this.reserved);
+		}
+		
+	}
+	
+	const DEFAULT_PLAYER_CARDS = new PlayerCards(new TokenVec("000000"), 0, []);
+	
+	export class TableCards {
+		readonly stackNums: number[];
+		readonly spread: Card[]; // Cards seen on table
+		
+		constructor(sn: number[], sp: Card[]) {
+			this.stackNums = sn;
+			this.spread = sp;
+		}
+		
+		str(): string {
+			const cardStr = this.spread.map(cardStringD).join(',');
+			return this.stackNums.map(numStringD).join(',') + ';' + cardStr;
+		}
+		
+		grab(c: Card): TableCards {
+			const index = this.spread.indexOf(c);
+			
+			if (index == -1) throw new Error("Card not on table");
+			
+			const row = Math.floor(index/4);
+			const stackSize = this.stackNums[row]!;
+			
+			const newCard = TABLE_STACKS[row]![stackSize-1]!;
+			
+			
+			const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
+
+			const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
+			
+			
+			return new TableCards(newStackNums, newSpread);
+		}
+		
+	}
+	
+	const DEFAULT_TABLE_CARDS = new TableCards([36, 26, 16], INITIAL_TABLE_NUMS.flat());
+
+	export class CardState {
+		readonly tableCards: TableCards;
+		readonly playerCards: PlayerCards[];
+		
+		constructor(t: TableCards, p: PlayerCards[]) {
+			this.tableCards = t;
+			this.playerCards = p;
+		}
+		
+		str(): string {
+			return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||');
+		}
+
+		steal(player: number, c: Card): CardState {
+			const newPlayerCards = [...this.playerCards];
+			newPlayerCards[player]! = newPlayerCards[player]!.acquire(c);
+			return new CardState(this.tableCards.grab(c), newPlayerCards);
+		}
+		
+	}
+	
+	export const DEFAULT_CARDS = new CardState(
+										DEFAULT_TABLE_CARDS, 
+										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS)
+										);
+	
+	
+	export class State {
+		readonly cardState: CardState;
+		readonly tokenState: TokenState;
+		
+		constructor(c: CardState, t: TokenState) {
+			this.cardState = c;
+			this.tokenState = t;
+		}
+		
+		tokenStr(): string {
+			return this.tokenState.toString();
+		}
+	}
+
+
+
+	
 	export class StateSet {
 		states: State[] = [];
 		
@@ -615,7 +724,6 @@ export namespace GameStates {
 	}
 	
 	
-	const N_PLAYERS = 2;
 	
 	export class Wavefront0 {
 		readonly nPlayers = N_PLAYERS;
@@ -654,16 +762,17 @@ export namespace GameStates {
 	}
 	
 	export const INITIAL_STATE = new State(
-		new CardState(
-			new TableCards(),
-			[new PlayerCards, new PlayerCards, new PlayerCards, new PlayerCards].slice(0, N_PLAYERS)
-		),
+		// new CardState(
+			// new TableCards(),
+			// [new PlayerCards, new PlayerCards, new PlayerCards, new PlayerCards].slice(0, N_PLAYERS)
+		// ),
+		DEFAULT_CARDS,
 		new TokenState(
 			new TokenVec(MAX_TOKEN_STACKS),
 			[new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000")].slice(0, N_PLAYERS)
 		)
 	);
-	
+
 
 	export function genVectors(max: number): TokenVec[] {
 		let vecs: TokenVec[] = [];

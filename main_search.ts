@@ -62,3 +62,10 @@ if (true) {
 
 console.log('\n');
 //waveN.__tokStates.organize();
+
+const cs = GameStates.DEFAULT_CARDS;
+const csNew = cs.steal(0, 53);
+
+console.log(cs.str());
+console.log(csNew.str());
+console.log(cs.steal(1, 13).str());
