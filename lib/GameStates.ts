@@ -86,7 +86,7 @@ const STR_RET1 = STR_1x1;
 
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
-	export const MAX_TOKEN_STACKS = //"444440";
+	export const MAX_TOKEN_STACKS = "444440";
 									"555550";
 									"777770";
 	export const MAX_PLAYER_TOKS = 10;
@@ -366,7 +366,7 @@ export namespace GameStates {
 			totalCount = 0;
 		};
 
-
+		// Naive implementation - compare each state to previous states (assumes sorted by falling sum!)
 		function pruneInternal(statesCopy: TokenState[], player: number): PruningResult {
 			let pruningResult = new PruningResult();
 			
@@ -423,27 +423,31 @@ export namespace GameStates {
 				
 				const thisSum = last.ofPlayer(player).sum();
 				
-				// Generate all possible player token vecs larger by 1 or 2 than current one 
-				const add1 = getVectorsSum1();
-				const add2 = getVectorsSum2();
-				
-				const up1 = last.applyDeltas(player, add1);
-				const up2 = last.applyDeltas(player, add2);
-				
-				for (const s of up1) {
-					thisCountUp1++;
-					if (grouped.has(s.ofPlayer(player).str)) {
-						foundUp1 = true;
-						break;
-					}
-				}
+				if (thisSum < MAX_PLAYER_TOKS)
+				{
+					// Generate all possible player token vecs larger by 1 or 2 than current one 
+					const add1 = getVectorsSum1();
+					const add2 = getVectorsSum2();
+					
+					const up1 = last.applyDeltas(player, add1);
+					const up2 = last.applyDeltas(player, add2);
 
-				for (const s of up2) {
-					thisCountUp2++;
-					if (grouped.has(s.ofPlayer(player).str)) {
-						foundUp2 = true;
-						break;
+					for (const s of up1) {
+						thisCountUp1++;
+						if (grouped.has(s.ofPlayer(player).str)) {
+							foundUp1 = true;
+							break;
+						}
 					}
+					
+					//if (thisSum < MAX_PLAYER_TOKS - 1)					
+						for (const s of up2) {
+							thisCountUp2++;
+							if (grouped.has(s.ofPlayer(player).str)) {
+								foundUp2 = true;
+								break;
+							}
+						}
 				}
 				
 				found = foundUp1 || foundUp2;
@@ -541,11 +545,13 @@ export namespace GameStates {
 			
 			const fwStates = this.generateNewStates(player);
 			const fwFlat = fwStates.flat();
-			console.timeEnd('takes A_1');
 
 			const sizeGenerated = fwFlat.length;
 				
 			const fwUnique = [uniqueTokStates(fwFlat)];
+
+			console.timeEnd('takes A_1');
+
 
 			console.time('takes A_2');
 			const newStates = fixExcessiveStates(fwUnique, player);
@@ -617,13 +623,13 @@ export namespace GameStates {
 		playerTurn = 0; // Player to move next
 		states: State[] = [INITIAL_STATE];
 		__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
-		
+
 		move(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
 			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0_Ex0");
-																	 false, "");
+																		 false, "");
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
 				this.playerTurn = 0;
@@ -673,22 +679,7 @@ export namespace GameStates {
 		console.log(vecs.map(x => x.str).join('  '));
 	}
 	
-	
-	export function vec2bin(v: TokenVec): TokenVec {
-		const BIN_INTERVAL = 2;
-		const s = v.str.split('').map(x => (BIN_INTERVAL*Math.floor(parseInt(x, 16)/BIN_INTERVAL)).toString(16)).join('');
-		return new TokenVec(s);
-	}
 
-	function putIntoBins(vecs: TokenVec[]): Map<string, TokenVec[]> {
-		return Map.groupBy(vecs, v => vec2bin(v).str);
-	}
-	
-	function binByPlayer(states: TokenState[], player: number): Map<string, TokenState[]> {
-		return Map.groupBy(states, st => vec2bin(st.playerToks[player]!).str);
-	}
-
-	
 	function writePruning(fname: string, states: TokenState[], player: number, counts: number[]): void { 
 		const fs = require("fs");
 		const writer = fs.createWriteStream(fname);
