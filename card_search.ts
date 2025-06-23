@@ -17,4 +17,14 @@ for (let loopInd = 0; loopInd < 4; loopInd++) {
 	waveC.move();
 }
 
-console.log(waveC.__cardStates.length);
+const w0 = waveC.__cardStates[0]!;
+const w22 = waveC.__cardStates[22]!;
+
+console.log(w0);
+console.log(w0.keyString());
+console.log(GameStates.CardState.fromKeyString(w0.keyString()));
+
+
+console.log(w22);
+console.log(w22.keyString());
+console.log(GameStates.CardState.fromKeyString(w22.keyString()));

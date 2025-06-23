@@ -616,7 +616,15 @@ export namespace GameStates {
 		str(): string {
 			return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD);
 		}
+
+		keyString(): string {
+			return numStringH(this.points) + this.bonuses.str;
+		}
 		
+		static fromKeyString(s: string): PlayerCards {
+			return new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), []); 
+		}
+
 		acquire(c: Card): PlayerCards {
 			const ind = c % 5;
 			const strBase = ["100000", "010000", "001000", "000100", "000010",];
@@ -645,7 +653,21 @@ export namespace GameStates {
 			const cardStr = this.spread.map(cardStringD).join(',');
 			return this.stackNums.map(numStringD).join(',') + ';' + cardStr;
 		}
+
+		keyString(): string {
+			const stackStr = this.stackNums.map(numStringH).join('');
+			const spreadStr = this.spread.map(cardStringH).join('');
+			return stackStr + spreadStr;
+		}
 		
+		static fromKeyString(s: string): TableCards {
+			const twos = s.match(/../g)!;
+			const nums = twos.slice(0, 3).map(x => parseInt(x, 16));
+			const spread = twos.slice(3).map(x => parseInt(x, 16) as Card);
+			
+			return new TableCards(nums, spread);
+		}
+	
 		grab(c: Card): TableCards {
 			const index = this.spread.indexOf(c);
 			
@@ -680,6 +702,17 @@ export namespace GameStates {
 		
 		str(): string {
 			return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||');
+		}
+
+		keyString(): string {
+			return this.tableCards.keyString() + this.playerCards.map(x => x.keyString()).join('');
+		}
+		
+		static fromKeyString(s: string): CardState {
+			const tableCards = TableCards.fromKeyString(s.slice(0,30));
+			const eights = s.substring(30).match(/......../g)!;
+			const playerCards = eights.map(PlayerCards.fromKeyString);
+			return new CardState(tableCards, playerCards);
 		}
 
 		steal(player: number, c: Card): CardState {
