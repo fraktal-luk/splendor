@@ -688,7 +688,22 @@ export namespace GameStates {
 			return new CardState(this.tableCards.grab(c), newPlayerCards);
 		}
 		
+		genNext(player: number): CardState[] {
+			return this.tableCards.spread.map(c => this.steal(player, c));
+		}
+
+		addNext(player: number): CardState[] {
+			const thisArr: CardState[] = [this];
+			return thisArr.concat(this.genNext(player));
+		}
+
 	}
+	
+	
+	export function moveCards(states: CardState[], player: number): CardState[] {
+		return states.map(x => x.addNext(player)).flat();
+	}
+	
 	
 	export const DEFAULT_CARDS = new CardState(
 										DEFAULT_TABLE_CARDS, 
@@ -724,7 +739,7 @@ export namespace GameStates {
 	}
 	
 	
-	
+	// Experimental, for tokens only
 	export class Wavefront0 {
 		readonly nPlayers = N_PLAYERS;
 		round = 0;     // Round that lasts until all players make move 
@@ -760,6 +775,29 @@ export namespace GameStates {
 			}
 		
 	}
+
+
+	// Experimental, for cards only
+	export class Wavefront1 {
+		readonly nPlayers = N_PLAYERS;
+		round = 0;     // Round that lasts until all players make move 
+		playerTurn = 0; // Player to move next
+		__cardStates: CardState[] = [DEFAULT_CARDS];
+
+		move(): void {
+			console.log(`{${this.round},${this.playerTurn}}`);
+
+			this.__cardStates =  moveCards(this.__cardStates, this.playerTurn);
+
+			this.playerTurn++;
+			if (this.playerTurn == this.nPlayers) {
+				this.playerTurn = 0;
+				this.round++;
+			}
+		}
+		
+	}
+
 	
 	export const INITIAL_STATE = new State(
 		// new CardState(
