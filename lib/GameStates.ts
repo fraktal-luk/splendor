@@ -585,19 +585,19 @@ export namespace GameStates {
 	
 	export type Card = number;
 
-	function numStringD(c: number): string {
+	export function numStringD(c: number): string {
 		return (c + 100).toString(10).substring(1,3);
 	}
 
-	function numStringH(c: number): string {
+	export function numStringH(c: number): string {
 		return (c + 256).toString(16).substring(1,3);
 	}
 
-	function cardStringD(c: Card): string {
+	export function cardStringD(c: Card): string {
 		return (c + 100).toString(10).substring(1,3);
 	}
 
-	function cardStringH(c: Card): string {
+	export function cardStringH(c: Card): string {
 		return (c + 256).toString(16).substring(1,3);
 	}
 

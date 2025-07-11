@@ -28,6 +28,8 @@ for (let loopInd = 0; loopInd < 2; loopInd++) {
 console.timeEnd('2');
 
 
-const tts = new Data.TbTokState();
-const pcs = new Data.PlCardState();
+const tcs = new Data.TbCardState("93807282", "popejiee", "u7h7ueue", "uuiioorr");
+const pcs = new Data.PlCardState(7, ("000220"));
 
+console.log(tcs.str());
+console.log(pcs.str());
