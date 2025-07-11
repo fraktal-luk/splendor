@@ -1,4 +1,7 @@
 
+import {getCardPrice, getCardPoints,} from './searching_base.ts';
+
+
 export const cardStringList = [
 // Color     W     		B     	   G     	  R     	 K
 // row 3
@@ -56,8 +59,6 @@ export const INITIAL_TABLE_NUMS: number[][] =
 		  [ 2,  8, 13, 20] ];
 
 
-
-
 export const CARD_SPECS: string[] = [''].concat(cardStringList.flat());
 
 
@@ -83,13 +84,24 @@ const STR_RET2 = STR_2x1.concat(STR_1x2);
 const STR_RET1 = STR_1x1;
 
 
+function sortRows(arr: number[]): number[] {
+	const unsorted = [arr.slice(0, 4), arr.slice(4, 8), arr.slice(8, 12)];
+		//console.log(unsorted);
+	const sorted = unsorted.map(x => x.toSorted((a,b) => a-b));
+		//console.log(sorted);
+	return sorted.flat();
+}
+
 
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
-	export const MAX_TOKEN_STACKS = //"444440";
+	export const MAX_TOKEN_STACKS = "444440";
 									"555550";
 									"777770";
 	export const MAX_PLAYER_TOKS = 10;
+
+
+	const N_PLAYERS = 2;
 
 	
 	type StringBinFunc = (x: number, y: number) => number;
@@ -168,16 +180,6 @@ export namespace GameStates {
 			}
 			return hasGreater;
 		}
-
-		// Check if all elements are greater than corresponding
-		coversStrong(other: TokenVec): boolean {
-			let hasGreater = false;
-			for (let i = 0; i < this.str.length  - 1; i++) { // CAREFUL: omit Yellow tokens for now
-				if (parseInt(this.str[i], 16) <= parseInt(other.str[i], 16)) return false;
-			}
-			return true;
-		}
-		
 		
 		enoughForTake(other: TokenVec): boolean {
 			for (let i = 0; i < this.str.length; i++) {
@@ -201,8 +203,8 @@ export namespace GameStates {
 
 
 	export class TokenState {
-		readonly tableToks: TokenVec;// = new TokenVec(MAX_TOKEN_STACK);
-		readonly playerToks: TokenVec[];//[new TokenVec("000000"), new TokenVec("000000")];
+		readonly tableToks: TokenVec;
+		readonly playerToks: TokenVec[];
 		
 		constructor(t: TokenVec, p: TokenVec[]) {
 			this.tableToks = t;
@@ -250,7 +252,7 @@ export namespace GameStates {
 			const tableToks = this.tableToks;
 			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
 			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
-			
+
 			if (goodTakes.length == 0) goodTakes = STR_2x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
 			if (goodTakes.length == 0) goodTakes = STR_1x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
 			if (goodTakes.length == 0) goodTakes = ["000000"];
@@ -286,7 +288,7 @@ export namespace GameStates {
 			return newStates;
 		}
 
-		
+
 		// Only changes the player toks, not affecting table
 		applyDelta(player: number, move: TokenVec): TokenState {
 			const playerToks = this.ofPlayer(player);
@@ -300,8 +302,6 @@ export namespace GameStates {
 			return newStates;
 		}
 
-		
-
 		applyGive(player: number, move: TokenVec): TokenState {
 			const tableToks = this.tableToks;
 			const playerToks = this.ofPlayer(player);
@@ -312,45 +312,11 @@ export namespace GameStates {
 		}
 
 		applyGives(player: number, moves: string[]): TokenState[] {
-			const newStates = moves.map(s => this.applyGive(player, new TokenVec(s)));
-			return newStates;//TokenStateSet.fromArray(newStates);
+			return moves.map(s => this.applyGive(player, new TokenVec(s)));
 		}
 
 	};
 	
-	
-	export class PlayerCards {
-		
-	}
-	
-	export class TableCards {
-		
-	}
-	
-	export class CardState {
-		readonly tableCards: TableCards;
-		readonly playerCards: PlayerCards[];
-		
-		constructor(t: TableCards, p: PlayerCards[]) {
-			this.tableCards = t;
-			this.playerCards = p;
-		}
-	}
-	
-	
-	export class State {
-		readonly cardState: CardState;
-		readonly tokenState: TokenState;
-		
-		constructor(c: CardState, t: TokenState) {
-			this.cardState = c;
-			this.tokenState = t;
-		}
-		
-		tokenStr(): string {
-			return this.tokenState.toString();
-		}
-	}
 
 
 	function handleExcessive(states: TokenState[], player: number): TokenState[] {
@@ -361,16 +327,13 @@ export namespace GameStates {
 			if (x.ofPlayer(player).excessive()) {					
 				const gives = x.findReductions(player);
 				const y = x.applyGives(player, gives);
-				//arr = arr.concat(y.asArray());
 				arrArr.push(y);
 			}
 			else {
-				//arr.push(x);
 				arrArr.push([x]);
 			}
 		});
 		
-		//return (arr);
 		return arrArr.flat();
 	}
 
@@ -382,7 +345,7 @@ export namespace GameStates {
 			totalCount = 0;
 		};
 
-
+		// Naive implementation - compare each state to previous states (assumes sorted by falling sum!)
 		function pruneInternal(statesCopy: TokenState[], player: number): PruningResult {
 			let pruningResult = new PruningResult();
 			
@@ -427,8 +390,7 @@ export namespace GameStates {
 			let pruningResult = new PruningResult();
 			
 			const grouped = Map.groupBy(statesCopy, x => x.ofPlayer(player).str);
-			
-			
+
 			while (statesCopy.length > 0) {
 				const last = statesCopy.pop()!;
 				let found = false;
@@ -440,27 +402,31 @@ export namespace GameStates {
 				
 				const thisSum = last.ofPlayer(player).sum();
 				
-				// Generate all possible player token vecs larger by 1 or 2 than current one 
-				const add1 = getVectorsSum1();
-				const add2 = getVectorsSum2();
-				
-				const up1 = last.applyDeltas(player, add1);
-				const up2 = last.applyDeltas(player, add2);
-				
-				for (const s of up1) {
-					thisCountUp1++;
-					if (grouped.has(s.ofPlayer(player).str)) {
-						foundUp1 = true;
-						break;
-					}
-				}
+				if (thisSum < MAX_PLAYER_TOKS)
+				{
+					// Generate all possible player token vecs larger by 1 or 2 than current one 
+					const add1 = getVectorsSum1();
+					const add2 = getVectorsSum2();
+					
+					const up1 = last.applyDeltas(player, add1);
+					const up2 = last.applyDeltas(player, add2);
 
-				for (const s of up2) {
-					thisCountUp2++;
-					if (grouped.has(s.ofPlayer(player).str)) {
-						foundUp2 = true;
-						break;
+					for (const s of up1) {
+						thisCountUp1++;
+						if (grouped.has(s.ofPlayer(player).str)) {
+							foundUp1 = true;
+							break;
+						}
 					}
+					
+					//if (thisSum < MAX_PLAYER_TOKS - 1)					
+						for (const s of up2) {
+							thisCountUp2++;
+							if (grouped.has(s.ofPlayer(player).str)) {
+								foundUp2 = true;
+								break;
+							}
+						}
 				}
 				
 				found = foundUp1 || foundUp2;
@@ -485,7 +451,7 @@ export namespace GameStates {
 	
 	function uniqueTokStates(states: TokenState[]): TokenState[] {
 		const uniqueSet = new Set(states.map(x => x.keyString()));
-		return uniqueSet.values().toArray().map(x => TokenState.fromKeyString(x));
+		return uniqueSet.values().toArray().map(TokenState.fromKeyString);
 	}
 
 	function fixExcessiveStates(inputStates: TokenState[][], player: number): TokenState[][] {
@@ -507,10 +473,6 @@ export namespace GameStates {
 			return this.states.length;
 		}
 		
-		asArray(): TokenState[] {
-			return this.states;
-		}
-		
 		static fromArray(sa: TokenState[]) {
 			let res = new TokenStateSet();
 			res.states = [...sa];//sa.map(x => x);
@@ -519,23 +481,9 @@ export namespace GameStates {
 		}
 		
 		makeUnique(): void {
-			//const uniqueSet = new Set(this.states.map(x => x.keyString()));
-			//this.states = uniqueSet.values().toArray().map(x => TokenState.fromKeyString(x));
 			this.states = uniqueTokStates(this.states);
 		}
-		
-		// addState(s: TokenState): void {
-			
-		// }
-		
-		addStates(sa: TokenState[]): void {
-			this.states = this.states.concat(sa);
-			this.makeUnique();
-		}
-		
-		addSet(other: TokenStateSet): void {
-			this.addStates(other.states);
-		}
+
 
 		// Print formatted content
 		organize(): void {
@@ -555,23 +503,6 @@ export namespace GameStates {
 			console.log(str);
 		}
 
-		
-		// For states with too many tokens, generate reductions
-		handleExcess(player: number): TokenStateSet {
-			let arr: TokenState[] = [];
-			
-			this.states.forEach(x => {
-				if (x.ofPlayer(player).excessive()) {					
-					const gives = x.findReductions(player);
-					const y = x.applyGives(player, gives);
-					arr = arr.concat(y);
-				}
-				else
-					arr.push(x);
-			});
-			
-			return TokenStateSet.fromArray(arr);
-		}
 		
 		// Apply takes to each state
 		generateNewStates(player: number): TokenState[][] {
@@ -593,20 +524,21 @@ export namespace GameStates {
 			
 			const fwStates = this.generateNewStates(player);
 			const fwFlat = fwStates.flat();
-			console.timeEnd('takes A_1');
 
 			const sizeGenerated = fwFlat.length;
 				
 			const fwUnique = [uniqueTokStates(fwFlat)];
 
+			console.timeEnd('takes A_1');
+
+
 			console.time('takes A_2');
 			const newStates = fixExcessiveStates(fwUnique, player);
 			console.timeEnd('takes A_2');
 
-
 			console.time('takes B');
 			
-			let newStatesFlat = newStates[0]!;//.flat();
+			const newStatesFlat = newStates[0]!
 
 			let newStatesAdjustedUnique = uniqueTokStates(newStatesFlat);
 											
@@ -630,13 +562,10 @@ export namespace GameStates {
 			console.time('prune');
 			const statesCopy = [...this.states];
 			
-			// Must be already sorted!
+			// Don't sort, must be already sorted!
 			//statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
 			
-			let pruningResult = //new PruningResult();
-								func(statesCopy, player);
-
-
+			let pruningResult = func(statesCopy, player);
 			
 			console.timeEnd('prune');
 			console.log(`Pruned: ${this.size()} -> ` + pruningResult.res.length + 
@@ -648,15 +577,298 @@ export namespace GameStates {
 			this.states = pruningResult.res;
 			this.showSplit(player);
 
-				if (write) writePruning(fname, pruningResult.copied, player, pruningResult.counts);	
+			if (write) writePruning(fname, pruningResult.copied, player, pruningResult.counts);	
 		}
 		
 	}
 
 	
+	export type Card = number;
+
+	function numStringD(c: number): string {
+		return (c + 100).toString(10).substring(1,3);
+	}
+
+	function numStringH(c: number): string {
+		return (c + 256).toString(16).substring(1,3);
+	}
+
+	function cardStringD(c: Card): string {
+		return (c + 100).toString(10).substring(1,3);
+	}
+
+	function cardStringH(c: Card): string {
+		return (c + 256).toString(16).substring(1,3);
+	}
+
+
+	export class PlayerCards {
+		readonly bonuses: TokenVec;
+		readonly points: number;
+		readonly reserved: Card[];
+		
+		constructor(b: TokenVec, p: number, r: Card[]) {
+			this.bonuses = b;
+			this.points = p;
+			this.reserved = r;
+		}
+		
+		str(): string {
+			return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD);
+		}
+
+		keyString(): string {
+			return numStringH(this.points) + this.bonuses.str;
+		}
+		
+		niceString(): string {
+			return `(${numStringD(this.points)}) ${this.bonuses.str} []`;
+		}
+		
+		static fromKeyString(s: string): PlayerCards {
+			return new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), []); 
+		}
+
+		
+		covers(other: PlayerCards): boolean {
+			return false//(this.points >= other.points && this.bonuses.covers(other.bonuses))
+				|| (this.points > other.points && this.bonuses.str == (other.bonuses.str));
+		}
+
+		acquire(c: Card): PlayerCards {
+			const ind = c % 5;
+			const strBase = ["100000", "010000", "001000", "000100", "000010",];
+			const increment = strBase[ind]!;
+			
+			const newBonuses = this.bonuses.add(new TokenVec(increment));
+			const newPoints = this.points + getCardPoints(c);
+
+			return new PlayerCards(newBonuses, newPoints, this.reserved);
+		}
+		
+	}
+	
+	const DEFAULT_PLAYER_CARDS = new PlayerCards(new TokenVec("000000"), 0, []);
+	
+	export class TableCards {
+		readonly stackNums: number[];
+		readonly spread: Card[]; // Cards seen on table
+		
+		constructor(sn: number[], sp: Card[]) {
+			this.stackNums = sn;
+			this.spread = sp;
+		}
+		
+		str(): string {
+			const cardStr = this.spread.map(cardStringD).join(',');
+			return this.stackNums.map(numStringD).join(',') + ';' + cardStr;
+		}
+
+		keyString(): string {
+			const stackStr = this.stackNums.map(numStringH).join('');
+			const spreadStr = this.spread.map(cardStringH).join('');
+			return stackStr + spreadStr;
+		}
+
+		niceString(): string {
+			return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']';
+		}
+
+		static fromKeyString(s: string): TableCards {
+			const twos = s.match(/../g)!;
+			const nums = twos.slice(0, 3).map(x => parseInt(x, 16));
+			const spread = twos.slice(3).map(x => parseInt(x, 16) as Card);
+			
+			return new TableCards(nums, spread);
+		}
+	
+		grab(c: Card): TableCards {
+			const index = this.spread.indexOf(c);
+			
+			if (index == -1) throw new Error("Card not on table");
+			
+			const row = Math.floor(index/4);
+			const stackSize = this.stackNums[row]!;
+			
+			const newCard = TABLE_STACKS[row]![stackSize-1]!;
+			
+			
+			const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
+
+			const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
+			
+			
+			return new TableCards(newStackNums, newSpread);
+		}
+		
+	}
+	
+	const DEFAULT_TABLE_CARDS = new TableCards([36, 26, 16], INITIAL_TABLE_NUMS.flat());
+
+	export class CardState {
+		readonly tableCards: TableCards;
+		readonly playerCards: PlayerCards[];
+		
+		constructor(t: TableCards, p: PlayerCards[]) {
+			this.tableCards = t;
+			this.playerCards = p;
+		}
+		
+		str(): string {
+			return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||');
+		}
+
+		keyString(): string {
+			return this.tableCards.keyString() + this.playerCards.map(x => x.keyString()).join('');
+		}
+		
+		niceString(): string {
+			return this.tableCards.niceString() + '  ' + this.playerCards.map(x => x.niceString()).join('  ');
+		}
+		
+		
+		static fromKeyString(s: string): CardState {
+			const tableCards = TableCards.fromKeyString(s.slice(0,30));
+			const eights = s.substring(30).match(/......../g)!;
+			const playerCards = eights.map(PlayerCards.fromKeyString);
+			return new CardState(tableCards, playerCards);
+		}
+
+		ofPlayer(player: number): PlayerCards {
+			return this.playerCards[player]!;
+		}
+
+		steal(player: number, c: Card): CardState {
+			const newPlayerCards = [...this.playerCards];
+			newPlayerCards[player]! = newPlayerCards[player]!.acquire(c);
+			return new CardState(this.tableCards.grab(c), newPlayerCards);
+		}
+		
+		genNext(player: number): CardState[] {
+			return this.tableCards.spread.map(c => this.steal(player, c));
+		}
+
+		addNext(player: number): CardState[] {
+			const thisArr: CardState[] = [this];
+			return thisArr.concat(this.genNext(player));
+		}
+
+	}
+	
+	
+	export function uniqueCardStates(states: CardState[]): CardState[] {
+		const uniqueSet = new Set(states.map(x => x.keyString()));
+		return uniqueSet.values().toArray().map(CardState.fromKeyString);
+	}
+	
+	
+	export function moveCards(states: CardState[], player: number): CardState[] {
+		return states.map(x => x.addNext(player)).flat();
+	}
+
+	// This function rejects states which have less points than other state AND the same vector of bonuses
+	export function pruneCards(states: CardState[], player: number): CardState[] {
+		//if (states.length > 200) return [];
+		
+		const statesCopy = [...states];
+		statesCopy.sort((a, b) => b.ofPlayer(player).bonuses.sum() - a.ofPlayer(player).bonuses.sum());
+
+		let res: CardState[] = [];
+		
+		while(statesCopy.length > 0) {
+			const last = statesCopy.pop()!;
+			let found = false;
+			
+			// Temporary, to reduce analyzed tree size: reject if too big disadvantage in points
+			const allPoints = last.playerCards.map(x => x.points);
+			const myPoints = last.ofPlayer(player).points;
+			
+			// if (allPoints.some(x => x > (myPoints + 5)))
+				// found = true;
+			// else
+				for (const st of statesCopy) {
+					if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
+						found = true;
+							//console.log(`Kill ${st.niceString()} by ${last.niceString()}`);
+						break;
+					}
+				}
+			
+			if (!found) {
+				res.push(last);
+			}
+		}
+		
+		return res; 
+	}	
+
+
+	export class TableCardsConcise {
+		stackImg: string = ""; // Begins with sum of stacks so that sorting is done first with regard to total cards remaining
+		rowImg0: string = "";
+		rowImg1: string = "";
+		rowImg2: string = "";
+		
+		toString(): string {
+			return [this.stackImg, this.rowImg0, this.rowImg1, this.rowImg2, ].join(' ');
+		}
+		
+		static fromCardState(st: CardState): TableCardsConcise {
+			let cc = new TableCardsConcise();
+			cc.stackImg = [st.tableCards.stackNums[0]! + st.tableCards.stackNums[1]! + st.tableCards.stackNums[2]!,
+							st.tableCards.stackNums[0]!, st.tableCards.stackNums[1]!, st.tableCards.stackNums[2]!].map(numStringH).join('');
+			cc.rowImg0 = st.tableCards.spread.slice(0, 4).map(cardStringH).join('');
+			cc.rowImg1 = st.tableCards.spread.slice(4, 8).map(cardStringH).join('');
+			cc.rowImg2 = st.tableCards.spread.slice(8, 12).map(cardStringH).join('');
+			return cc;
+		}
+	}
+
+
+	// function TMP_compareCardStates(a: CardState, b: CardState, player: number): number {
+		// const cmpTable = TableCardsConcise.fromCardState(a).stackImg.localeCompare(TableCardsConcise.fromCardState(b).stackImg);
+		
+		// if (cmpTable != 0) return cmpTable;
+
+		// //return a.ofPlayer(player).compare()
+		
+	// }
+
+
+	export function TMP_sortCardStates(states: CardState[], player: number): CardState[] {
+		const statesCopy = [...states];
+		
+		statesCopy.sort( (a, b) => TableCardsConcise.fromCardState(a).stackImg.localeCompare(TableCardsConcise.fromCardState(b).stackImg) );
+		
+		return statesCopy;
+	}
+
+
+	export const DEFAULT_CARDS = new CardState(
+										DEFAULT_TABLE_CARDS, 
+										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS)
+										);
+	
+	
+	export class State {
+		readonly cardState: CardState;
+		readonly tokenState: TokenState;
+		
+		constructor(c: CardState, t: TokenState) {
+			this.cardState = c;
+			this.tokenState = t;
+		}
+		
+		tokenStr(): string {
+			return this.tokenState.toString();
+		}
+	}
+
+
+
+	
 	export class StateSet {
 		states: State[] = [];
-		
 		
 		addState(s: State): void {
 		}
@@ -666,21 +878,20 @@ export namespace GameStates {
 	}
 	
 	
-	const N_PLAYERS = 2;
-	
+	// Experimental, for tokens only
 	export class Wavefront0 {
 		readonly nPlayers = N_PLAYERS;
 		round = 0;     // Round that lasts until all players make move 
 		playerTurn = 0; // Player to move next
 		states: State[] = [INITIAL_STATE];
 		__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
-		
+
 		move(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
 			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0_Ex0");
-																	 false, "hehee.txt");//  this.round == 1 && this.playerTurn == 1);
+																		 false, "");
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
 				this.playerTurn = 0;
@@ -703,49 +914,72 @@ export namespace GameStates {
 			}
 		
 	}
+
+
+	// Experimental, for cards only
+	export class Wavefront1 {
+		readonly nPlayers = N_PLAYERS;
+		round = 0;     // Round that lasts until all players make move 
+		playerTurn = 0; // Player to move next
+		__cardStates: CardState[] = [DEFAULT_CARDS];
+
+		move(): void {
+			console.log(`{${this.round},${this.playerTurn}}`);
+
+			this.__cardStates = moveCards(this.__cardStates, this.playerTurn);
+			const prevSize = this.__cardStates.length;
+			this.__cardStates = uniqueCardStates(this.__cardStates);
+			
+				const sortedStates = TMP_sortCardStates(this.__cardStates, this.playerTurn);
+			
+				 TMP_logCardStates(sortedStates, `cards_${this.round}_${this.playerTurn}.txt`);
+				 TMP_logConciseCardStates(sortedStates.map(TableCardsConcise.fromCardState), `concise_${this.round}_${this.playerTurn}.txt`);
+			
+			const pruned = pruneCards(this.__cardStates, this.playerTurn);
+			
+			console.log(`Unique card states: ${prevSize} -> ${this.__cardStates.length}`);
+			console.log(`Pruned size ${pruned.length}`);
+
+				this.__cardStates = pruned;
+
+			this.playerTurn++;
+			if (this.playerTurn == this.nPlayers) {
+				this.playerTurn = 0;
+				this.round++;
+			}
+		}
+		
+	}
+
 	
 	export const INITIAL_STATE = new State(
-		new CardState(
-			new TableCards(),
-			[new PlayerCards, new PlayerCards, new PlayerCards, new PlayerCards].slice(0, N_PLAYERS)
-		),
+		// new CardState(
+			// new TableCards(),
+			// [new PlayerCards, new PlayerCards, new PlayerCards, new PlayerCards].slice(0, N_PLAYERS)
+		// ),
+		DEFAULT_CARDS,
 		new TokenState(
 			new TokenVec(MAX_TOKEN_STACKS),
 			[new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000")].slice(0, N_PLAYERS)
 		)
 	);
-	
 
-	export function genVectors(max: number): TokenVec[] {
-		let vecs: TokenVec[] = [];
-		for (let n = 0; n < 100_000; n++) {
-			const s = (100_000 + n).toString(10).substring(1) + '0';
-			if (!s.split('').some(s => parseInt(s, 10) > max)) vecs.push(new TokenVec(s));
+
+		export function genVectors(max: number): TokenVec[] {
+			let vecs: TokenVec[] = [];
+			for (let n = 0; n < 100_000; n++) {
+				const s = (100_000 + n).toString(10).substring(1) + '0';
+				if (!s.split('').some(s => parseInt(s, 10) > max)) vecs.push(new TokenVec(s));
+			}
+			
+			return vecs.filter(x => x.sum() <= MAX_PLAYER_TOKS);
 		}
 		
-		return vecs.filter(x => x.sum() <= MAX_PLAYER_TOKS);
-	}
+		export function showVecs(vecs: TokenVec[]): void {
+			console.log(vecs.map(x => x.str).join('  '));
+		}
 	
-	export function showVecs(vecs: TokenVec[]): void {
-		console.log(vecs.map(x => x.str).join('  '));
-	}
-	
-	
-	export function vec2bin(v: TokenVec): TokenVec {
-		const BIN_INTERVAL = 2;
-		const s = v.str.split('').map(x => (BIN_INTERVAL*Math.floor(parseInt(x, 16)/BIN_INTERVAL)).toString(16)).join('');
-		return new TokenVec(s);
-	}
 
-	function putIntoBins(vecs: TokenVec[]): Map<string, TokenVec[]> {
-		return Map.groupBy(vecs, v => vec2bin(v).str);
-	}
-	
-	function binByPlayer(states: TokenState[], player: number): Map<string, TokenState[]> {
-		return Map.groupBy(states, st => vec2bin(st.playerToks[player]!).str);
-	}
-
-	
 	function writePruning(fname: string, states: TokenState[], player: number, counts: number[]): void { 
 		const fs = require("fs");
 		const writer = fs.createWriteStream(fname);
@@ -758,4 +992,37 @@ export namespace GameStates {
 		
 		writer.end();
 	}
+	
+	
+	
+	function TMP_logCardStates(states: CardState[], fname: string): void {
+		const fs = require("fs");
+		const writer = fs.createWriteStream(fname);
+		const LEN = states.length;
+		for (let i = 0; i < states.length; i++) {
+			const state = states[i]!;
+			
+			const desc = `M=${Math.max(state.ofPlayer(0).points,state.ofPlayer(1).points)}, D=${state.ofPlayer(0).points - state.ofPlayer(1).points}`;
+			
+			writer.write(`${i}: ${state.niceString()}   |  ${TableCardsConcise.fromCardState(state).toString()} || ${desc}\n`);
+		}
+		
+		writer.end();
+	}
+
+		function TMP_logConciseCardStates(states: TableCardsConcise[], fname: string): void {
+			const fs = require("fs");
+			const writer = fs.createWriteStream(fname);
+			const LEN = states.length;
+			for (let i = 0; i < states.length; i++) {
+				const state = states[i]!;
+				
+				//const desc = `M=${Math.max(state.ofPlayer(0).points,state.ofPlayer(1).points)}, D=${state.ofPlayer(0).points - state.ofPlayer(1).points}`;
+				
+				writer.write(`${i}: ${state.toString()}\n`);
+			}
+			
+			writer.end();
+		}
+	
 }
