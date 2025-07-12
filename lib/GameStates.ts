@@ -217,6 +217,144 @@ export namespace GameStates {
 	
 
 
+	export class PlayerCards implements StateValue {
+		readonly bonuses: TokenVec;
+		readonly points: number;
+		readonly reserved: Card[];
+		
+		constructor(b: TokenVec, p: number, r: Card[]) {
+			this.bonuses = b;
+			this.points = p;
+			this.reserved = r;
+		}
+		
+		
+		//keyString(): string { return '${numStringH(this.points)}${numStringH(this.bonuses.sum())}${this.bonuses.str}'; }
+		keyString(): string { return '${numStringH(this.points)}${this.bonuses.str}'; }
+		niceString(): string { return `(${numStringD(this.points)}) ${this.bonuses.toLongString()} []`; }
+
+		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), []);  }
+
+		str(): string { return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD); }
+
+		
+		covers(other: PlayerCards): boolean {
+			return false//(this.points >= other.points && this.bonuses.covers(other.bonuses))
+				|| (this.points > other.points && this.bonuses.str == (other.bonuses.str));
+		}
+
+		acquire(c: Card): PlayerCards {
+			const ind = c % 5;
+			const strBase = ["100000", "010000", "001000", "000100", "000010",];
+			const increment = strBase[ind]!;
+			
+			const newBonuses = this.bonuses.add(new TokenVec(increment));
+			const newPoints = this.points + getCardPoints(c);
+
+			return new PlayerCards(newBonuses, newPoints, this.reserved);
+		}
+		
+	}
+	
+	const DEFAULT_PLAYER_CARDS = new PlayerCards(new TokenVec("000000"), 0, []);
+	
+	export class TableCards {
+		readonly stackNums: number[];
+		readonly spread: Card[]; // Cards seen on table
+		
+		constructor(sn: number[], sp: Card[]) {
+			this.stackNums = sn;
+			this.spread = sp;
+		}
+		
+		str(): string {
+			const cardStr = this.spread.map(cardStringD).join(',');
+			return this.stackNums.map(numStringD).join(',') + ';' + cardStr;
+		}
+
+		keyString(): string {
+			const stackStr = this.stackNums.map(numStringH).join('');
+			const spreadStr = this.spread.map(cardStringH).join('');
+			return stackStr + spreadStr;
+		}
+
+		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
+
+		static fromKeyString(s: string): TableCards {
+			const twos = s.match(/../g)!;
+			const nums = twos.slice(0, 3).map(x => parseInt(x, 16));
+			const spread = twos.slice(3).map(x => parseInt(x, 16) as Card);
+			
+			return new TableCards(nums, spread);
+		}
+	
+		grab(c: Card): TableCards {
+			const index = this.spread.indexOf(c);
+			
+			if (index == -1) throw new Error("Card not on table");
+			
+			const row = Math.floor(index/4);
+			const stackSize = this.stackNums[row]!;
+			
+			const newCard = TABLE_STACKS[row]![stackSize-1]!;
+			
+			
+			const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
+
+			const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
+			
+			
+			return new TableCards(newStackNums, newSpread);
+		}
+		
+	}
+	
+	const DEFAULT_TABLE_CARDS = new TableCards([36, 26, 16], INITIAL_TABLE_NUMS.flat());
+
+	export class CardState {
+		readonly tableCards: TableCards;
+		readonly playerCards: PlayerCards[];
+		
+		constructor(t: TableCards, p: PlayerCards[]) {
+			this.tableCards = t;
+			this.playerCards = p;
+		}
+		
+		keyString(): string { return this.tableCards.keyString() + this.playerCards.map(x => x.keyString()).join(''); }
+		niceString(): string { return this.tableCards.niceString() + '  ' + this.playerCards.map(x => x.niceString()).join('  '); }
+
+
+		static fromKeyString(s: string): CardState {
+			const tableCards = TableCards.fromKeyString(s.slice(0,30));
+			const eights = s.substring(30).match(/......../g)!;
+			const playerCards = eights.map(PlayerCards.fromKeyString);
+			return new CardState(tableCards, playerCards);
+		}
+
+		ofPlayer(player: number): PlayerCards { return this.playerCards[player]!; }
+
+		str(): string { return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||'); }
+
+
+		steal(player: number, c: Card): CardState {
+			const newPlayerCards = [...this.playerCards];
+			newPlayerCards[player]! = newPlayerCards[player]!.acquire(c);
+			return new CardState(this.tableCards.grab(c), newPlayerCards);
+		}
+		
+		genNext(player: number): CardState[] { return this.tableCards.spread.map(c => this.steal(player, c)); }
+
+		addNext(player: number): CardState[] {
+			const thisArr: CardState[] = [this];
+			return thisArr.concat(this.genNext(player));
+		}
+
+	}
+
+
+
+
+
 	function handleExcessive(states: TokenState[], player: number): TokenState[] {
 		let arr: TokenState[] = [];
 		let arrArr: TokenState[][] = [];
@@ -481,140 +619,6 @@ export namespace GameStates {
 	
 
 
-	export class PlayerCards implements StateValue {
-		readonly bonuses: TokenVec;
-		readonly points: number;
-		readonly reserved: Card[];
-		
-		constructor(b: TokenVec, p: number, r: Card[]) {
-			this.bonuses = b;
-			this.points = p;
-			this.reserved = r;
-		}
-		
-		
-		keyString(): string { return '${numStringH(this.points)}${numStringH(this.bonuses.sum())}${this.bonuses.str}'; }
-		niceString(): string { return `(${numStringD(this.points)}) ${this.bonuses.toLongString()} []`; }
-
-		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), []);  }
-
-		str(): string { return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD); }
-
-		
-		covers(other: PlayerCards): boolean {
-			return false//(this.points >= other.points && this.bonuses.covers(other.bonuses))
-				|| (this.points > other.points && this.bonuses.str == (other.bonuses.str));
-		}
-
-		acquire(c: Card): PlayerCards {
-			const ind = c % 5;
-			const strBase = ["100000", "010000", "001000", "000100", "000010",];
-			const increment = strBase[ind]!;
-			
-			const newBonuses = this.bonuses.add(new TokenVec(increment));
-			const newPoints = this.points + getCardPoints(c);
-
-			return new PlayerCards(newBonuses, newPoints, this.reserved);
-		}
-		
-	}
-	
-	const DEFAULT_PLAYER_CARDS = new PlayerCards(new TokenVec("000000"), 0, []);
-	
-	export class TableCards {
-		readonly stackNums: number[];
-		readonly spread: Card[]; // Cards seen on table
-		
-		constructor(sn: number[], sp: Card[]) {
-			this.stackNums = sn;
-			this.spread = sp;
-		}
-		
-		str(): string {
-			const cardStr = this.spread.map(cardStringD).join(',');
-			return this.stackNums.map(numStringD).join(',') + ';' + cardStr;
-		}
-
-		keyString(): string {
-			const stackStr = this.stackNums.map(numStringH).join('');
-			const spreadStr = this.spread.map(cardStringH).join('');
-			return stackStr + spreadStr;
-		}
-
-		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
-
-		static fromKeyString(s: string): TableCards {
-			const twos = s.match(/../g)!;
-			const nums = twos.slice(0, 3).map(x => parseInt(x, 16));
-			const spread = twos.slice(3).map(x => parseInt(x, 16) as Card);
-			
-			return new TableCards(nums, spread);
-		}
-	
-		grab(c: Card): TableCards {
-			const index = this.spread.indexOf(c);
-			
-			if (index == -1) throw new Error("Card not on table");
-			
-			const row = Math.floor(index/4);
-			const stackSize = this.stackNums[row]!;
-			
-			const newCard = TABLE_STACKS[row]![stackSize-1]!;
-			
-			
-			const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
-
-			const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
-			
-			
-			return new TableCards(newStackNums, newSpread);
-		}
-		
-	}
-	
-	const DEFAULT_TABLE_CARDS = new TableCards([36, 26, 16], INITIAL_TABLE_NUMS.flat());
-
-	export class CardState {
-		readonly tableCards: TableCards;
-		readonly playerCards: PlayerCards[];
-		
-		constructor(t: TableCards, p: PlayerCards[]) {
-			this.tableCards = t;
-			this.playerCards = p;
-		}
-		
-		keyString(): string { return this.tableCards.keyString() + this.playerCards.map(x => x.keyString()).join(''); }
-		niceString(): string { return this.tableCards.niceString() + '  ' + this.playerCards.map(x => x.niceString()).join('  '); }
-
-
-		static fromKeyString(s: string): CardState {
-			const tableCards = TableCards.fromKeyString(s.slice(0,30));
-			const eights = s.substring(30).match(/......../g)!;
-			const playerCards = eights.map(PlayerCards.fromKeyString);
-			return new CardState(tableCards, playerCards);
-		}
-
-		ofPlayer(player: number): PlayerCards { return this.playerCards[player]!; }
-
-		str(): string { return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||'); }
-
-
-		steal(player: number, c: Card): CardState {
-			const newPlayerCards = [...this.playerCards];
-			newPlayerCards[player]! = newPlayerCards[player]!.acquire(c);
-			return new CardState(this.tableCards.grab(c), newPlayerCards);
-		}
-		
-		genNext(player: number): CardState[] { return this.tableCards.spread.map(c => this.steal(player, c)); }
-
-		addNext(player: number): CardState[] {
-			const thisArr: CardState[] = [this];
-			return thisArr.concat(this.genNext(player));
-		}
-
-	}
-	
-	
 	export function uniqueCardStates(states: CardState[]): CardState[] {
 		const uniqueSet = new Set(states.map(x => x.keyString()));
 		return uniqueSet.values().toArray().map(CardState.fromKeyString);
