@@ -2,6 +2,7 @@
 import {getCardPrice, getCardPoints,} from './searching_base.ts';
 
 
+
 export const cardStringList = [
 // Color     W     		B     	   G     	  R     	 K
 // row 3
@@ -86,9 +87,7 @@ const STR_RET1 = STR_1x1;
 
 function sortRows(arr: number[]): number[] {
 	const unsorted = [arr.slice(0, 4), arr.slice(4, 8), arr.slice(8, 12)];
-		//console.log(unsorted);
 	const sorted = unsorted.map(x => x.toSorted((a,b) => a-b));
-		//console.log(sorted);
 	return sorted.flat();
 }
 
@@ -102,6 +101,13 @@ export namespace GameStates {
 
 
 	const N_PLAYERS = 2;
+
+	export type Card = number;
+
+	export function numStringD(c: number): string { return (c + 100).toString(10).substring(1,3); }
+	export function numStringH(c: number): string { return (c + 256).toString(16).substring(1,3); }
+	export function cardStringD(c: Card): string { return (c + 100).toString(10).substring(1,3); }
+	export function cardStringH(c: Card): string { return (c + 256).toString(16).substring(1,3); }
 
 	
 	type StringBinFunc = (x: number, y: number) => number;
@@ -583,23 +589,6 @@ export namespace GameStates {
 	}
 
 	
-	export type Card = number;
-
-	export function numStringD(c: number): string {
-		return (c + 100).toString(10).substring(1,3);
-	}
-
-	export function numStringH(c: number): string {
-		return (c + 256).toString(16).substring(1,3);
-	}
-
-	export function cardStringD(c: Card): string {
-		return (c + 100).toString(10).substring(1,3);
-	}
-
-	export function cardStringH(c: Card): string {
-		return (c + 256).toString(16).substring(1,3);
-	}
 
 
 	export class PlayerCards {
@@ -878,25 +867,40 @@ export namespace GameStates {
 	}
 	
 	
-	// Experimental, for tokens only
-	export class Wavefront0 {
+	abstract class Wavefront {
 		readonly nPlayers = N_PLAYERS;
 		round = 0;     // Round that lasts until all players make move 
 		playerTurn = 0; // Player to move next
-		states: State[] = [INITIAL_STATE];
-		__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
-
+		
 		move(): void {
-			console.log(`{${this.round},${this.playerTurn}}`);
+			//console.log(`{${this.round},${this.playerTurn}}`);
 
-			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0_Ex0");
-																		 false, "");
+			this.moveImpl();
+
 			this.playerTurn++;
 			if (this.playerTurn == this.nPlayers) {
 				this.playerTurn = 0;
 				this.round++;
 			}
+		}
+		
+		abstract moveImpl(): void;
+	}
+	
+	
+	
+	// Experimental, for tokens only
+	export class Wavefront0 extends Wavefront {
+		states: State[] = [INITIAL_STATE];
+		__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
+
+		moveImpl(): void {
+			console.log(`{${this.round},${this.playerTurn}}`);
+
+			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
+			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0_Ex0");
+																		 false, "");
+
 		}
 		
 		
@@ -916,14 +920,11 @@ export namespace GameStates {
 	}
 
 
-	// Experimental, for cards only
-	export class Wavefront1 {
-		readonly nPlayers = N_PLAYERS;
-		round = 0;     // Round that lasts until all players make move 
-		playerTurn = 0; // Player to move next
+	// For cards only
+	export class Wavefront1 extends Wavefront {
 		__cardStates: CardState[] = [DEFAULT_CARDS];
 
-		move(): void {
+		moveImpl(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__cardStates = moveCards(this.__cardStates, this.playerTurn);
@@ -941,15 +942,10 @@ export namespace GameStates {
 			console.log(`Pruned size ${pruned.length}`);
 
 				this.__cardStates = pruned;
-
-			this.playerTurn++;
-			if (this.playerTurn == this.nPlayers) {
-				this.playerTurn = 0;
-				this.round++;
-			}
 		}
 		
 	}
+
 
 	
 	export const INITIAL_STATE = new State(
@@ -964,7 +960,7 @@ export namespace GameStates {
 		)
 	);
 
-
+		// Make all token vectors that player can have
 		export function genVectors(max: number): TokenVec[] {
 			let vecs: TokenVec[] = [];
 			for (let n = 0; n < 100_000; n++) {
@@ -973,10 +969,6 @@ export namespace GameStates {
 			}
 			
 			return vecs.filter(x => x.sum() <= MAX_PLAYER_TOKS);
-		}
-		
-		export function showVecs(vecs: TokenVec[]): void {
-			console.log(vecs.map(x => x.str).join('  '));
 		}
 	
 
