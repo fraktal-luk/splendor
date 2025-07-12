@@ -107,8 +107,16 @@ export namespace GameStates {
 
 	const N_PLAYERS = 2;
 
+	
+	
+	interface StateValue {
+		keyString(): string;
+		niceString(): string;
+	}
+	
 
-	export class TokenState {
+
+	export class TokenState implements StateValue {
 		readonly tableToks: TokenVec;
 		readonly playerToks: TokenVec[];
 		
@@ -116,7 +124,11 @@ export namespace GameStates {
 			this.tableToks = t;
 			this.playerToks = p;	
 		}
-		
+
+		keyString(): string { return this.tableToks.str + this.playerToks.map(x => x.str).join(''); }	// TODO: remember to change later to prepend tok sum	
+		niceString(): string { return this.tableToks.toLongString() + this.playerToks.map(x => x.toLongString()).join(''); }
+
+
 		compare(other: TokenState): number {
 			const cmpT = this.tableToks.compare(other.tableToks);
 			if (cmpT != 0) return cmpT;
@@ -127,13 +139,10 @@ export namespace GameStates {
 			}
 			return 0;
 		}
-		
-		toString(): string { return `   ${this.tableToks.str} ;  ` +  this.playerToks.map(x => x.str).join(' | '); }
-		toLongString(): string { return this.tableToks.toLongString() + this.playerToks.map(x => x.toLongString()).join(''); }
-		keyString(): string { return this.tableToks.str + this.playerToks.map(x => x.str).join(''); }		
-		playerString(): string { return this.playerToks.map(x => `(${x.sum().toString(16)})` + x.str).join('|'); }
+
+		playerString(): string { return this.playerToks.map(x => x.toLongString()).join('|'); }
 		ofPlayer(player: number): TokenVec { return this.playerToks[player]!; }
-		
+
 		static fromKeyString(s: string): TokenState {
 			const sixes = s.match(/....../g)!;
 			const tv = sixes.map(x => new TokenVec(x));
@@ -372,15 +381,15 @@ export namespace GameStates {
 		makeUnique(): void { this.states = uniqueTokStates(this.states); }
 
 
-		// Print formatted content
-		organize(): void {
-			const grouped = Map.groupBy(this.states, x => x.tableToks.str);
-			
-			console.log(`${this.size()} states:`);
-			for (let [tableStr, pl] of grouped) {
-				console.log(`[${pl.length}] ${tableStr} => ` + pl.map(x => x.playerString()).join(', '))
+			// Print formatted content
+			organize(): void {
+				const grouped = Map.groupBy(this.states, x => x.tableToks.str);
+				
+				console.log(`${this.size()} states:`);
+				for (let [tableStr, pl] of grouped) {
+					console.log(`[${pl.length}] ${tableStr} => ` + pl.map(x => x.playerString()).join(', '))
+				}
 			}
-		}
 
 		showSplit(player: number): void {
 			const grouped = Map.groupBy(this.states, x => x.ofPlayer(player).sum());
@@ -472,7 +481,7 @@ export namespace GameStates {
 	
 
 
-	export class PlayerCards {
+	export class PlayerCards implements StateValue {
 		readonly bonuses: TokenVec;
 		readonly points: number;
 		readonly reserved: Card[];
@@ -483,11 +492,13 @@ export namespace GameStates {
 			this.reserved = r;
 		}
 		
-		str(): string { return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD); }
-		keyString(): string { return numStringH(this.points) + this.bonuses.str; }
-		niceString(): string { return `(${numStringD(this.points)}) ${this.bonuses.str} []`; }
 		
+		keyString(): string { return '${numStringH(this.points)}${numStringH(this.bonuses.sum())}${this.bonuses.str}'; }
+		niceString(): string { return `(${numStringD(this.points)}) ${this.bonuses.toLongString()} []`; }
+
 		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), []);  }
+
+		str(): string { return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD); }
 
 		
 		covers(other: PlayerCards): boolean {
@@ -572,11 +583,9 @@ export namespace GameStates {
 			this.playerCards = p;
 		}
 		
-		str(): string { return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||'); }
 		keyString(): string { return this.tableCards.keyString() + this.playerCards.map(x => x.keyString()).join(''); }
 		niceString(): string { return this.tableCards.niceString() + '  ' + this.playerCards.map(x => x.niceString()).join('  '); }
 
-		ofPlayer(player: number): PlayerCards { return this.playerCards[player]!; }
 
 		static fromKeyString(s: string): CardState {
 			const tableCards = TableCards.fromKeyString(s.slice(0,30));
@@ -584,6 +593,10 @@ export namespace GameStates {
 			const playerCards = eights.map(PlayerCards.fromKeyString);
 			return new CardState(tableCards, playerCards);
 		}
+
+		ofPlayer(player: number): PlayerCards { return this.playerCards[player]!; }
+
+		str(): string { return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||'); }
 
 
 		steal(player: number, c: Card): CardState {
@@ -828,8 +841,8 @@ export namespace GameStates {
 		const LEN = states.length;
 		for (let i = 0; i < states.length; i++) {
 			const thisCount = counts[i]!;
-			const killer = thisCount == -1 ? "" : states[LEN-thisCount]!.toLongString();
-			writer.write(`${i}: ${states[i]!.toLongString()}, ${thisCount}: ${killer}\n`);
+			const killer = thisCount == -1 ? "" : states[LEN-thisCount]!.niceString();
+			writer.write(`${i}: ${states[i]!.niceString()}, ${thisCount}: ${killer}\n`);
 		}
 		
 		writer.end();
