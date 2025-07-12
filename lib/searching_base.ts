@@ -410,3 +410,91 @@ export class CardState {
 		return res;
 	}
 }
+
+
+
+	export const MAX_PLAYER_TOKS = 10;
+
+
+	export type Card = number;
+
+	export function numStringD(c: number): string { return (c + 100).toString(10).substring(1,3); }
+	export function numStringH(c: number): string { return (c + 256).toString(16).substring(1,3); }
+	export function cardStringD(c: Card): string { return (c + 100).toString(10).substring(1,3); }
+	export function cardStringH(c: Card): string { return (c + 256).toString(16).substring(1,3); }
+
+	export function getVectorsSum1(): string[] { return STR_1x1.map(s => s + "0"); }
+	export function getVectorsSum2(): string[] { return STR_2x1.concat(STR_1x2).map(s => s + "0"); }
+
+	
+	type StringBinFunc = (x: number, y: number) => number;
+	
+	function stringBinOp(func: StringBinFunc, a: string, b: string): string {
+		const aLen = a.length;
+		const res = a.split('');
+		
+		for (let i = 0; i < aLen; i++) {
+			const val = func(parseInt(a[i], 16), parseInt(b[i], 16));
+			res[i] = val.toString(16);
+		}
+		return res.join('');
+	}		
+	
+	
+	export class TokenVec {
+		readonly str: string;
+		
+		constructor(s: string) {
+			// TODO: check correctness
+			this.str = s;
+		}
+		
+		excessive(): boolean { return this.sum() > MAX_PLAYER_TOKS; }
+		
+		toLongString(): string { return ' (' + this.sum().toString(16) + ')' + this.str; }
+		
+		sum(): number {
+			let res = 0;
+			for (const c of this.str) res += parseInt(c, 16);
+			return res;
+		}
+		
+			compare(other: TokenVec): number {
+				const thisSum = this.sum();
+				const otherSum = other.sum();
+				
+				if (thisSum != otherSum) return thisSum - otherSum;
+				else return (this.str).localeCompare(other.str);
+			}
+		
+		add(other: TokenVec): TokenVec { return new TokenVec(stringBinOp((x,y) => x+y, this.str, other.str)); }
+		sub(other: TokenVec): TokenVec { return new TokenVec(stringBinOp((x,y) => x-y, this.str, other.str)); }
+		elemMax(other: TokenVec): TokenVec { return new TokenVec(stringBinOp(Math.max, this.str, other.str)); }
+		elemMin(other: TokenVec): TokenVec { return new TokenVec(stringBinOp(Math.min, this.str, other.str)); }
+		
+		atLeast(other: TokenVec): boolean {
+			for (let i = 0; i < this.str.length; i++) {
+				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
+			}
+			return true;
+		}
+
+		// If greater than other: any element greater than corresponding, others not smaller
+		covers(other: TokenVec): boolean {
+			let hasGreater = false;
+			for (let i = 0; i < this.str.length; i++) {
+				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
+				else if (parseInt(this.str[i], 16) > parseInt(other.str[i], 16)) hasGreater = true;
+			}
+			return hasGreater;
+		}
+		
+		enoughForTake(other: TokenVec): boolean {
+			for (let i = 0; i < this.str.length; i++) {
+				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
+				if (parseInt(this.str[i], 16) < 4 && parseInt(other.str[i], 16) > 1) return false;
+			}
+			return true;
+		}
+	
+	}

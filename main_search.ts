@@ -11,7 +11,7 @@ import {GameStates} from './lib/GameStates.ts'
 
 
 
-let waveN = new GameStates.Wavefront0();
+let waveN = new GameStates.WavefrontT();
 
 
 console.log("Run for initial state: " + GameStates.INITIAL_STATE.tokenState.toLongString() + '\n');

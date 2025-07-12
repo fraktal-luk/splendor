@@ -13,14 +13,14 @@ import {Data} from './lib/DataStructures.ts'
 
 
 
-let waveC = new GameStates.Wavefront1();
+let waveC = new GameStates.WavefrontC();
 console.time('1');
 for (let loopInd = 0; loopInd < 3; loopInd++) {
 	waveC.move();
 }
 console.timeEnd('1');
 
-let waveT = new GameStates.Wavefront0();
+let waveT = new GameStates.WavefrontT();
 console.time('2');
 for (let loopInd = 0; loopInd < 2; loopInd++) {
 	waveT.move();

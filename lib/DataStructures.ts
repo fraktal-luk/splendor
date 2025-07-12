@@ -1,5 +1,12 @@
 
-import {getCardPrice, getCardPoints,} from './searching_base.ts';
+import {getCardPrice, getCardPoints, TokenVec,	Card,
+	numStringD,
+	numStringH,
+	cardStringD,
+	cardStringH,
+	getVectorsSum1,
+	getVectorsSum2,
+} from './searching_base.ts';
 
 import {GameStates} from './GameStates.ts';
 
@@ -73,8 +80,8 @@ export namespace Data {
 		}
 		
 		str(): string {
-			const nCards = (new GameStates.TokenVec(this.bonuses)).sum();
-			return [GameStates.numStringH(this.points), GameStates.numStringH(nCards), this.bonuses].join('');
+			const nCards = (new TokenVec(this.bonuses)).sum();
+			return [numStringH(this.points), numStringH(nCards), this.bonuses].join('');
 		}		
 	}
 	

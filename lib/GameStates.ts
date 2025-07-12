@@ -1,5 +1,12 @@
 
-import {getCardPrice, getCardPoints,} from './searching_base.ts';
+import {getCardPrice, getCardPoints, TokenVec, MAX_PLAYER_TOKS, 	Card,
+	numStringD,
+	numStringH,
+	cardStringD,
+	cardStringH,
+	getVectorsSum1,
+	getVectorsSum2,
+	} from './searching_base.ts';
 
 
 
@@ -97,115 +104,8 @@ export namespace GameStates {
 	export const MAX_TOKEN_STACKS = "444440";
 									"555550";
 									"777770";
-	export const MAX_PLAYER_TOKS = 10;
-
 
 	const N_PLAYERS = 2;
-
-	export type Card = number;
-
-	export function numStringD(c: number): string { return (c + 100).toString(10).substring(1,3); }
-	export function numStringH(c: number): string { return (c + 256).toString(16).substring(1,3); }
-	export function cardStringD(c: Card): string { return (c + 100).toString(10).substring(1,3); }
-	export function cardStringH(c: Card): string { return (c + 256).toString(16).substring(1,3); }
-
-	
-	type StringBinFunc = (x: number, y: number) => number;
-	
-	function stringBinOp(func: StringBinFunc, a: string, b: string): string {
-		const aLen = a.length;
-		const res = a.split('');
-		
-		for (let i = 0; i < aLen; i++) {
-			const val = func(parseInt(a[i], 16), parseInt(b[i], 16));
-			res[i] = val.toString(16);
-		}
-		return res.join('');
-	}		
-	
-	
-	export class TokenVec {
-		readonly str: string;
-		
-		constructor(s: string) {
-			// TODO: check correctness
-			this.str = s;
-		}
-		
-		excessive(): boolean {
-			return this.sum() > MAX_PLAYER_TOKS;
-		}
-		
-		toLongString(): string {
-			return ' (' + this.sum().toString(16) + ')' + this.str;
-		}
-		
-		sum(): number {
-			let res = 0;
-			for (const c of this.str) res += parseInt(c, 16);
-			return res;
-		}
-		
-			compare(other: TokenVec): number {
-				const thisSum = this.sum();
-				const otherSum = other.sum();
-				
-				if (thisSum != otherSum) return thisSum - otherSum;
-				else return (this.str).localeCompare(other.str);
-			}
-		
-		add(other: TokenVec): TokenVec {
-			return new TokenVec(stringBinOp((x,y) => x+y, this.str, other.str));
-		}
-
-		sub(other: TokenVec): TokenVec {
-			return new TokenVec(stringBinOp((x,y) => x-y, this.str, other.str));
-		}
-
-		elemMax(other: TokenVec): TokenVec {
-			return new TokenVec(stringBinOp(Math.max, this.str, other.str));
-		}
-
-		elemMin(other: TokenVec): TokenVec {
-			return new TokenVec(stringBinOp(Math.min, this.str, other.str));
-		}
-		
-		atLeast(other: TokenVec): boolean {
-			for (let i = 0; i < this.str.length; i++) {
-				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
-			}
-			return true;
-		}
-
-		// If greater than other: any element greater than corresponding, others not smaller
-		covers(other: TokenVec): boolean {
-			let hasGreater = false;
-			for (let i = 0; i < this.str.length; i++) {
-				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
-				else if (parseInt(this.str[i], 16) > parseInt(other.str[i], 16)) hasGreater = true;
-			}
-			return hasGreater;
-		}
-		
-		enoughForTake(other: TokenVec): boolean {
-			for (let i = 0; i < this.str.length; i++) {
-				if (parseInt(this.str[i], 16) < parseInt(other.str[i], 16)) return false;
-				if (parseInt(this.str[i], 16) < 4 && parseInt(other.str[i], 16) > 1) return false;
-			}
-			return true;
-		}
-	
-	}
-
-
-
-	export function getVectorsSum1(): string[] {
-		return STR_1x1.map(s => s + "0");
-	}
-
-	export function getVectorsSum2(): string[] {
-		return STR_2x1.concat(STR_1x2).map(s => s + "0");
-	}
 
 
 	export class TokenState {
@@ -228,30 +128,16 @@ export namespace GameStates {
 			return 0;
 		}
 		
-		toString(): string {
-			return `   ${this.tableToks.str} ;  ` +  this.playerToks.map(x => x.str).join(' | ');
-		}
-		
-		toLongString(): string {
-			return this.tableToks.toLongString() + this.playerToks.map(x => x.toLongString()).join('');
-		}
-		
-		keyString(): string {
-			return this.tableToks.str + this.playerToks.map(x => x.str).join('');
-		}
-		
-		playerString(): string {
-			return this.playerToks.map(x => `(${x.sum().toString(16)})` + x.str).join('|');
-		}
+		toString(): string { return `   ${this.tableToks.str} ;  ` +  this.playerToks.map(x => x.str).join(' | '); }
+		toLongString(): string { return this.tableToks.toLongString() + this.playerToks.map(x => x.toLongString()).join(''); }
+		keyString(): string { return this.tableToks.str + this.playerToks.map(x => x.str).join(''); }		
+		playerString(): string { return this.playerToks.map(x => `(${x.sum().toString(16)})` + x.str).join('|'); }
+		ofPlayer(player: number): TokenVec { return this.playerToks[player]!; }
 		
 		static fromKeyString(s: string): TokenState {
 			const sixes = s.match(/....../g)!;
 			const tv = sixes.map(x => new TokenVec(x));
-				return new TokenState(tv[0]!, tv.slice(1));
-		}
-		
-		ofPlayer(player: number): TokenVec {
-			return this.playerToks[player]!;
+			return new TokenState(tv[0]!, tv.slice(1));
 		}
 		
 		findPossibleTakes(): string[] {
@@ -266,7 +152,6 @@ export namespace GameStates {
 			return goodTakes;
 		}
 
-
 		findReductions(player: number): string[] {
 			const playerToks = this.ofPlayer(player);
 			const surplus = playerToks.sum() - MAX_PLAYER_TOKS;
@@ -278,7 +163,6 @@ export namespace GameStates {
 
 			return res;
 		}
-
 		
 		applyTake(player: number, move: TokenVec): TokenState {
 			const tableToks = this.tableToks;
@@ -298,7 +182,6 @@ export namespace GameStates {
 		// Only changes the player toks, not affecting table
 		applyDelta(player: number, move: TokenVec): TokenState {
 			const playerToks = this.ofPlayer(player);
-			
 			const newPT = playerToks.add(move);
 			return new TokenState(this.tableToks, this.playerToks.with(player, newPT));
 		}
@@ -386,7 +269,7 @@ export namespace GameStates {
 		
 		type PruningFunction = typeof pruneInternal;
 
-
+		// For each state, generates states that are "bigger" by 1 or 2 and checks whether they are present
 		function pruneInternal_Ex0(statesCopy: TokenState[], player: number): PruningResult {
 			const MAX_SUM = statesCopy[0]!.ofPlayer(player).sum();
 			const MIN_SUM = statesCopy[0]!.ofPlayer(player).sum();
@@ -486,9 +369,7 @@ export namespace GameStates {
 			return res;
 		}
 		
-		makeUnique(): void {
-			this.states = uniqueTokStates(this.states);
-		}
+		makeUnique(): void { this.states = uniqueTokStates(this.states); }
 
 
 		// Print formatted content
@@ -602,21 +483,11 @@ export namespace GameStates {
 			this.reserved = r;
 		}
 		
-		str(): string {
-			return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD);
-		}
-
-		keyString(): string {
-			return numStringH(this.points) + this.bonuses.str;
-		}
+		str(): string { return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD); }
+		keyString(): string { return numStringH(this.points) + this.bonuses.str; }
+		niceString(): string { return `(${numStringD(this.points)}) ${this.bonuses.str} []`; }
 		
-		niceString(): string {
-			return `(${numStringD(this.points)}) ${this.bonuses.str} []`;
-		}
-		
-		static fromKeyString(s: string): PlayerCards {
-			return new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), []); 
-		}
+		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), []);  }
 
 		
 		covers(other: PlayerCards): boolean {
@@ -659,9 +530,7 @@ export namespace GameStates {
 			return stackStr + spreadStr;
 		}
 
-		niceString(): string {
-			return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']';
-		}
+		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
 
 		static fromKeyString(s: string): TableCards {
 			const twos = s.match(/../g)!;
@@ -703,19 +572,12 @@ export namespace GameStates {
 			this.playerCards = p;
 		}
 		
-		str(): string {
-			return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||');
-		}
+		str(): string { return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||'); }
+		keyString(): string { return this.tableCards.keyString() + this.playerCards.map(x => x.keyString()).join(''); }
+		niceString(): string { return this.tableCards.niceString() + '  ' + this.playerCards.map(x => x.niceString()).join('  '); }
 
-		keyString(): string {
-			return this.tableCards.keyString() + this.playerCards.map(x => x.keyString()).join('');
-		}
-		
-		niceString(): string {
-			return this.tableCards.niceString() + '  ' + this.playerCards.map(x => x.niceString()).join('  ');
-		}
-		
-		
+		ofPlayer(player: number): PlayerCards { return this.playerCards[player]!; }
+
 		static fromKeyString(s: string): CardState {
 			const tableCards = TableCards.fromKeyString(s.slice(0,30));
 			const eights = s.substring(30).match(/......../g)!;
@@ -723,9 +585,6 @@ export namespace GameStates {
 			return new CardState(tableCards, playerCards);
 		}
 
-		ofPlayer(player: number): PlayerCards {
-			return this.playerCards[player]!;
-		}
 
 		steal(player: number, c: Card): CardState {
 			const newPlayerCards = [...this.playerCards];
@@ -733,9 +592,7 @@ export namespace GameStates {
 			return new CardState(this.tableCards.grab(c), newPlayerCards);
 		}
 		
-		genNext(player: number): CardState[] {
-			return this.tableCards.spread.map(c => this.steal(player, c));
-		}
+		genNext(player: number): CardState[] { return this.tableCards.spread.map(c => this.steal(player, c)); }
 
 		addNext(player: number): CardState[] {
 			const thisArr: CardState[] = [this];
@@ -751,14 +608,10 @@ export namespace GameStates {
 	}
 	
 	
-	export function moveCards(states: CardState[], player: number): CardState[] {
-		return states.map(x => x.addNext(player)).flat();
-	}
+	export function moveCards(states: CardState[], player: number): CardState[] { return states.map(x => x.addNext(player)).flat(); }
 
 	// This function rejects states which have less points than other state AND the same vector of bonuses
 	export function pruneCards(states: CardState[], player: number): CardState[] {
-		//if (states.length > 200) return [];
-		
 		const statesCopy = [...states];
 		statesCopy.sort((a, b) => b.ofPlayer(player).bonuses.sum() - a.ofPlayer(player).bonuses.sum());
 
@@ -771,17 +624,14 @@ export namespace GameStates {
 			// Temporary, to reduce analyzed tree size: reject if too big disadvantage in points
 			const allPoints = last.playerCards.map(x => x.points);
 			const myPoints = last.ofPlayer(player).points;
-			
-			// if (allPoints.some(x => x > (myPoints + 5)))
-				// found = true;
-			// else
-				for (const st of statesCopy) {
-					if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
-						found = true;
-							//console.log(`Kill ${st.niceString()} by ${last.niceString()}`);
-						break;
-					}
+
+			for (const st of statesCopy) {
+				if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
+					found = true;
+						//console.log(`Kill ${st.niceString()} by ${last.niceString()}`);
+					break;
 				}
+			}
 			
 			if (!found) {
 				res.push(last);
@@ -890,7 +740,7 @@ export namespace GameStates {
 	
 	
 	// Experimental, for tokens only
-	export class Wavefront0 extends Wavefront {
+	export class WavefrontT extends Wavefront {
 		states: State[] = [INITIAL_STATE];
 		__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
 
@@ -921,7 +771,7 @@ export namespace GameStates {
 
 
 	// For cards only
-	export class Wavefront1 extends Wavefront {
+	export class WavefrontC extends Wavefront {
 		__cardStates: CardState[] = [DEFAULT_CARDS];
 
 		moveImpl(): void {
