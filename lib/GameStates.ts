@@ -230,10 +230,16 @@ export namespace GameStates {
 		
 		
 		//keyString(): string { return '${numStringH(this.points)}${numStringH(this.bonuses.sum())}${this.bonuses.str}'; }
-		keyString(): string { return '${numStringH(this.points)}${this.bonuses.str}'; }
+		keyString(): string { return `${numStringH(this.points)}${this.bonuses.str}`; }
 		niceString(): string { return `(${numStringD(this.points)}) ${this.bonuses.toLongString()} []`; }
 
-		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), []);  }
+		static fromKeyString(s: string): PlayerCards { 
+			const obj = new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), [])
+			//console.log(s + " =>\n" + obj);
+			
+			return obj;  
+			
+		}
 
 		str(): string { return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD); }
 
