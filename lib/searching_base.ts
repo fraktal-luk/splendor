@@ -451,7 +451,7 @@ export class CardState {
 		
 		excessive(): boolean { return this.sum() > MAX_PLAYER_TOKS; }
 		
-		toLongString(): string { return ' (' + this.sum().toString(16) + ')' + this.str; }
+		toLongString(): string { return '[' + this.sum().toString(16) + ']' + this.str; }
 		
 		sum(): number {
 			let res = 0;

@@ -126,7 +126,7 @@ export namespace GameStates {
 		}
 
 		keyString(): string { return this.tableToks.str + this.playerToks.map(x => x.str).join(''); }	// TODO: remember to change later to prepend tok sum	
-		niceString(): string { return this.tableToks.toLongString() + this.playerToks.map(x => x.toLongString()).join(''); }
+		niceString(): string { return this.tableToks.toLongString() + "|" + this.playerToks.map(x => x.toLongString()).join(','); }
 
 
 		compare(other: TokenState): number {
@@ -231,7 +231,7 @@ export namespace GameStates {
 		
 		//keyString(): string { return '${numStringH(this.points)}${numStringH(this.bonuses.sum())}${this.bonuses.str}'; }
 		keyString(): string { return `${numStringH(this.points)}${this.bonuses.str}`; }
-		niceString(): string { return `(${numStringD(this.points)}) ${this.bonuses.toLongString()} []`; }
+		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
 
 		static fromKeyString(s: string): PlayerCards { 
 			const obj = new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), [])
@@ -241,7 +241,7 @@ export namespace GameStates {
 			
 		}
 
-		str(): string { return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD); }
+			//str(): string { return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD); }
 
 		
 		covers(other: PlayerCards): boolean {
@@ -273,10 +273,10 @@ export namespace GameStates {
 			this.spread = sp;
 		}
 		
-		str(): string {
-			const cardStr = this.spread.map(cardStringD).join(',');
-			return this.stackNums.map(numStringD).join(',') + ';' + cardStr;
-		}
+			// str(): string {
+				// const cardStr = this.spread.map(cardStringD).join(',');
+				// return this.stackNums.map(numStringD).join(',') + ';' + cardStr;
+			// }
 
 		keyString(): string {
 			const stackStr = this.stackNums.map(numStringH).join('');
@@ -317,7 +317,7 @@ export namespace GameStates {
 	
 	const DEFAULT_TABLE_CARDS = new TableCards([36, 26, 16], INITIAL_TABLE_NUMS.flat());
 
-	export class CardState {
+	export class CardState implements StateValue {
 		readonly tableCards: TableCards;
 		readonly playerCards: PlayerCards[];
 		
@@ -339,7 +339,8 @@ export namespace GameStates {
 
 		ofPlayer(player: number): PlayerCards { return this.playerCards[player]!; }
 
-		str(): string { return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||'); }
+		//str(): string { return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||'); }
+		//str(): string { return this.tableCards.niceString() + '\n    ' + this.playerCards.map(x => x.niceString() + '||'); }
 
 
 		steal(player: number, c: Card): CardState {
