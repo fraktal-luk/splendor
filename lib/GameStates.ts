@@ -109,14 +109,16 @@ export namespace GameStates {
 
 	
 	
-	interface StateValue {
+	interface StateValue<T> {
 		keyString(): string;
 		niceString(): string;
+		
+		isSame(other: T): boolean;
 	}
 	
 
 
-	export class TokenState implements StateValue {
+	export class TokenState implements StateValue<TokenState> {
 		readonly tableToks: TokenVec;
 		readonly playerToks: TokenVec[];
 		
@@ -127,6 +129,10 @@ export namespace GameStates {
 
 		keyString(): string { return this.tableToks.str + this.playerToks.map(x => x.str).join(''); }	// TODO: remember to change later to prepend tok sum	
 		niceString(): string { return this.tableToks.toLongString() + "|" + this.playerToks.map(x => x.toLongString()).join(','); }
+
+		isSame(other: TokenState): boolean {
+			throw new Error("not implemented");
+		}
 
 
 		compare(other: TokenState): number {
@@ -217,7 +223,7 @@ export namespace GameStates {
 	
 
 
-	export class PlayerCards implements StateValue {
+	export class PlayerCards implements StateValue<PlayerCards> {
 		readonly bonuses: TokenVec;
 		readonly points: number;
 		readonly reserved: Card[];
@@ -233,16 +239,15 @@ export namespace GameStates {
 		keyString(): string { return `${numStringH(this.points)}${this.bonuses.str}`; }
 		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
 
+		isSame(other: PlayerCards): boolean {
+			throw new Error("not implemented");
+		}
+
 		static fromKeyString(s: string): PlayerCards { 
-			const obj = new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), [])
-			//console.log(s + " =>\n" + obj);
-			
+			const obj = new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), [])			
 			return obj;  
 			
 		}
-
-			//str(): string { return this.bonuses.str + ';' + this.points.toString(10) + ';' + this.reserved.map(cardStringD); }
-
 		
 		covers(other: PlayerCards): boolean {
 			return false//(this.points >= other.points && this.bonuses.covers(other.bonuses))
@@ -273,10 +278,6 @@ export namespace GameStates {
 			this.spread = sp;
 		}
 		
-			// str(): string {
-				// const cardStr = this.spread.map(cardStringD).join(',');
-				// return this.stackNums.map(numStringD).join(',') + ';' + cardStr;
-			// }
 
 		keyString(): string {
 			const stackStr = this.stackNums.map(numStringH).join('');
@@ -286,6 +287,11 @@ export namespace GameStates {
 
 		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
 
+		isSame(other: TableCards): boolean {
+			throw new Error("not implemented");
+		}
+
+
 		static fromKeyString(s: string): TableCards {
 			const twos = s.match(/../g)!;
 			const nums = twos.slice(0, 3).map(x => parseInt(x, 16));
@@ -293,7 +299,7 @@ export namespace GameStates {
 			
 			return new TableCards(nums, spread);
 		}
-	
+
 		grab(c: Card): TableCards {
 			const index = this.spread.indexOf(c);
 			
@@ -317,7 +323,7 @@ export namespace GameStates {
 	
 	const DEFAULT_TABLE_CARDS = new TableCards([36, 26, 16], INITIAL_TABLE_NUMS.flat());
 
-	export class CardState implements StateValue {
+	export class CardState implements StateValue<CardState> {
 		readonly tableCards: TableCards;
 		readonly playerCards: PlayerCards[];
 		
@@ -329,19 +335,18 @@ export namespace GameStates {
 		keyString(): string { return this.tableCards.keyString() + this.playerCards.map(x => x.keyString()).join(''); }
 		niceString(): string { return this.tableCards.niceString() + '  ' + this.playerCards.map(x => x.niceString()).join('  '); }
 
+		isSame(other: CardState): boolean {
+			throw new Error("not implemented");
+		}
 
 		static fromKeyString(s: string): CardState {
-			const tableCards = TableCards.fromKeyString(s.slice(0,30));
-			const eights = s.substring(30).match(/......../g)!;
+			const tableCards = TableCards.fromKeyString(s.slice(0,30)); // TODO: verify size
+			const eights = s.substring(30).match(/......../g)!; // TODO: size of slice should be: MAX_PLAYERS * 
 			const playerCards = eights.map(PlayerCards.fromKeyString);
 			return new CardState(tableCards, playerCards);
 		}
 
 		ofPlayer(player: number): PlayerCards { return this.playerCards[player]!; }
-
-		//str(): string { return this.tableCards.str() + '\n    ' + this.playerCards.map(x => x.str() + '||'); }
-		//str(): string { return this.tableCards.niceString() + '\n    ' + this.playerCards.map(x => x.niceString() + '||'); }
-
 
 		steal(player: number, c: Card): CardState {
 			const newPlayerCards = [...this.playerCards];
@@ -357,7 +362,6 @@ export namespace GameStates {
 		}
 
 	}
-
 
 
 
@@ -389,7 +393,7 @@ export namespace GameStates {
 		};
 
 		// Naive implementation - compare each state to previous states (assumes sorted by falling sum!)
-		function pruneInternal(statesCopy: TokenState[], player: number): PruningResult {
+		function pruneInternal_Default(statesCopy: TokenState[], player: number): PruningResult {
 			let pruningResult = new PruningResult();
 			
 			while (statesCopy.length > 0) {
@@ -421,7 +425,7 @@ export namespace GameStates {
 			return pruningResult;
 		}
 		
-		type PruningFunction = typeof pruneInternal;
+		type PruningFunction = typeof pruneInternal_Default;
 
 		// For each state, generates states that are "bigger" by 1 or 2 and checks whether they are present
 		function pruneInternal_Ex0(statesCopy: TokenState[], player: number): PruningResult {
@@ -526,15 +530,15 @@ export namespace GameStates {
 		makeUnique(): void { this.states = uniqueTokStates(this.states); }
 
 
-			// Print formatted content
-			organize(): void {
-				const grouped = Map.groupBy(this.states, x => x.tableToks.str);
+			// // Print formatted content
+			// organize(): void {
+				// const grouped = Map.groupBy(this.states, x => x.tableToks.str);
 				
-				console.log(`${this.size()} states:`);
-				for (let [tableStr, pl] of grouped) {
-					console.log(`[${pl.length}] ${tableStr} => ` + pl.map(x => x.playerString()).join(', '))
-				}
-			}
+				// console.log(`${this.size()} states:`);
+				// for (let [tableStr, pl] of grouped) {
+					// console.log(`[${pl.length}] ${tableStr} => ` + pl.map(x => x.playerString()).join(', '))
+				// }
+			// }
 
 		showSplit(player: number): void {
 			const grouped = Map.groupBy(this.states, x => x.ofPlayer(player).sum());
@@ -623,7 +627,6 @@ export namespace GameStates {
 		
 	}
 
-	
 
 
 	export function uniqueCardStates(states: CardState[]): CardState[] {
@@ -652,7 +655,6 @@ export namespace GameStates {
 			for (const st of statesCopy) {
 				if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
 					found = true;
-						//console.log(`Kill ${st.niceString()} by ${last.niceString()}`);
 					break;
 				}
 			}
@@ -687,24 +689,13 @@ export namespace GameStates {
 		}
 	}
 
-
-	// function TMP_compareCardStates(a: CardState, b: CardState, player: number): number {
-		// const cmpTable = TableCardsConcise.fromCardState(a).stackImg.localeCompare(TableCardsConcise.fromCardState(b).stackImg);
+	// export function TMP_sortCardStates(states: CardState[], player: number): CardState[] {
+		// const statesCopy = [...states];
 		
-		// if (cmpTable != 0) return cmpTable;
-
-		// //return a.ofPlayer(player).compare()
+		// statesCopy.sort( (a, b) => TableCardsConcise.fromCardState(a).stackImg.localeCompare(TableCardsConcise.fromCardState(b).stackImg) );
 		
+		// return statesCopy;
 	// }
-
-
-	export function TMP_sortCardStates(states: CardState[], player: number): CardState[] {
-		const statesCopy = [...states];
-		
-		statesCopy.sort( (a, b) => TableCardsConcise.fromCardState(a).stackImg.localeCompare(TableCardsConcise.fromCardState(b).stackImg) );
-		
-		return statesCopy;
-	}
 
 
 	export const DEFAULT_CARDS = new CardState(
@@ -712,7 +703,7 @@ export namespace GameStates {
 										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS)
 										);
 	
-	
+
 	export class State {
 		readonly cardState: CardState;
 		readonly tokenState: TokenState;
@@ -726,7 +717,6 @@ export namespace GameStates {
 			return this.tokenState.toString();
 		}
 	}
-
 
 
 	
@@ -777,7 +767,6 @@ export namespace GameStates {
 
 		}
 		
-		
 			__playerMove(): void {
 				const tokState = this.states[0]!.tokenState;
 				const goodTakes = tokState.findPossibleTakes();
@@ -805,10 +794,10 @@ export namespace GameStates {
 			const prevSize = this.__cardStates.length;
 			this.__cardStates = uniqueCardStates(this.__cardStates);
 			
-				const sortedStates = TMP_sortCardStates(this.__cardStates, this.playerTurn);
+			//	const sortedStates = TMP_sortCardStates(this.__cardStates, this.playerTurn);
 			
-				 TMP_logCardStates(sortedStates, `cards_${this.round}_${this.playerTurn}.txt`);
-				 TMP_logConciseCardStates(sortedStates.map(TableCardsConcise.fromCardState), `concise_${this.round}_${this.playerTurn}.txt`);
+				 TMP_logCardStates(this.__cardStates, `cards_${this.round}_${this.playerTurn}.txt`);
+			//	 TMP_logConciseCardStates(sortedStates.map(TableCardsConcise.fromCardState), `concise_${this.round}_${this.playerTurn}.txt`);
 			
 			const pruned = pruneCards(this.__cardStates, this.playerTurn);
 			
@@ -823,10 +812,6 @@ export namespace GameStates {
 
 	
 	export const INITIAL_STATE = new State(
-		// new CardState(
-			// new TableCards(),
-			// [new PlayerCards, new PlayerCards, new PlayerCards, new PlayerCards].slice(0, N_PLAYERS)
-		// ),
 		DEFAULT_CARDS,
 		new TokenState(
 			new TokenVec(MAX_TOKEN_STACKS),
@@ -834,16 +819,7 @@ export namespace GameStates {
 		)
 	);
 
-		// Make all token vectors that player can have
-		export function genVectors(max: number): TokenVec[] {
-			let vecs: TokenVec[] = [];
-			for (let n = 0; n < 100_000; n++) {
-				const s = (100_000 + n).toString(10).substring(1) + '0';
-				if (!s.split('').some(s => parseInt(s, 10) > max)) vecs.push(new TokenVec(s));
-			}
-			
-			return vecs.filter(x => x.sum() <= MAX_PLAYER_TOKS);
-		}
+
 	
 
 	function writePruning(fname: string, states: TokenState[], player: number, counts: number[]): void { 
@@ -881,10 +857,7 @@ export namespace GameStates {
 			const writer = fs.createWriteStream(fname);
 			const LEN = states.length;
 			for (let i = 0; i < states.length; i++) {
-				const state = states[i]!;
-				
-				//const desc = `M=${Math.max(state.ofPlayer(0).points,state.ofPlayer(1).points)}, D=${state.ofPlayer(0).points - state.ofPlayer(1).points}`;
-				
+				const state = states[i]!;				
 				writer.write(`${i}: ${state.toString()}\n`);
 			}
 			

@@ -426,7 +426,18 @@ export class CardState {
 	export function getVectorsSum1(): string[] { return STR_1x1.map(s => s + "0"); }
 	export function getVectorsSum2(): string[] { return STR_2x1.concat(STR_1x2).map(s => s + "0"); }
 
-	
+		// Make all token vectors that player can have
+		export function genVectors(max: number): TokenVec[] {
+			let vecs: TokenVec[] = [];
+			for (let n = 0; n < 100_000; n++) {
+				const s = (100_000 + n).toString(10).substring(1) + '0';
+				if (!s.split('').some(s => parseInt(s, 10) > max)) vecs.push(new TokenVec(s));
+			}
+			
+			return vecs.filter(x => x.sum() <= MAX_PLAYER_TOKS);
+		}
+
+
 	type StringBinFunc = (x: number, y: number) => number;
 	
 	function stringBinOp(func: StringBinFunc, a: string, b: string): string {
