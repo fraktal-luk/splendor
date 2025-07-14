@@ -147,6 +147,7 @@ export namespace GameStates {
 		}
 
 		playerString(): string { return this.playerToks.map(x => x.toLongString()).join('|'); }
+			playerKString(): string { return this.playerToks.map(x => x.str).join(); }
 		ofPlayer(player: number): TokenVec { return this.playerToks[player]!; }
 
 		static fromKeyString(s: string): TokenState {
@@ -364,8 +365,6 @@ export namespace GameStates {
 	}
 
 
-
-
 	function handleExcessive(states: TokenState[], player: number): TokenState[] {
 		let arr: TokenState[] = [];
 		let arrArr: TokenState[][] = [];
@@ -461,7 +460,11 @@ export namespace GameStates {
 					for (const s of up1) {
 						thisCountUp1++;
 						if (grouped.has(s.ofPlayer(player).str)) {
-							foundUp1 = true;
+							const arr = grouped.get(s.ofPlayer(player).str)!;
+							
+							if (arr.some(x => x.playerKString() == s.playerKString())) foundUp1 = true;
+							
+								foundUp1 = true;
 							break;
 						}
 					}
@@ -470,7 +473,11 @@ export namespace GameStates {
 						for (const s of up2) {
 							thisCountUp2++;
 							if (grouped.has(s.ofPlayer(player).str)) {
-								foundUp2 = true;
+								const arr = grouped.get(s.ofPlayer(player).str)!;
+
+								if (arr.some(x => x.playerKString() == s.playerKString())) foundUp2 = true;
+
+									foundUp2 = true;
 								break;
 							}
 						}
@@ -529,16 +536,6 @@ export namespace GameStates {
 		
 		makeUnique(): void { this.states = uniqueTokStates(this.states); }
 
-
-			// // Print formatted content
-			// organize(): void {
-				// const grouped = Map.groupBy(this.states, x => x.tableToks.str);
-				
-				// console.log(`${this.size()} states:`);
-				// for (let [tableStr, pl] of grouped) {
-					// console.log(`[${pl.length}] ${tableStr} => ` + pl.map(x => x.playerString()).join(', '))
-				// }
-			// }
 
 		showSplit(player: number): void {
 			const grouped = Map.groupBy(this.states, x => x.ofPlayer(player).sum());
@@ -667,6 +664,35 @@ export namespace GameStates {
 		return res; 
 	}	
 
+		export function pruneCards_Str(states: CardState[], player: number): CardState[] {
+			const statesCopy = [...states];
+			statesCopy.sort((a, b) => b.ofPlayer(player).bonuses.sum() - a.ofPlayer(player).bonuses.sum());
+
+			let res: CardState[] = [];
+			
+			while(statesCopy.length > 0) {
+				const last = statesCopy.pop()!;
+				let found = false;
+				
+				// Temporary, to reduce analyzed tree size: reject if too big disadvantage in points
+				const allPoints = last.playerCards.map(x => x.points);
+				const myPoints = last.ofPlayer(player).points;
+
+				for (const st of statesCopy) {
+					if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
+						found = true;
+						break;
+					}
+				}
+				
+				if (!found) {
+					res.push(last);
+				}
+			}
+			
+			return res; 
+		}
+
 
 	export class TableCardsConcise {
 		stackImg: string = ""; // Begins with sum of stacks so that sorting is done first with regard to total cards remaining
@@ -688,14 +714,6 @@ export namespace GameStates {
 			return cc;
 		}
 	}
-
-	// export function TMP_sortCardStates(states: CardState[], player: number): CardState[] {
-		// const statesCopy = [...states];
-		
-		// statesCopy.sort( (a, b) => TableCardsConcise.fromCardState(a).stackImg.localeCompare(TableCardsConcise.fromCardState(b).stackImg) );
-		
-		// return statesCopy;
-	// }
 
 
 	export const DEFAULT_CARDS = new CardState(
@@ -751,6 +769,17 @@ export namespace GameStates {
 		abstract moveImpl(): void;
 	}
 	
+	class CardStateSet {
+		content = new Set<string>;
+		
+		clear(): void { this.content.clear(); }
+		
+		addStates(states: CardState[]): void {
+			for (const st of states) this.content.add(st.keyString());
+		}
+	}
+	
+	
 	
 	
 	// Experimental, for tokens only
@@ -786,18 +815,21 @@ export namespace GameStates {
 	// For cards only
 	export class WavefrontC extends Wavefront {
 		__cardStates: CardState[] = [DEFAULT_CARDS];
+		stateSet = new CardStateSet();
 
 		moveImpl(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__cardStates = moveCards(this.__cardStates, this.playerTurn);
+				this.stateSet.clear();
+				this.stateSet.addStates(this.__cardStates);
+				console.log(`  Added ${this.stateSet.content.size}`);
+			
+			
 			const prevSize = this.__cardStates.length;
 			this.__cardStates = uniqueCardStates(this.__cardStates);
 			
-			//	const sortedStates = TMP_sortCardStates(this.__cardStates, this.playerTurn);
-			
 				 TMP_logCardStates(this.__cardStates, `cards_${this.round}_${this.playerTurn}.txt`);
-			//	 TMP_logConciseCardStates(sortedStates.map(TableCardsConcise.fromCardState), `concise_${this.round}_${this.playerTurn}.txt`);
 			
 			const pruned = pruneCards(this.__cardStates, this.playerTurn);
 			
@@ -835,8 +867,7 @@ export namespace GameStates {
 		writer.end();
 	}
 	
-	
-	
+
 	function TMP_logCardStates(states: CardState[], fname: string): void {
 		const fs = require("fs");
 		const writer = fs.createWriteStream(fname);
@@ -852,16 +883,5 @@ export namespace GameStates {
 		writer.end();
 	}
 
-		function TMP_logConciseCardStates(states: TableCardsConcise[], fname: string): void {
-			const fs = require("fs");
-			const writer = fs.createWriteStream(fname);
-			const LEN = states.length;
-			for (let i = 0; i < states.length; i++) {
-				const state = states[i]!;				
-				writer.write(`${i}: ${state.toString()}\n`);
-			}
-			
-			writer.end();
-		}
 	
 }
