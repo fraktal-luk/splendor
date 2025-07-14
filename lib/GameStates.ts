@@ -241,7 +241,9 @@ export namespace GameStates {
 		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
 
 		isSame(other: PlayerCards): boolean {
-			throw new Error("not implemented");
+			//throw new Error("not implemented");
+			
+			return this.bonuses.str == other.bonuses.str && this.points == other.points; // TODO: reserved when becomes relevant
 		}
 
 		static fromKeyString(s: string): PlayerCards { 
@@ -270,7 +272,7 @@ export namespace GameStates {
 	
 	const DEFAULT_PLAYER_CARDS = new PlayerCards(new TokenVec("000000"), 0, []);
 	
-	export class TableCards {
+	export class TableCards implements StateValue<TableCards> {
 		readonly stackNums: number[];
 		readonly spread: Card[]; // Cards seen on table
 		
@@ -289,7 +291,9 @@ export namespace GameStates {
 		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
 
 		isSame(other: TableCards): boolean {
-			throw new Error("not implemented");
+			//throw new Error("not implemented");
+			
+			return this.stackNums.toString() == other.stackNums.toString() && this.spread.toString() == other.spread.toString();
 		}
 
 
@@ -337,7 +341,15 @@ export namespace GameStates {
 		niceString(): string { return this.tableCards.niceString() + '  ' + this.playerCards.map(x => x.niceString()).join('  '); }
 
 		isSame(other: CardState): boolean {
-			throw new Error("not implemented");
+			//throw new Error("not implemented");
+			
+			if (!this.tableCards.isSame(other.tableCards)) return false;
+			
+			for (let i = 0; i < this.playerCards.length; i++) {
+				if (!this.ofPlayer(i).isSame(other.ofPlayer(i))) return false;
+			}
+			
+			return true;
 		}
 
 		static fromKeyString(s: string): CardState {
@@ -346,6 +358,10 @@ export namespace GameStates {
 			const playerCards = eights.map(PlayerCards.fromKeyString);
 			return new CardState(tableCards, playerCards);
 		}
+
+
+		playerKString(): string { return this.playerCards.map(x => x.keyString()).join(''); }
+
 
 		ofPlayer(player: number): PlayerCards { return this.playerCards[player]!; }
 
@@ -464,7 +480,7 @@ export namespace GameStates {
 							
 							if (arr.some(x => x.playerKString() == s.playerKString())) foundUp1 = true;
 							
-								foundUp1 = true;
+							//	foundUp1 = true;
 							break;
 						}
 					}
@@ -477,7 +493,7 @@ export namespace GameStates {
 
 								if (arr.some(x => x.playerKString() == s.playerKString())) foundUp2 = true;
 
-									foundUp2 = true;
+								//	foundUp2 = true;
 								break;
 							}
 						}
@@ -666,29 +682,49 @@ export namespace GameStates {
 
 		export function pruneCards_Str(states: CardState[], player: number): CardState[] {
 			const statesCopy = [...states];
-			statesCopy.sort((a, b) => b.ofPlayer(player).bonuses.sum() - a.ofPlayer(player).bonuses.sum());
+			//statesCopy.sort((a, b) => b.ofPlayer(player).bonuses.sum() - a.ofPlayer(player).bonuses.sum());
+				
+				const grouped = Map.groupBy(statesCopy, x => x.ofPlayer(player).points);
 
-			let res: CardState[] = [];
+
+			 let res: CardState[] = [];
 			
-			while(statesCopy.length > 0) {
-				const last = statesCopy.pop()!;
-				let found = false;
+			// for (const st of statesCopy {
+				// let found = false;
 				
-				// Temporary, to reduce analyzed tree size: reject if too big disadvantage in points
-				const allPoints = last.playerCards.map(x => x.points);
-				const myPoints = last.ofPlayer(player).points;
+				// const nP = st.ofPlayer(player).points;
+				
+				// for (let incr = 0; incr <= 15; incr++) {
+					// nIncP = nP + incr;
+					// const soughtP = new PlayerCards(st.bonuses, nIncP, st.reserved);
+					
+					// for () {
+						
+					// }
+					
+				// }
+				
+			// }
+			
+			// while(statesCopy.length > 0) {
+				// const last = statesCopy.pop()!;
+				// let found = false;
+				
+				// // Temporary, to reduce analyzed tree size: reject if too big disadvantage in points
+				// const allPoints = last.playerCards.map(x => x.points);
+				// const myPoints = last.ofPlayer(player).points;
 
-				for (const st of statesCopy) {
-					if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
-						found = true;
-						break;
-					}
-				}
+				// for (const st of statesCopy) {
+					// if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
+						// found = true;
+						// break;
+					// }
+				// }
 				
-				if (!found) {
-					res.push(last);
-				}
-			}
+				// if (!found) {
+					// res.push(last);
+				// }
+			// }
 			
 			return res; 
 		}
@@ -775,7 +811,14 @@ export namespace GameStates {
 		clear(): void { this.content.clear(); }
 		
 		addStates(states: CardState[]): void {
-			for (const st of states) this.content.add(st.keyString());
+			for (const st of states) {
+				const ks = st.keyString();
+				const rec = CardState.fromKeyString(ks);
+				
+				if (!rec.isSame(st)) throw new Error("wrong rec");
+				
+				this.content.add(st.keyString());
+			}
 		}
 	}
 	
@@ -815,15 +858,15 @@ export namespace GameStates {
 	// For cards only
 	export class WavefrontC extends Wavefront {
 		__cardStates: CardState[] = [DEFAULT_CARDS];
-		stateSet = new CardStateSet();
+		//stateSet = new CardStateSet();
 
 		moveImpl(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__cardStates = moveCards(this.__cardStates, this.playerTurn);
-				this.stateSet.clear();
-				this.stateSet.addStates(this.__cardStates);
-				console.log(`  Added ${this.stateSet.content.size}`);
+				//this.stateSet.clear();
+				//this.stateSet.addStates(this.__cardStates);
+				//console.log(`  Added ${this.stateSet.content.size}`);
 			
 			
 			const prevSize = this.__cardStates.length;
@@ -832,6 +875,7 @@ export namespace GameStates {
 				 TMP_logCardStates(this.__cardStates, `cards_${this.round}_${this.playerTurn}.txt`);
 			
 			const pruned = pruneCards(this.__cardStates, this.playerTurn);
+						   //this.__cardStates;
 			
 			console.log(`Unique card states: ${prevSize} -> ${this.__cardStates.length}`);
 			console.log(`Pruned size ${pruned.length}`);
@@ -841,6 +885,34 @@ export namespace GameStates {
 		
 	}
 
+		export class WavefrontC_N extends Wavefront {
+			__cardStates: CardState[] = [DEFAULT_CARDS];
+			stateSet = new CardStateSet();
+
+			moveImpl(): void {
+				console.log(`{${this.round},${this.playerTurn}}`);
+
+				this.__cardStates = moveCards(this.__cardStates, this.playerTurn);
+					this.stateSet.clear();
+					this.stateSet.addStates(this.__cardStates);
+					console.log(`  Added ${this.stateSet.content.size}`);
+				
+				
+				const prevSize = this.__cardStates.length;
+				this.__cardStates = uniqueCardStates(this.__cardStates);
+				
+					 TMP_logCardStates(this.__cardStates, `cards_${this.round}_${this.playerTurn}.txt`);
+				
+				const pruned = pruneCards(this.__cardStates, this.playerTurn);
+							   //this.__cardStates;
+				
+				console.log(`Unique card states: ${prevSize} -> ${this.__cardStates.length}`);
+				console.log(`Pruned size ${pruned.length}`);
+
+					this.__cardStates = pruned;
+			}
+			
+		}
 
 	
 	export const INITIAL_STATE = new State(
