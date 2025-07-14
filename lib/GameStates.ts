@@ -650,6 +650,32 @@ export namespace GameStates {
 	
 	export function moveCards(states: CardState[], player: number): CardState[] { return states.map(x => x.addNext(player)).flat(); }
 
+	export function moveCards_N(states: string[], player: number): CardState[] { return states.map(s => CardState.fromKeyString(s).addNext(player)).flat(); }
+
+	export function moveCards_N2(states: Set<string>, player: number): CardState[]
+	{ 
+		const res: CardState[][] = [];
+		
+		for (const s of states) {
+			res.push(CardState.fromKeyString(s).addNext(player));
+		}
+	
+		return res.flat(); 
+	}
+
+	export function moveCards_N3(states: Set<string>, player: number): CardState[][]
+	{ 
+		const res: CardState[][] = [];
+		
+		for (const s of states) {
+			res.push(CardState.fromKeyString(s).addNext(player));
+		}
+	
+		return res; 
+	}
+
+
+
 	// This function rejects states which have less points than other state AND the same vector of bonuses
 	export function pruneCards(states: CardState[], player: number): CardState[] {
 		const statesCopy = [...states];
@@ -680,76 +706,28 @@ export namespace GameStates {
 		return res; 
 	}	
 
-		export function pruneCards_Str(states: CardState[], player: number): CardState[] {
-			const statesCopy = [...states];
-			//statesCopy.sort((a, b) => b.ofPlayer(player).bonuses.sum() - a.ofPlayer(player).bonuses.sum());
-				
-				const grouped = Map.groupBy(statesCopy, x => x.ofPlayer(player).points);
 
 
-			 let res: CardState[] = [];
+		export class TableCardsConcise {
+			stackImg: string = ""; // Begins with sum of stacks so that sorting is done first with regard to total cards remaining
+			rowImg0: string = "";
+			rowImg1: string = "";
+			rowImg2: string = "";
 			
-			// for (const st of statesCopy {
-				// let found = false;
-				
-				// const nP = st.ofPlayer(player).points;
-				
-				// for (let incr = 0; incr <= 15; incr++) {
-					// nIncP = nP + incr;
-					// const soughtP = new PlayerCards(st.bonuses, nIncP, st.reserved);
-					
-					// for () {
-						
-					// }
-					
-				// }
-				
-			// }
+			toString(): string {
+				return [this.stackImg, this.rowImg0, this.rowImg1, this.rowImg2, ].join(' ');
+			}
 			
-			// while(statesCopy.length > 0) {
-				// const last = statesCopy.pop()!;
-				// let found = false;
-				
-				// // Temporary, to reduce analyzed tree size: reject if too big disadvantage in points
-				// const allPoints = last.playerCards.map(x => x.points);
-				// const myPoints = last.ofPlayer(player).points;
-
-				// for (const st of statesCopy) {
-					// if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
-						// found = true;
-						// break;
-					// }
-				// }
-				
-				// if (!found) {
-					// res.push(last);
-				// }
-			// }
-			
-			return res; 
+			static fromCardState(st: CardState): TableCardsConcise {
+				let cc = new TableCardsConcise();
+				cc.stackImg = [st.tableCards.stackNums[0]! + st.tableCards.stackNums[1]! + st.tableCards.stackNums[2]!,
+								st.tableCards.stackNums[0]!, st.tableCards.stackNums[1]!, st.tableCards.stackNums[2]!].map(numStringH).join('');
+				cc.rowImg0 = st.tableCards.spread.slice(0, 4).map(cardStringH).join('');
+				cc.rowImg1 = st.tableCards.spread.slice(4, 8).map(cardStringH).join('');
+				cc.rowImg2 = st.tableCards.spread.slice(8, 12).map(cardStringH).join('');
+				return cc;
+			}
 		}
-
-
-	export class TableCardsConcise {
-		stackImg: string = ""; // Begins with sum of stacks so that sorting is done first with regard to total cards remaining
-		rowImg0: string = "";
-		rowImg1: string = "";
-		rowImg2: string = "";
-		
-		toString(): string {
-			return [this.stackImg, this.rowImg0, this.rowImg1, this.rowImg2, ].join(' ');
-		}
-		
-		static fromCardState(st: CardState): TableCardsConcise {
-			let cc = new TableCardsConcise();
-			cc.stackImg = [st.tableCards.stackNums[0]! + st.tableCards.stackNums[1]! + st.tableCards.stackNums[2]!,
-							st.tableCards.stackNums[0]!, st.tableCards.stackNums[1]!, st.tableCards.stackNums[2]!].map(numStringH).join('');
-			cc.rowImg0 = st.tableCards.spread.slice(0, 4).map(cardStringH).join('');
-			cc.rowImg1 = st.tableCards.spread.slice(4, 8).map(cardStringH).join('');
-			cc.rowImg2 = st.tableCards.spread.slice(8, 12).map(cardStringH).join('');
-			return cc;
-		}
-	}
 
 
 	export const DEFAULT_CARDS = new CardState(
@@ -808,18 +786,31 @@ export namespace GameStates {
 	class CardStateSet {
 		content = new Set<string>;
 		
+		static init(cs: CardState[]): CardStateSet {
+			const res = new CardStateSet();
+			res.addStates(cs);
+			return res;
+		}
+		
 		clear(): void { this.content.clear(); }
 		
 		addStates(states: CardState[]): void {
 			for (const st of states) {
-				const ks = st.keyString();
-				const rec = CardState.fromKeyString(ks);
+				// const ks = st.keyString();
+				// const rec = CardState.fromKeyString(ks);
 				
-				if (!rec.isSame(st)) throw new Error("wrong rec");
+				// if (!rec.isSame(st)) throw new Error("wrong rec");
 				
 				this.content.add(st.keyString());
 			}
 		}
+		
+		addStates2D(states: CardState[][]): void {
+			for (const sta of states) {
+				this.addStates(sta);
+			}
+		}
+		
 	}
 	
 	
@@ -864,18 +855,13 @@ export namespace GameStates {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__cardStates = moveCards(this.__cardStates, this.playerTurn);
-				//this.stateSet.clear();
-				//this.stateSet.addStates(this.__cardStates);
-				//console.log(`  Added ${this.stateSet.content.size}`);
-			
 			
 			const prevSize = this.__cardStates.length;
 			this.__cardStates = uniqueCardStates(this.__cardStates);
 			
-				 TMP_logCardStates(this.__cardStates, `cards_${this.round}_${this.playerTurn}.txt`);
+			//TMP_logCardStates(this.__cardStates, `cards_${this.round}_${this.playerTurn}.txt`);
 			
-			const pruned = pruneCards(this.__cardStates, this.playerTurn);
-						   //this.__cardStates;
+			const pruned = this.__cardStates;
 			
 			console.log(`Unique card states: ${prevSize} -> ${this.__cardStates.length}`);
 			console.log(`Pruned size ${pruned.length}`);
@@ -887,29 +873,26 @@ export namespace GameStates {
 
 		export class WavefrontC_N extends Wavefront {
 			__cardStates: CardState[] = [DEFAULT_CARDS];
-			stateSet = new CardStateSet();
+			stateSet = CardStateSet.init([DEFAULT_CARDS]);// new CardStateSet();
 
 			moveImpl(): void {
 				console.log(`{${this.round},${this.playerTurn}}`);
+				
+				//const newStates = moveCards_N2(this.stateSet.content, this.playerTurn);
 
-				this.__cardStates = moveCards(this.__cardStates, this.playerTurn);
+				const prevSize = 0;//newStates.length;
+
+
+				const newStates2D = moveCards_N3(this.stateSet.content, this.playerTurn);
+								  
+
+				
 					this.stateSet.clear();
-					this.stateSet.addStates(this.__cardStates);
-					console.log(`  Added ${this.stateSet.content.size}`);
+						this.stateSet.addStates2D(newStates2D);
+					
+					
+					console.log(`  ${prevSize}, added ${this.stateSet.content.size}`);
 				
-				
-				const prevSize = this.__cardStates.length;
-				this.__cardStates = uniqueCardStates(this.__cardStates);
-				
-					 TMP_logCardStates(this.__cardStates, `cards_${this.round}_${this.playerTurn}.txt`);
-				
-				const pruned = pruneCards(this.__cardStates, this.playerTurn);
-							   //this.__cardStates;
-				
-				console.log(`Unique card states: ${prevSize} -> ${this.__cardStates.length}`);
-				console.log(`Pruned size ${pruned.length}`);
-
-					this.__cardStates = pruned;
 			}
 			
 		}
