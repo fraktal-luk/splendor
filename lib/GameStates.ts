@@ -650,21 +650,9 @@ export namespace GameStates {
 	
 	export function moveCards(states: CardState[], player: number): CardState[] { return states.map(x => x.addNext(player)).flat(); }
 
-	export function moveCards_N(states: string[], player: number): CardState[] { return states.map(s => CardState.fromKeyString(s).addNext(player)).flat(); }
-
-	export function moveCards_N2(states: Set<string>, player: number): CardState[]
-	{ 
-		const res: CardState[][] = [];
-		
-		for (const s of states) {
-			res.push(CardState.fromKeyString(s).addNext(player));
-		}
-	
-		return res.flat(); 
-	}
 
 	export function moveCards_N3(states: Set<string>, player: number): CardState[][]
-	{ 
+	{
 		const res: CardState[][] = [];
 		
 		for (const s of states) {
@@ -673,6 +661,18 @@ export namespace GameStates {
 	
 		return res; 
 	}
+
+		export function moveCards_Sets(inSet: CardStateSet, player: number, outSet: CardStateSet): void
+		{
+			const res: CardState[][] = [];
+			
+			for (const s of inSet.content) {
+				const next = CardState.fromKeyString(s).addNext(player);
+				outSet.addStates(next);
+			}
+		
+			//return res; 
+		}
 
 
 
@@ -783,8 +783,10 @@ export namespace GameStates {
 		abstract moveImpl(): void;
 	}
 	
+	
 	class CardStateSet {
-		content = new Set<string>;
+		content = new Set<string>();
+			mapped = new Map<string, CardState>();
 		
 		static init(cs: CardState[]): CardStateSet {
 			const res = new CardStateSet();
@@ -792,16 +794,15 @@ export namespace GameStates {
 			return res;
 		}
 		
-		clear(): void { this.content.clear(); }
+		clear(): void { 
+			this.content.clear();
+				this.mapped.clear();
+		}
 		
 		addStates(states: CardState[]): void {
 			for (const st of states) {
-				// const ks = st.keyString();
-				// const rec = CardState.fromKeyString(ks);
-				
-				// if (!rec.isSame(st)) throw new Error("wrong rec");
-				
 				this.content.add(st.keyString());
+				//	this.mapped.set(st.keyString(), st);
 			}
 		}
 		
@@ -810,6 +811,23 @@ export namespace GameStates {
 				this.addStates(sta);
 			}
 		}
+		
+		
+		move(player: number): CardStateSet {
+			const res = new CardStateSet();
+
+			for (const s of this.content) {
+				const sFull = CardState.fromKeyString(s);
+			// for (const [s, obj] of this.mapped) {
+				// const sFull = obj;				
+				
+				const next = sFull.addNext(player);
+				res.addStates(next);
+			}
+
+			return res;
+		}
+		
 		
 	}
 	
@@ -878,21 +896,13 @@ export namespace GameStates {
 			moveImpl(): void {
 				console.log(`{${this.round},${this.playerTurn}}`);
 				
-				//const newStates = moveCards_N2(this.stateSet.content, this.playerTurn);
-
 				const prevSize = 0;//newStates.length;
 
-
-				const newStates2D = moveCards_N3(this.stateSet.content, this.playerTurn);
-								  
-
+				const nextSet = this.stateSet.move(this.playerTurn);
+				this.stateSet = nextSet;
 				
-					this.stateSet.clear();
-						this.stateSet.addStates2D(newStates2D);
-					
-					
-					console.log(`  ${prevSize}, added ${this.stateSet.content.size}`);
-				
+				console.log(`  ${prevSize}, added ${this.stateSet.content.size}`);
+			
 			}
 			
 		}
