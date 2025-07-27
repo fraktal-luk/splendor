@@ -271,7 +271,43 @@ export namespace GameStates {
 	}
 	
 	const DEFAULT_PLAYER_CARDS = new PlayerCards(new TokenVec("000000"), 0, []);
-	
+
+
+	export class ManyPlayerCards implements StateValue<ManyPlayerCards> {
+		readonly arr: PlayerCards[];
+		
+		constructor(p: PlayerCards[]) {
+			this.arr = p;
+		}
+		
+		keyString(): string { return this.arr.map(x => x.keyString()).join(''); }
+		niceString(): string { return this.arr.map(x => x.niceString()).join('  '); }
+
+		isSame(other: ManyPlayerCards): boolean {
+			//throw new Error("not implemented");
+			
+			for (let i = 0; i < this.arr.length; i++) {
+				if (!this.ofPlayer(i).isSame(other.ofPlayer(i))) return false;
+			}
+			
+			return true;
+		}
+
+		static fromKeyString(s: string): ManyPlayerCards {
+			const eights = s.substring(0).match(/......../g)!;    // TODO: size of slice should be: MAX_PLAYERS * 
+			const playerCards = eights.map(PlayerCards.fromKeyString);
+			return new ManyPlayerCards(playerCards);
+		}
+
+
+		playerKString(): string { return this.arr.map(x => x.keyString()).join(''); }
+
+
+		ofPlayer(player: number): PlayerCards { return this.arr[player]!; }
+
+	}
+
+
 	export class TableCards implements StateValue<TableCards> {
 		readonly stackNums: number[];
 		readonly spread: Card[]; // Cards seen on table
@@ -330,43 +366,51 @@ export namespace GameStates {
 
 	export class CardState implements StateValue<CardState> {
 		readonly tableCards: TableCards;
-		readonly playerCards: PlayerCards[];
+		//readonly playerCards: PlayerCards[];
+			readonly mpc: ManyPlayerCards;
 		
 		constructor(t: TableCards, p: PlayerCards[]) {
 			this.tableCards = t;
-			this.playerCards = p;
+			//this.playerCards = p;
+				this.mpc = new ManyPlayerCards(p);
 		}
 		
-		keyString(): string { return this.tableCards.keyString() + this.playerCards.map(x => x.keyString()).join(''); }
-		niceString(): string { return this.tableCards.niceString() + '  ' + this.playerCards.map(x => x.niceString()).join('  '); }
+		keyString(): string { return this.tableCards.keyString() + //this.playerCards.map(x => x.keyString()).join(''); }
+																	this.mpc.keyString(); }
+		niceString(): string { return this.tableCards.niceString() + //'  ' + this.playerCards.map(x => x.niceString()).join('  '); }
+																	this.mpc.niceString(); }
 
 		isSame(other: CardState): boolean {
 			//throw new Error("not implemented");
 			
 			if (!this.tableCards.isSame(other.tableCards)) return false;
 			
-			for (let i = 0; i < this.playerCards.length; i++) {
-				if (!this.ofPlayer(i).isSame(other.ofPlayer(i))) return false;
-			}
+			return this.mpc.isSame(other.mpc);
 			
-			return true;
+			// for (let i = 0; i < this.playerCards.length; i++) {
+				// if (!this.ofPlayer(i).isSame(other.ofPlayer(i))) return false;
+			// }
+			
+			// return true;
 		}
 
 		static fromKeyString(s: string): CardState {
 			const tableCards = TableCards.fromKeyString(s.slice(0,30)); // TODO: verify size
 			const eights = s.substring(30).match(/......../g)!; // TODO: size of slice should be: MAX_PLAYERS * 
-			const playerCards = eights.map(PlayerCards.fromKeyString);
+			const playerCards = //eights.map(PlayerCards.fromKeyString);
+								ManyPlayerCards.fromKeyString(s.substring(30)).arr;
 			return new CardState(tableCards, playerCards);
 		}
 
 
-		playerKString(): string { return this.playerCards.map(x => x.keyString()).join(''); }
+		playerKString(): string { return this.mpc.playerKString(); }//this.playerCards.map(x => x.keyString()).join(''); }
 
 
-		ofPlayer(player: number): PlayerCards { return this.playerCards[player]!; }
+		ofPlayer(player: number): PlayerCards { return this.mpc.ofPlayer(player); }//this.playerCards[player]!; }
 
 		steal(player: number, c: Card): CardState {
-			const newPlayerCards = [...this.playerCards];
+			const newPlayerCards = //[...this.playerCards];
+								    [...this.mpc.arr];
 			newPlayerCards[player]! = newPlayerCards[player]!.acquire(c);
 			return new CardState(this.tableCards.grab(c), newPlayerCards);
 		}
@@ -688,7 +732,8 @@ export namespace GameStates {
 			let found = false;
 			
 			// Temporary, to reduce analyzed tree size: reject if too big disadvantage in points
-			const allPoints = last.playerCards.map(x => x.points);
+			const allPoints = //last.playerCards.map(x => x.points);
+							  last.mpc.arr.map(x => x.points);
 			const myPoints = last.ofPlayer(player).points;
 
 			for (const st of statesCopy) {
@@ -806,11 +851,11 @@ export namespace GameStates {
 			}
 		}
 		
-		addStates2D(states: CardState[][]): void {
-			for (const sta of states) {
-				this.addStates(sta);
-			}
-		}
+			// addStates2D(states: CardState[][]): void {
+				// for (const sta of states) {
+					// this.addStates(sta);
+				// }
+			// }
 		
 		
 		move(player: number): CardStateSet {
@@ -901,7 +946,15 @@ export namespace GameStates {
 				const nextSet = this.stateSet.move(this.playerTurn);
 				this.stateSet = nextSet;
 				
-				console.log(`  ${prevSize}, added ${this.stateSet.content.size}`);
+				let maxElem = -1;
+				
+				if (true) {
+					const fullObjs = [...this.stateSet.content].map(CardState.fromKeyString);
+					const pts = fullObjs.map(x => x.ofPlayer(this.playerTurn).points);
+					maxElem = pts.reduce((a,b) => Math.max(a, b), 0);
+				}
+				
+				console.log(`  ${prevSize}, added ${this.stateSet.content.size}  up to ${maxElem}`);
 			
 			}
 			
