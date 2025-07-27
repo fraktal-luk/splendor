@@ -78,10 +78,16 @@ export const STR_1x2_1x1 = [
 ];		
 export const STR_3x1 = ["00111", "01110", "11100", "11001", "10011", "01011", "10110", "01101", "11010", "10101",];
 
-const STR_RET3 = STR_3x1.concat(STR_1x2_1x1).concat(STR_1x3);
-const STR_RET2 = STR_2x1.concat(STR_1x2);
-const STR_RET1 = STR_1x1;
+export const STR_RET3 = STR_3x1.concat(STR_1x2_1x1).concat(STR_1x3);
+export const STR_RET2 = STR_2x1.concat(STR_1x2);
+export const STR_RET1 = STR_1x1;
 
+
+export function sortRows(arr: number[]): number[] {
+	const unsorted = [arr.slice(0, 4), arr.slice(4, 8), arr.slice(8, 12)];
+	const sorted = unsorted.map(x => x.toSorted((a,b) => a-b));
+	return sorted.flat();
+}
 
 export function getReturns(surplus: number): string[] {
 	switch (surplus) {
