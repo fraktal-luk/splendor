@@ -673,9 +673,20 @@ export namespace GameStates {
 			for (const st of states) this.pcSet.add(st.keyString());
 		}
 
-		absorb(otherSet: Set<string>): void {
+			// absorb(otherSet: Set<string>): void {
+				// for (const elem of otherSet)
+					// this.pcSet.add(elem);
+			// }
+
+		merged(otherSet: Set<string>): CardStateBundle {
+			const res = new CardStateBundle();
+			res.tableCards = this.tableCards;
+			res.pcSet = new Set<string>(this.pcSet);
+			
 			for (const elem of otherSet)
-				this.pcSet.add(elem);
+				res.pcSet.add(elem);
+			
+			return res;
 		}
 
 		move(player: number): CardStateBundle[] {
@@ -774,7 +785,7 @@ export namespace GameStates {
 						const ks = nb.tableCards.keyString();
 						
 						if (res.content.has(ks))
-							res.content.get(ks)!.absorb(nb.pcSet);
+							res.content.set(ks, res.content.get(ks)!.merged(nb.pcSet));
 						else
 							res.content.set(ks, nb);
 						
@@ -789,11 +800,14 @@ export namespace GameStates {
 
 	export class WavefrontC extends Wavefront {
 		stateSet = CardStateSet.init([DEFAULT_CARDS]);// new CardStateSet();
+			stateSet_B = CardStateBundledSet.init([DEFAULT_CARDS]);
 
 		moveImpl(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 			
 			this.stateSet = this.stateSet.move(this.playerTurn);
+				this.stateSet_B = this.stateSet_B.move(this.playerTurn);
+				
 			let maxElem = -1;
 			
 			if (true) {
@@ -802,7 +816,7 @@ export namespace GameStates {
 				maxElem = pts.reduce((a,b) => Math.max(a, b), 0);
 			}
 			
-			console.log(`set size ${this.stateSet.size()}  up to ${maxElem}`);
+			console.log(`set size ${this.stateSet.size()} ; ${this.stateSet_B.size()}  up to ${maxElem}`);
 		}
 		
 	}
