@@ -190,6 +190,20 @@ export namespace GameStates {
 
 		ofPlayer(player: number): PlayerCards { return this.arr[player]!; }
 
+
+		acquire(player: number, c: Card): ManyPlayerCards {
+			const thisPlayer = this.ofPlayer(player);
+			
+			const ind = c % 5;
+			const strBase = ["100000", "010000", "001000", "000100", "000010",];
+			const increment = strBase[ind]!;
+			
+			const newBonuses = thisPlayer.bonuses.add(new TokenVec(increment));
+			const newPoints = thisPlayer.points + getCardPoints(c);
+			
+			const thisPlayerNew = new PlayerCards(newBonuses, newPoints, thisPlayer.reserved);
+			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew));
+		}
 	}
 
 
@@ -261,14 +275,14 @@ export namespace GameStates {
 
 		static fromKeyString(s: string): CardState {
 			const tableCards = TableCards.fromKeyString(s.slice(0,30)); // TODO: verify size
-			const eights = s.substring(30).match(/......../g)!; // TODO: size of slice should be: MAX_PLAYERS * 
+			//const eights = s.substring(30).match(/......../g)!; // TODO: size of slice should be: MAX_PLAYERS * 
 			const playerCards = ManyPlayerCards.fromKeyString(s.substring(30)).arr;
 			return new CardState(tableCards, playerCards);
 		}
 
-		playerKString(): string { return this.mpc.playerKString(); }//this.playerCards.map(x => x.keyString()).join(''); }
+		playerKString(): string { return this.mpc.playerKString(); }
 
-		ofPlayer(player: number): PlayerCards { return this.mpc.ofPlayer(player); }//this.playerCards[player]!; }
+		ofPlayer(player: number): PlayerCards { return this.mpc.ofPlayer(player); }
 
 		steal(player: number, c: Card): CardState {
 			const newPlayerCards = [...this.mpc.arr];
@@ -287,7 +301,6 @@ export namespace GameStates {
 
 
 	function handleExcessive(states: TokenState[], player: number): TokenState[] {
-		let arr: TokenState[] = [];
 		let arrArr: TokenState[][] = [];
 		
 		states.forEach(x => {
@@ -455,7 +468,6 @@ export namespace GameStates {
 		
 		makeUnique(): void { this.states = uniqueTokStates(this.states); }
 
-
 		showSplit(player: number): void {
 			const grouped = Map.groupBy(this.states, x => x.ofPlayer(player).sum());
 			let str = "";
@@ -484,9 +496,7 @@ export namespace GameStates {
 			
 			const fwStates = this.generateNewStates(player);
 			const fwFlat = fwStates.flat();
-
 			const sizeGenerated = fwFlat.length;
-				
 			const fwUnique = [uniqueTokStates(fwFlat)];
 
 			console.timeEnd('takes A_1');
@@ -499,11 +509,8 @@ export namespace GameStates {
 			console.time('takes B');
 			
 			const newStatesFlat = newStates[0]!
-
-			let newStatesAdjustedUnique = uniqueTokStates(newStatesFlat);
-											
+			let newStatesAdjustedUnique = uniqueTokStates(newStatesFlat);							
 			newStatesAdjustedUnique.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
-			
 			const res = TokenStateSet.fromArray(newStatesAdjustedUnique);
 
 			console.timeEnd('takes B');
@@ -611,42 +618,6 @@ export namespace GameStates {
 	}
 	
 	
-	class CardStateSet {
-		content = new Set<string>();
-			mapped = new Map<string, CardState>();
-		
-		static init(cs: CardState[]): CardStateSet {
-			const res = new CardStateSet();
-			res.addStates(cs);
-			return res;
-		}
-		
-		clear(): void { 
-			this.content.clear();
-				this.mapped.clear();
-		}
-		
-		addStates(states: CardState[]): void {
-			for (const st of states) this.content.add(st.keyString());
-		}
-		
-		move(player: number): CardStateSet {
-			const res = new CardStateSet();
-
-			for (const s of this.content) {
-				const sFull = CardState.fromKeyString(s);
-				const next = sFull.addNext(player);
-				res.addStates(next);
-			}
-
-			return res;
-		}
-		
-		
-	}
-
-	
-	
 	// Experimental, for tokens only
 	export class WavefrontT extends Wavefront {
 		states: State[] = [INITIAL_STATE];
@@ -677,18 +648,152 @@ export namespace GameStates {
 	}
 
 
+
+
+	//////////////////////////////////////////////////////////
+	
+	// Represents a set of states with shared TableCards
+	class CardStateBundle {
+		tableCards: TableCards = DEFAULT_TABLE_CARDS;
+		pcSet = new Set<string>();
+		
+		size(): number {
+			return this.pcSet.size;
+		}
+		
+		static init(cs: CardState): CardStateBundle {
+			const res = new CardStateBundle();
+			res.tableCards = cs.tableCards;
+			res.pcSet.add(cs.mpc.keyString());
+
+			return res;			
+		}
+
+		addStates(states: ManyPlayerCards[]): void {
+			for (const st of states) this.pcSet.add(st.keyString());
+		}
+
+		absorb(otherSet: Set<string>): void {
+			for (const elem of otherSet)
+				this.pcSet.add(elem);
+		}
+
+		move(player: number): CardStateBundle[] {
+			const res: CardStateBundle[] = [this];
+			
+			for (const c of this.tableCards.spread) {
+				const nextTc = this.tableCards.grab(c);
+				const nextPcSet = this.pcSet.values().toArray().map(ManyPlayerCards.fromKeyString).map(x => x.acquire(player, c).keyString());
+				
+				const nextBundle = new CardStateBundle();
+				nextBundle.tableCards = nextTc;
+				nextBundle.pcSet = new Set<string>(nextPcSet);
+				
+				res.push(nextBundle);
+			}
+			
+			return res;
+		}
+		
+	}
+	
+
+	
+	class CardStateSet {
+		content = new Set<string>();
+		
+		size(): number {
+			return this.content.size;
+		}
+		
+		
+		static init(cs: CardState[]): CardStateSet {
+			const res = new CardStateSet();
+			res.addStates(cs);
+			return res;
+		}
+		
+		clear(): void { 
+			this.content.clear();
+		}
+		
+		addStates(states: CardState[]): void {
+			for (const st of states) this.content.add(st.keyString());
+		}
+		
+		move(player: number): CardStateSet {
+			const res = new CardStateSet();
+
+			for (const s of this.content) {
+				const sFull = CardState.fromKeyString(s);
+				const next = sFull.addNext(player);
+				res.addStates(next);
+			}
+
+			return res;
+		}
+
+	}
+
+
+
+		class CardStateBundledSet {
+			content = new Map<string, CardStateBundle>();
+			
+			size(): number {
+				return this.content.values().toArray().map(x => x.size()).reduce((a,b)=>a+b, 0);
+			}
+			
+			
+			static init(cs: CardState[]): CardStateBundledSet {
+				if (cs.length > 1) throw new Error("Must be one cardstate");
+				const initialCs = cs[0]!;
+				
+				const res = new CardStateBundledSet();
+				res.content.set(initialCs.tableCards.keyString(), CardStateBundle.init(initialCs));
+				return res;
+			}
+			
+			// clear(): void { 
+				// this.content.clear();
+			// }
+			
+			// addStates(states: ManyPlayerCards[]): void {
+				// for (const st of states) this.mpcSet.add(st.keyString());
+			// }
+			
+			move(player: number): CardStateBundledSet {
+				const res = new CardStateBundledSet();
+				
+				res.content = new Map<string, CardStateBundle>(this.content);
+				
+				for (const [s, bundle] of this.content) {
+					const nextBundles = bundle.move(player);
+					
+					for (const nb of nextBundles) {
+						const ks = nb.tableCards.keyString();
+						
+						if (res.content.has(ks))
+							res.content.get(ks)!.absorb(nb.pcSet);
+						else
+							res.content.set(ks, nb);
+						
+					}
+				}
+
+				return res;
+			}
+
+		}
+
+
 	export class WavefrontC extends Wavefront {
-		__cardStates: CardState[] = [DEFAULT_CARDS];
 		stateSet = CardStateSet.init([DEFAULT_CARDS]);// new CardStateSet();
 
 		moveImpl(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 			
-			const prevSize = 0;//newStates.length;
-
-			const nextSet = this.stateSet.move(this.playerTurn);
-			this.stateSet = nextSet;
-			
+			this.stateSet = this.stateSet.move(this.playerTurn);
 			let maxElem = -1;
 			
 			if (true) {
@@ -697,13 +802,12 @@ export namespace GameStates {
 				maxElem = pts.reduce((a,b) => Math.max(a, b), 0);
 			}
 			
-			console.log(`  ${prevSize}, added ${this.stateSet.content.size}  up to ${maxElem}`);
-		
+			console.log(`set size ${this.stateSet.size()}  up to ${maxElem}`);
 		}
 		
 	}
 
-	
+
 	export const INITIAL_STATE = new State(
 		DEFAULT_CARDS,
 		new TokenState(
