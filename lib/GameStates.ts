@@ -575,6 +575,45 @@ export namespace GameStates {
 										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS)
 										);
 
+		// Not used; replaced by CardStateBundledSet
+		class CardStateSet {
+			content = new Set<string>();
+			
+			size(): number {
+				return this.content.size;
+			}
+			
+			
+			static init(cs: CardState[]): CardStateSet {
+				const res = new CardStateSet();
+				res.addStates(cs);
+				return res;
+			}
+			
+			clear(): void { 
+				this.content.clear();
+			}
+			
+			addStates(states: CardState[]): void {
+				for (const st of states) this.content.add(st.keyString());
+			}
+			
+			move(player: number): CardStateSet {
+				const res = new CardStateSet();
+
+				for (const s of this.content) {
+					const sFull = CardState.fromKeyString(s);
+					const next = sFull.addNext(player);
+					res.addStates(next);
+				}
+
+				return res;
+			}
+
+		}
+
+
+
 	export class State {
 		readonly cardState: CardState;
 		readonly tokenState: TokenState;
@@ -673,11 +712,6 @@ export namespace GameStates {
 			for (const st of states) this.pcSet.add(st.keyString());
 		}
 
-			// absorb(otherSet: Set<string>): void {
-				// for (const elem of otherSet)
-					// this.pcSet.add(elem);
-			// }
-
 		merged(otherSet: Set<string>): CardStateBundle {
 			const res = new CardStateBundle();
 			res.tableCards = this.tableCards;
@@ -695,6 +729,7 @@ export namespace GameStates {
 			for (const c of this.tableCards.spread) {
 				const nextTc = this.tableCards.grab(c);
 				const nextPcSet = this.pcSet.values().toArray().map(ManyPlayerCards.fromKeyString).map(x => x.acquire(player, c).keyString());
+				//const nextPcSet = this.pcSet.values().toArray().map(x => ManyPlayerCards.fromKeyString(x).acquire(player, c).keyString());//.map(x => x.acquire(player, c).keyString());
 				
 				const nextBundle = new CardStateBundle();
 				nextBundle.tableCards = nextTc;
@@ -707,38 +742,49 @@ export namespace GameStates {
 		}
 		
 	}
-	
 
-	
-	class CardStateSet {
-		content = new Set<string>();
+
+	class CardStateBundledSet {
+		content = new Map<string, CardStateBundle>();
 		
 		size(): number {
-			return this.content.size;
+			return this.content.values().toArray().map(x => x.size()).reduce((a,b)=>a+b, 0);
 		}
 		
 		
-		static init(cs: CardState[]): CardStateSet {
-			const res = new CardStateSet();
-			res.addStates(cs);
+		static init(cs: CardState[]): CardStateBundledSet {
+			if (cs.length > 1) throw new Error("Must be one cardstate");
+			const initialCs = cs[0]!;
+			
+			const res = new CardStateBundledSet();
+			res.content.set(initialCs.tableCards.keyString(), CardStateBundle.init(initialCs));
 			return res;
 		}
 		
-		clear(): void { 
-			this.content.clear();
-		}
+		// clear(): void { 
+			// this.content.clear();
+		// }
 		
-		addStates(states: CardState[]): void {
-			for (const st of states) this.content.add(st.keyString());
-		}
+		// addStates(states: ManyPlayerCards[]): void {
+			// for (const st of states) this.mpcSet.add(st.keyString());
+		// }
 		
-		move(player: number): CardStateSet {
-			const res = new CardStateSet();
-
-			for (const s of this.content) {
-				const sFull = CardState.fromKeyString(s);
-				const next = sFull.addNext(player);
-				res.addStates(next);
+		move(player: number): CardStateBundledSet {
+			const res = new CardStateBundledSet();
+			
+			res.content = new Map<string, CardStateBundle>(this.content);
+			
+			for (const [s, bundle] of this.content) {
+				const nextBundles = bundle.move(player);
+				
+				for (const nb of nextBundles) {
+					const ks = nb.tableCards.keyString();
+					
+					if (res.content.has(ks))
+						res.content.set(ks, res.content.get(ks)!.merged(nb.pcSet));
+					else
+						res.content.set(ks, nb);
+				}
 			}
 
 			return res;
@@ -747,76 +793,28 @@ export namespace GameStates {
 	}
 
 
-
-		class CardStateBundledSet {
-			content = new Map<string, CardStateBundle>();
-			
-			size(): number {
-				return this.content.values().toArray().map(x => x.size()).reduce((a,b)=>a+b, 0);
-			}
-			
-			
-			static init(cs: CardState[]): CardStateBundledSet {
-				if (cs.length > 1) throw new Error("Must be one cardstate");
-				const initialCs = cs[0]!;
-				
-				const res = new CardStateBundledSet();
-				res.content.set(initialCs.tableCards.keyString(), CardStateBundle.init(initialCs));
-				return res;
-			}
-			
-			// clear(): void { 
-				// this.content.clear();
-			// }
-			
-			// addStates(states: ManyPlayerCards[]): void {
-				// for (const st of states) this.mpcSet.add(st.keyString());
-			// }
-			
-			move(player: number): CardStateBundledSet {
-				const res = new CardStateBundledSet();
-				
-				res.content = new Map<string, CardStateBundle>(this.content);
-				
-				for (const [s, bundle] of this.content) {
-					const nextBundles = bundle.move(player);
-					
-					for (const nb of nextBundles) {
-						const ks = nb.tableCards.keyString();
-						
-						if (res.content.has(ks))
-							res.content.set(ks, res.content.get(ks)!.merged(nb.pcSet));
-						else
-							res.content.set(ks, nb);
-						
-					}
-				}
-
-				return res;
-			}
-
-		}
-
-
 	export class WavefrontC extends Wavefront {
-		stateSet = CardStateSet.init([DEFAULT_CARDS]);// new CardStateSet();
-			stateSet_B = CardStateBundledSet.init([DEFAULT_CARDS]);
+		stateSet = CardStateBundledSet.init([DEFAULT_CARDS]);
 
 		moveImpl(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 			
+			console.time('move');
+			
+			
 			this.stateSet = this.stateSet.move(this.playerTurn);
-				this.stateSet_B = this.stateSet_B.move(this.playerTurn);
-				
+			
+			console.timeEnd('move');
+			
 			let maxElem = -1;
 			
-			if (true) {
-				const fullObjs = [...this.stateSet.content].map(CardState.fromKeyString);
-				const pts = fullObjs.map(x => x.ofPlayer(this.playerTurn).points);
-				maxElem = pts.reduce((a,b) => Math.max(a, b), 0);
-			}
+			// if (false) {
+				// const fullObjs = [...this.stateSet.content].map(CardState.fromKeyString);
+				// const pts = fullObjs.map(x => x.ofPlayer(this.playerTurn).points);
+				// maxElem = pts.reduce((a,b) => Math.max(a, b), 0);
+			// }
 			
-			console.log(`set size ${this.stateSet.size()} ; ${this.stateSet_B.size()}  up to ${maxElem}`);
+			console.log(`set size ${this.stateSet.size()}  up to ${maxElem}`);
 		}
 		
 	}
