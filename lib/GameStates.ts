@@ -120,14 +120,14 @@ export namespace GameStates {
 	};
 	
 		
-		const POINT_CHAR_OFFSET = 100; // To avoid some unlucky char which breaks conversion
+		const POINT_CHAR_OFFSET = 5; // To avoid some unlucky char which breaks conversion
 	
-		function encodePoints(p: number) {
+		function encodeNum2(p: number) {
 			//return numStringH(p);
 			return String.fromCharCode(p + POINT_CHAR_OFFSET) + '\0';
 		}			
 	
-		function parseEncodedPoints(s: string): number {
+		function decodeNum2(s: string): number {
 			//return parseInt(s, 16);
 			return s.charCodeAt(0) - POINT_CHAR_OFFSET;
 		}
@@ -144,7 +144,25 @@ export namespace GameStates {
 			this.reserved = r;
 		}
 		
-		keyString(): string { return `${encodePoints(this.points)}${this.bonuses.str}`; }
+		keyString(): string { 
+		
+		
+		
+				// const ks = `${encodeNum2(this.points)}${this.bonuses.str}`; 
+				// const rec = PlayerCards.fromKeyString(ks);
+				
+				// if (!rec.isSame(this)) {
+					// console.log(this);
+					// console.log(rec);
+					// console.log("||||||" + ks + "|||||");
+					
+					// throw new Error('f up');
+				// }
+				
+				return `${encodeNum2(this.points)}${this.bonuses.str}`; 
+		
+		
+		}
 		//keyString(): string { return String.fromCharCode(this.points) + "\0" + this.bonuses.str; }
 		
 		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
@@ -154,7 +172,7 @@ export namespace GameStates {
 		}
 
 		static fromKeyString(s: string): PlayerCards { 
-			return new PlayerCards(new TokenVec(s.substring(2, 8)), parseEncodedPoints(s.substring(0, 2)), []);
+			return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s.substring(0, 2)), []);
 			//return new PlayerCards(new TokenVec(s.substring(2, 8)), s.charCodeAt(0), []);			
 		}
 		
@@ -186,7 +204,34 @@ export namespace GameStates {
 			this.arr = p;
 		}
 		
-		keyString(): string { return this.arr.map(x => x.keyString()).join(''); }
+		keyString(): string { 
+		
+		
+			// const ks = this.arr.map(x => x.keyString()).join('');
+			
+			// const rec =  ManyPlayerCards.fromKeyString(ks);
+			
+			// if (!rec.isSame(this)) {
+				
+				// console.log(this.niceString());
+				// console.log(rec.niceString());
+				// console.log(ks);
+				
+				// console.log(this.ofPlayer(0).keyString());
+				// console.log(PlayerCards.fromKeyString(this.ofPlayer(0).keyString()));
+				// console.log(this.ofPlayer(1).keyString());
+				// console.log(PlayerCards.fromKeyString(this.ofPlayer(1).keyString()));
+				
+				// throw new Error('wrong'); 
+			
+			// }
+			
+			return this.arr.map(x => x.keyString()).join(''); 
+		
+		
+		}
+		
+		
 		niceString(): string { return this.arr.map(x => x.niceString()).join('  '); }
 
 		isSame(other: ManyPlayerCards): boolean {			
@@ -198,9 +243,14 @@ export namespace GameStates {
 
 		static fromKeyString(s: string): ManyPlayerCards {
 				if (s.length != 16) throw new Error('not 16');
+			const PLEN = 8;
 			
-			const sevens = s.substring(0).match(/......../g)!;    // TODO: size of slice should be: MAX_PLAYERS * 
-			const playerCards = sevens.map(PlayerCards.fromKeyString);
+			const parts: string[] = [];
+			for (let i = 0; i < N_PLAYERS; i++) parts.push(s.substring(i*PLEN, i*PLEN + PLEN));
+			
+			const eights = //s.substring(0).match(/......../g)!;    // TODO: size of slice should be: MAX_PLAYERS * 
+							parts;
+			const playerCards = eights.map(PlayerCards.fromKeyString);
 			return new ManyPlayerCards(playerCards);
 		}
 
@@ -241,7 +291,11 @@ export namespace GameStates {
 		keyString(): string {
 			const stackStr = this.stackNums.map(numStringH).join('');
 			const spreadStr = this.spread.map(cardStringH).join('');
-			return stackStr + spreadStr;
+			
+				const stackStr_N: string = String.fromCharCode(...this.stackNums);
+				const spreadStr_N: string = String.fromCharCode(...this.spread)!;
+				
+			return `${stackStr_N}${spreadStr_N}000000000000000`
 		}
 
 		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
@@ -256,7 +310,11 @@ export namespace GameStates {
 			const nums = twos.slice(0, 3).map(x => parseInt(x, 16));
 			const spread = twos.slice(3).map(x => parseInt(x, 16) as Card);
 			
-			return new TableCards(nums, spread);
+				const nums_N = s.substring(0,3).split('').map(c => c.charCodeAt(0));
+				const spread_N = s.substring(3,16).split('').map(c => c.charCodeAt(0));
+			
+			//return new TableCards(nums, spread);
+			return new TableCards(nums_N, spread_N);
 		}
 
 		grab(c: Card): TableCards {
