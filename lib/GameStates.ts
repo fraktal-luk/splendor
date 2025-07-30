@@ -119,6 +119,19 @@ export namespace GameStates {
 
 	};
 	
+		
+		const POINT_CHAR_OFFSET = 100; // To avoid some unlucky char which breaks conversion
+	
+		function encodePoints(p: number) {
+			//return numStringH(p);
+			return String.fromCharCode(p + POINT_CHAR_OFFSET) + '\0';
+		}			
+	
+		function parseEncodedPoints(s: string): number {
+			//return parseInt(s, 16);
+			return s.charCodeAt(0) - POINT_CHAR_OFFSET;
+		}
+
 
 	export class PlayerCards implements StateValue<PlayerCards> {
 		readonly bonuses: TokenVec;
@@ -131,15 +144,18 @@ export namespace GameStates {
 			this.reserved = r;
 		}
 		
-		keyString(): string { return `${numStringH(this.points)}${this.bonuses.str}`; }
+		keyString(): string { return `${encodePoints(this.points)}${this.bonuses.str}`; }
+		//keyString(): string { return String.fromCharCode(this.points) + "\0" + this.bonuses.str; }
+		
 		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
 
 		isSame(other: PlayerCards): boolean {			
-			return this.bonuses.str == other.bonuses.str && this.points == other.points; // TODO: reserved when becomes relevant
+			return this.bonuses.str == other.bonuses.str && this.points == other.points; // TODO: reserved cards when become relevant
 		}
 
 		static fromKeyString(s: string): PlayerCards { 
-			return new PlayerCards(new TokenVec(s.substring(2, 8)), parseInt(s.substring(0, 2), 16), [])			
+			return new PlayerCards(new TokenVec(s.substring(2, 8)), parseEncodedPoints(s.substring(0, 2)), []);
+			//return new PlayerCards(new TokenVec(s.substring(2, 8)), s.charCodeAt(0), []);			
 		}
 		
 		covers(other: PlayerCards): boolean {
@@ -181,8 +197,10 @@ export namespace GameStates {
 		}
 
 		static fromKeyString(s: string): ManyPlayerCards {
-			const eights = s.substring(0).match(/......../g)!;    // TODO: size of slice should be: MAX_PLAYERS * 
-			const playerCards = eights.map(PlayerCards.fromKeyString);
+				if (s.length != 16) throw new Error('not 16');
+			
+			const sevens = s.substring(0).match(/......../g)!;    // TODO: size of slice should be: MAX_PLAYERS * 
+			const playerCards = sevens.map(PlayerCards.fromKeyString);
 			return new ManyPlayerCards(playerCards);
 		}
 
@@ -194,9 +212,13 @@ export namespace GameStates {
 		acquire(player: number, c: Card): ManyPlayerCards {
 			const thisPlayer = this.ofPlayer(player);
 			
+				if (thisPlayer == undefined) console.log(this.arr);
+			
 			const ind = c % 5;
 			const strBase = ["100000", "010000", "001000", "000100", "000010",];
 			const increment = strBase[ind]!;
+			
+				//console.log(thisPlayer);
 			
 			const newBonuses = thisPlayer.bonuses.add(new TokenVec(increment));
 			const newPoints = thisPlayer.points + getCardPoints(c);
