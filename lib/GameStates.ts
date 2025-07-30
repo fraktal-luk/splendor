@@ -159,7 +159,7 @@ export namespace GameStates {
 					// throw new Error('f up');
 				// }
 				
-				return `${encodeNum2(this.points)}${this.bonuses.str}`; 
+				return `${encodeNum2(this.points)}${this.bonuses.str}` ; 
 		
 		
 		}
@@ -242,8 +242,10 @@ export namespace GameStates {
 		}
 
 		static fromKeyString(s: string): ManyPlayerCards {
-				if (s.length != 16) throw new Error('not 16');
 			const PLEN = 8;
+			
+				if (s.length != N_PLAYERS * PLEN) throw new Error('not correct size');
+
 			
 			const parts: string[] = [];
 			for (let i = 0; i < N_PLAYERS; i++) parts.push(s.substring(i*PLEN, i*PLEN + PLEN));
@@ -827,6 +829,10 @@ export namespace GameStates {
 			return res;
 		}
 		
+			shortInfo(): string {
+				return this.tableCards.niceString() + `, set(${this.pcSet.size})`;
+			}
+		
 	}
 
 
@@ -861,7 +867,6 @@ export namespace GameStates {
 		
 		move(player: number): CardStateBundledSet {
 			const res = new CardStateBundledSet();
-			
 			res.content = new Map<string, CardStateBundle>();//this.content);
 			
 			for (const [s, bundle] of this.content) {
@@ -869,18 +874,50 @@ export namespace GameStates {
 				
 				for (const nb of nextBundles) {
 					const ks = nb.tableCards.keyString();
-					
-					if (res.content.has(ks)) {
-						//res.content.set(ks, res.content.get(ks)!.merged(nb.pcSet));
-						res.content.get(ks)!.absorb(nb.pcSet);
-					}
-					else
-						res.content.set(ks, nb);
+					if (res.content.has(ks)) { res.content.get(ks)!.absorb(nb.pcSet); }
+					else res.content.set(ks, nb);
 				}
 			}
 
 			return res;
 		}
+
+			move_save(player: number): CardStateBundledSet {
+				const fs = require("fs");
+				const writer = fs.createWriteStream("saved_move.txt");
+								
+				const res = new CardStateBundledSet();
+				res.content = new Map<string, CardStateBundle>();//this.content);
+				
+				for (const [s, bundle] of this.content) {
+					const nextBundles = bundle.move(player);
+					
+					writer.write(">\n");
+					
+					for (const nb of nextBundles) {
+						writer.write(nb.shortInfo() );
+						
+						
+						const ks = nb.tableCards.keyString();
+						if (res.content.has(ks)) {
+							writer.write(`  update (${res.content.get(ks)!.size()})->(${res.content.get(ks)!.size() + nb.size()})`);
+							res.content.get(ks)!.absorb(nb.pcSet);
+						}
+						else {
+							writer.write("  new entry");
+							res.content.set(ks, nb);
+						}
+						
+						writer.write('\n');
+					}
+				}
+
+				writer.end();
+
+
+				return res;
+			}
+
 
 	}
 
@@ -894,7 +931,10 @@ export namespace GameStates {
 			console.time('move');
 			
 			
-			this.stateSet = this.stateSet.move(this.playerTurn);
+			if (this.round == 2 && this.playerTurn == 0)
+				this.stateSet = this.stateSet.move_save(this.playerTurn);
+			else
+				this.stateSet = this.stateSet.move(this.playerTurn);
 			
 			console.timeEnd('move');
 			
@@ -950,6 +990,6 @@ export namespace GameStates {
 		
 		writer.end();
 	}
-
+	
 
 }
