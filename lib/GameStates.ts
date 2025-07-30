@@ -120,7 +120,7 @@ export namespace GameStates {
 	};
 	
 		
-		const POINT_CHAR_OFFSET = 5; // To avoid some unlucky char which breaks conversion
+		const POINT_CHAR_OFFSET = 0; // To avoid some unlucky char which breaks conversion
 	
 		function encodeNum2(p: number) {
 			//return numStringH(p);
@@ -295,7 +295,7 @@ export namespace GameStates {
 				const stackStr_N: string = String.fromCharCode(...this.stackNums);
 				const spreadStr_N: string = String.fromCharCode(...this.spread)!;
 				
-			return `${stackStr_N}${spreadStr_N}000000000000000`
+			return `${stackStr_N}${spreadStr_N}0`; // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
 		}
 
 		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
@@ -306,9 +306,9 @@ export namespace GameStates {
 
 
 		static fromKeyString(s: string): TableCards {
-			const twos = s.match(/../g)!;
-			const nums = twos.slice(0, 3).map(x => parseInt(x, 16));
-			const spread = twos.slice(3).map(x => parseInt(x, 16) as Card);
+			// const twos = s.match(/../g)!;
+			// const nums = twos.slice(0, 3).map(x => parseInt(x, 16));
+			// const spread = twos.slice(3).map(x => parseInt(x, 16) as Card);
 			
 				const nums_N = s.substring(0,3).split('').map(c => c.charCodeAt(0));
 				const spread_N = s.substring(3,16).split('').map(c => c.charCodeAt(0));
@@ -354,9 +354,9 @@ export namespace GameStates {
 		}
 
 		static fromKeyString(s: string): CardState {
-			const tableCards = TableCards.fromKeyString(s.slice(0,30)); // TODO: verify size
+			const tableCards = TableCards.fromKeyString(s.slice(0,16)); // TODO: verify size
 			//const eights = s.substring(30).match(/......../g)!; // TODO: size of slice should be: MAX_PLAYERS * 
-			const playerCards = ManyPlayerCards.fromKeyString(s.substring(30)).arr;
+			const playerCards = ManyPlayerCards.fromKeyString(s.substring(16)).arr;
 			return new CardState(tableCards, playerCards);
 		}
 
@@ -809,7 +809,6 @@ export namespace GameStates {
 			for (const c of this.tableCards.spread) {
 				const nextTc = this.tableCards.grab(c);
 				const nextPcSet = this.pcSet.values().toArray().map(ManyPlayerCards.fromKeyString).map(x => x.acquire(player, c).keyString());
-				//const nextPcSet = this.pcSet.values().toArray().map(x => ManyPlayerCards.fromKeyString(x).acquire(player, c).keyString());//.map(x => x.acquire(player, c).keyString());
 				
 				const nextBundle = new CardStateBundle();
 				nextBundle.tableCards = nextTc;
@@ -826,6 +825,10 @@ export namespace GameStates {
 
 	class CardStateBundledSet {
 		content = new Map<string, CardStateBundle>();
+		
+		numBundles(): number {
+			return this.content.size;
+		}
 		
 		size(): number {
 			return this.content.values().toArray().map(x => x.size()).reduce((a,b)=>a+b, 0);
@@ -894,7 +897,7 @@ export namespace GameStates {
 				// maxElem = pts.reduce((a,b) => Math.max(a, b), 0);
 			// }
 			
-			console.log(`set size ${this.stateSet.size()}  up to ${maxElem}`);
+			console.log(`set size ${this.stateSet.size()} (${this.stateSet.numBundles()}) up to ${maxElem}`);
 		}
 		
 	}
