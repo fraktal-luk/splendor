@@ -792,6 +792,13 @@ export namespace GameStates {
 			for (const st of states) this.pcSet.add(st.keyString());
 		}
 
+		
+		absorb(otherSet: Set<string>): void {
+			for (const elem of otherSet)
+				this.pcSet.add(elem);
+		}
+		
+
 		merged(otherSet: Set<string>): CardStateBundle {
 			const res = new CardStateBundle();
 			res.tableCards = this.tableCards;
@@ -855,7 +862,7 @@ export namespace GameStates {
 		move(player: number): CardStateBundledSet {
 			const res = new CardStateBundledSet();
 			
-			res.content = new Map<string, CardStateBundle>(this.content);
+			res.content = new Map<string, CardStateBundle>();//this.content);
 			
 			for (const [s, bundle] of this.content) {
 				const nextBundles = bundle.move(player);
@@ -863,8 +870,10 @@ export namespace GameStates {
 				for (const nb of nextBundles) {
 					const ks = nb.tableCards.keyString();
 					
-					if (res.content.has(ks))
-						res.content.set(ks, res.content.get(ks)!.merged(nb.pcSet));
+					if (res.content.has(ks)) {
+						//res.content.set(ks, res.content.get(ks)!.merged(nb.pcSet));
+						res.content.get(ks)!.absorb(nb.pcSet);
+					}
 					else
 						res.content.set(ks, nb);
 				}
