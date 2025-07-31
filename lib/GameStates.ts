@@ -214,7 +214,7 @@ export namespace GameStates {
 		}
 
 		acquire(c: Card): PlayerCards {
-			const ind = c % 5;
+			const ind = (c-1) % 5;
 				// const strBase = ["100000", "010000", "001000", "000100", "000010",];
 				// const increment = strBase[ind]!;
 			
@@ -298,7 +298,7 @@ export namespace GameStates {
 		acquire(player: number, c: Card): ManyPlayerCards {
 			const thisPlayer = this.ofPlayer(player);
 
-			const ind = c % 5;
+			const ind = (c-1) % 5;
 
 				// const strBase = ["100000", "010000", "001000", "000100", "000010",];
 				// const increment = strBase[ind]!;
