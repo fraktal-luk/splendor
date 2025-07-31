@@ -1,6 +1,6 @@
 
-import {cardStringList, TABLE_STACKS, CARD_SPECS, getCardPrice, getCardPoints, TokenVec, MAX_PLAYER_TOKS, 	Card,
-	INITIAL_TABLE_NUMS, sortRows,
+import {cardStringList, CARD_SPECS, getCardPrice, getCardPoints, TokenVec, MAX_PLAYER_TOKS, 	Card,
+	sortRows,
 	STR_1x1, STR_2x1, STR_1x2, STR_1x3, STR_1x2_1x1, STR_3x1, STR_RET3, STR_RET2, STR_RET1,
 
 	numStringD,
@@ -11,6 +11,38 @@ import {cardStringList, TABLE_STACKS, CARD_SPECS, getCardPrice, getCardPoints, T
 	getVectorsSum2,
 	}
 from './searching_base.ts';
+
+
+// CAREFUL: inverted wrt tables in basic definitions
+const TABLE_STACKS: number[][] =
+[
+  [
+     3, 10,  5, 11, 17, 7, 19,
+    15, 16,  1, 18,  9, 6, 14,
+    12,  4, 20,  2, 13, 8
+  ],
+  [
+    27, 25, 29, 38, 36, 35, 22, 45, 41,
+    37, 40, 34, 47, 49, 26, 50, 46, 33,
+    43, 32, 21, 42, 28, 23, 30, 48, 31,
+    39, 44, 24
+  ],
+  [ // lowest cards
+    62, 65, 51, 82, 74, 63, 64, 56, 69, 81,
+    55, 54, 73, 71, 57, 79, 76, 70, 85, 89,
+    78, 68, 72, 58, 59, 66, 77, 86, 87, 60,
+    61, 52, 84, 90, 83, 80, 75, 88, 67, 53
+  ],
+
+];
+
+const INITIAL_STACK_SIZES = [16, 26, 36];
+
+const INITIAL_TABLE_NUMS: number[][] =
+		[ [ 2,  8, 13, 20],
+		  [24, 31, 39, 44], 
+		  [53, 67, 75, 88] ];
+
 
 
 
@@ -316,12 +348,24 @@ export namespace GameStates {
 			if (index < 0 || index > 11) throw new Error("Wrong index");
 			
 			const row = Math.floor(index/4);
+			const col = Math.floor(index % 4);
 			const stackSize = this.stackNums[row]!;
 			
-			const newCard = TABLE_STACKS[row]![stackSize-1]!;
-			const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
-			const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
+				const newCard = TABLE_STACKS[row]![stackSize-1]!;
+				const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
+				const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
+									//(this.spread.toSpliced(index, 1, newCard));
 			
+			// if (row == 0) {
+				
+			// }
+			// else if (row == 1) {
+				
+			// }
+			// else {
+				
+			// }
+
 			return new TableCards(newStackNums, newSpread);
 		}
 
@@ -335,7 +379,7 @@ export namespace GameStates {
 		
 	}
 	
-	const DEFAULT_TABLE_CARDS = new TableCards([36, 26, 16], INITIAL_TABLE_NUMS.flat());
+	const DEFAULT_TABLE_CARDS = new TableCards(INITIAL_STACK_SIZES, INITIAL_TABLE_NUMS.flat());
 
 	export class CardState implements StateValue<CardState> {
 		readonly tableCards: TableCards;
@@ -933,9 +977,9 @@ export namespace GameStates {
 			console.time('move');
 			
 			
-			// if (this.round == 2 && this.playerTurn == 1)
-				// this.stateSet = this.stateSet.move_save(this.playerTurn);
-			// else
+			if (this.round == 2 && this.playerTurn == 1)
+				this.stateSet = this.stateSet.move_save(this.playerTurn);
+			else
 				this.stateSet = this.stateSet.move(this.playerTurn);
 			
 			console.timeEnd('move');
