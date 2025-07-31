@@ -244,14 +244,12 @@ export namespace GameStates {
 		static fromKeyString(s: string): ManyPlayerCards {
 			const PLEN = 8;
 			
-				if (s.length != N_PLAYERS * PLEN) throw new Error('not correct size');
+			if (s.length != N_PLAYERS * PLEN) throw new Error('not correct size');
 
-			
 			const parts: string[] = [];
 			for (let i = 0; i < N_PLAYERS; i++) parts.push(s.substring(i*PLEN, i*PLEN + PLEN));
 			
-			const eights = //s.substring(0).match(/......../g)!;    // TODO: size of slice should be: MAX_PLAYERS * 
-							parts;
+			const eights = parts;
 			const playerCards = eights.map(PlayerCards.fromKeyString);
 			return new ManyPlayerCards(playerCards);
 		}
@@ -264,13 +262,9 @@ export namespace GameStates {
 		acquire(player: number, c: Card): ManyPlayerCards {
 			const thisPlayer = this.ofPlayer(player);
 			
-				if (thisPlayer == undefined) console.log(this.arr);
-			
 			const ind = c % 5;
 			const strBase = ["100000", "010000", "001000", "000100", "000010",];
 			const increment = strBase[ind]!;
-			
-				//console.log(thisPlayer);
 			
 			const newBonuses = thisPlayer.bonuses.add(new TokenVec(increment));
 			const newPoints = thisPlayer.points + getCardPoints(c);
@@ -290,14 +284,11 @@ export namespace GameStates {
 			this.spread = sp;
 		}
 		
-		keyString(): string {
-			const stackStr = this.stackNums.map(numStringH).join('');
-			const spreadStr = this.spread.map(cardStringH).join('');
+		keyString(): string {			
+			const stackStr: string = String.fromCharCode(...this.stackNums);
+			const spreadStr: string = String.fromCharCode(...this.spread)!;
 			
-				const stackStr_N: string = String.fromCharCode(...this.stackNums);
-				const spreadStr_N: string = String.fromCharCode(...this.spread)!;
-				
-			return `${stackStr_N}${spreadStr_N}0`; // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
+			return `${stackStr}${spreadStr}0`; // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
 		}
 
 		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
@@ -308,21 +299,21 @@ export namespace GameStates {
 
 
 		static fromKeyString(s: string): TableCards {
-			// const twos = s.match(/../g)!;
-			// const nums = twos.slice(0, 3).map(x => parseInt(x, 16));
-			// const spread = twos.slice(3).map(x => parseInt(x, 16) as Card);
-			
-				const nums_N = s.substring(0,3).split('').map(c => c.charCodeAt(0));
-				const spread_N = s.substring(3,16).split('').map(c => c.charCodeAt(0));
-			
-			//return new TableCards(nums, spread);
-			return new TableCards(nums_N, spread_N);
+			const nums = s.substring(0,3).split('').map(c => c.charCodeAt(0));
+			const spread = s.substring(3,16).split('').map(c => c.charCodeAt(0));
+		
+			return new TableCards(nums, spread);
 		}
 
-		grab(c: Card): TableCards {
-			const index = this.spread.indexOf(c);
-			
-			if (index == -1) throw new Error("Card not on table");
+		
+		cardAt(index: number): Card {
+			if (index < 0 || index > 11) throw new Error("Wrong index");
+			return this.spread[index]!;
+		}
+
+
+		grabAt(index: number): TableCards {
+			if (index < 0 || index > 11) throw new Error("Wrong index");
 			
 			const row = Math.floor(index/4);
 			const stackSize = this.stackNums[row]!;
@@ -332,6 +323,14 @@ export namespace GameStates {
 			const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
 			
 			return new TableCards(newStackNums, newSpread);
+		}
+
+		grab(c: Card): TableCards {
+			const index = this.spread.indexOf(c);
+			
+			if (index == -1) throw new Error("Card not on table");
+			
+			return this.grabAt(index);		
 		}
 		
 	}
@@ -815,8 +814,8 @@ export namespace GameStates {
 		move(player: number): CardStateBundle[] {
 			const res: CardStateBundle[] = [this];
 			
-			for (const c of this.tableCards.spread) {
-				const nextTc = this.tableCards.grab(c);
+			for (const [ind, c] of this.tableCards.spread.entries()) {
+				const nextTc = this.tableCards.grabAt(ind);
 				const nextPcSet = this.pcSet.values().toArray().map(ManyPlayerCards.fromKeyString).map(x => x.acquire(player, c).keyString());
 				
 				const nextBundle = new CardStateBundle();
@@ -900,8 +899,11 @@ export namespace GameStates {
 						
 						const ks = nb.tableCards.keyString();
 						if (res.content.has(ks)) {
-							writer.write(`  update (${res.content.get(ks)!.size()})->(${res.content.get(ks)!.size() + nb.size()})`);
+							const prevS = res.content.get(ks)!.size()
 							res.content.get(ks)!.absorb(nb.pcSet);
+							const nextS = res.content.get(ks)!.size();
+							writer.write(`  update ${prevS}->${nextS}, (+${nextS - prevS})`);
+
 						}
 						else {
 							writer.write("  new entry");
@@ -931,9 +933,9 @@ export namespace GameStates {
 			console.time('move');
 			
 			
-			if (this.round == 2 && this.playerTurn == 0)
-				this.stateSet = this.stateSet.move_save(this.playerTurn);
-			else
+			// if (this.round == 2 && this.playerTurn == 1)
+				// this.stateSet = this.stateSet.move_save(this.playerTurn);
+			// else
 				this.stateSet = this.stateSet.move(this.playerTurn);
 			
 			console.timeEnd('move');
