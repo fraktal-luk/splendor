@@ -445,7 +445,23 @@ export class CardState {
 
 
 	type StringBinFunc = (x: number, y: number) => number;
-	
+
+
+	function incStr(a: string, ind: number): string {
+		const aLen = a.length;
+		const res = a.split('');
+		
+		for (let i = 0; i < aLen; i++) {
+			if (ind == i) {
+				let val = parseInt(a[i], 16) + 1;
+				res[i] = val.toString(16);
+			}
+			res[i] = a[i];
+		}
+		return res.join('');
+	}	
+
+
 	function stringBinOp(func: StringBinFunc, a: string, b: string): string {
 		const aLen = a.length;
 		const res = a.split('');
@@ -469,6 +485,10 @@ export class CardState {
 		excessive(): boolean { return this.sum() > MAX_PLAYER_TOKS; }
 		
 		toLongString(): string { return '[' + this.sum().toString(16) + ']' + this.str; }
+		
+		incAt(i: number): TokenVec {
+			return new TokenVec(incStr(this.str, i));
+		}
 		
 		sum(): number {
 			let res = 0;

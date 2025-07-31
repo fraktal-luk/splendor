@@ -215,10 +215,14 @@ export namespace GameStates {
 
 		acquire(c: Card): PlayerCards {
 			const ind = c % 5;
-			const strBase = ["100000", "010000", "001000", "000100", "000010",];
-			const increment = strBase[ind]!;
+				// const strBase = ["100000", "010000", "001000", "000100", "000010",];
+				// const increment = strBase[ind]!;
 			
-			const newBonuses = this.bonuses.add(new TokenVec(increment));
+				// const newBonuses = this.bonuses.add(new TokenVec(increment));
+				const newBonuses = this.bonuses.incAt(ind);
+			
+				//if (newBonuses_N.str != newBonuses.str) console.log("huuuuuuuu");
+			
 			const newPoints = this.points + getCardPoints(c);
 
 			return new PlayerCards(newBonuses, newPoints, this.reserved);
@@ -293,12 +297,15 @@ export namespace GameStates {
 
 		acquire(player: number, c: Card): ManyPlayerCards {
 			const thisPlayer = this.ofPlayer(player);
-			
+
 			const ind = c % 5;
-			const strBase = ["100000", "010000", "001000", "000100", "000010",];
-			const increment = strBase[ind]!;
+
+				// const strBase = ["100000", "010000", "001000", "000100", "000010",];
+				// const increment = strBase[ind]!;
 			
-			const newBonuses = thisPlayer.bonuses.add(new TokenVec(increment));
+				// const newBonuses = this.bonuses.add(new TokenVec(increment));
+				const newBonuses = thisPlayer.bonuses.incAt(ind);
+							
 			const newPoints = thisPlayer.points + getCardPoints(c);
 			
 			const thisPlayerNew = new PlayerCards(newBonuses, newPoints, thisPlayer.reserved);
@@ -353,18 +360,9 @@ export namespace GameStates {
 			
 				const newCard = TABLE_STACKS[row]![stackSize-1]!;
 				const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
-				const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
-									//(this.spread.toSpliced(index, 1, newCard));
-			
-			// if (row == 0) {
-				
-			// }
-			// else if (row == 1) {
-				
-			// }
-			// else {
-				
-			// }
+					const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
+					//const newSpread = (this.spread.toSpliced(index, 1, newCard));
+					//newSpread.sort((a,b) => a-b);
 
 			return new TableCards(newStackNums, newSpread);
 		}
@@ -977,9 +975,9 @@ export namespace GameStates {
 			console.time('move');
 			
 			
-			if (this.round == 2 && this.playerTurn == 1)
-				this.stateSet = this.stateSet.move_save(this.playerTurn);
-			else
+			// if (this.round == 2 && this.playerTurn == 1)
+				// this.stateSet = this.stateSet.move_save(this.playerTurn);
+			// else
 				this.stateSet = this.stateSet.move(this.playerTurn);
 			
 			console.timeEnd('move');
