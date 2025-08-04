@@ -236,32 +236,8 @@ export namespace GameStates {
 		}
 		
 		keyString(): string { 
-		
-		
-			// const ks = this.arr.map(x => x.keyString()).join('');
-			
-			// const rec =  ManyPlayerCards.fromKeyString(ks);
-			
-			// if (!rec.isSame(this)) {
-				
-				// console.log(this.niceString());
-				// console.log(rec.niceString());
-				// console.log(ks);
-				
-				// console.log(this.ofPlayer(0).keyString());
-				// console.log(PlayerCards.fromKeyString(this.ofPlayer(0).keyString()));
-				// console.log(this.ofPlayer(1).keyString());
-				// console.log(PlayerCards.fromKeyString(this.ofPlayer(1).keyString()));
-				
-				// throw new Error('wrong'); 
-			
-			// }
-			
 			return this.arr.map(x => x.keyString()).join(''); 
-		
-		
 		}
-		
 		
 		niceString(): string { return this.arr.map(x => x.niceString()).join('  '); }
 
@@ -300,6 +276,10 @@ export namespace GameStates {
 			
 			const thisPlayerNew = new PlayerCards(newBonuses, newPoints, thisPlayer.reserved);
 			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew));
+		}
+		
+		maxPoints(): number {
+			return this.arr.map(x => x.points).reduce((a,b) => Math.max(a,b), 0);
 		}
 	}
 
@@ -678,7 +658,7 @@ export namespace GameStates {
 		
 	}
 
-
+		// TODO: must reorganize into short strings
 		export class TableCardsConcise {
 			stackImg: string = ""; // Begins with sum of stacks so that sorting is done first with regard to total cards remaining
 			rowImg0: string = "";
@@ -880,6 +860,10 @@ export namespace GameStates {
 				return this.tableCards.niceString() + `, set(${this.pcSet.size})`;
 			}
 		
+		maxPoints(): number {
+			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).maxPoints()).reduce((a,b) => Math.max(a,b), 0);
+		}
+		
 	}
 
 
@@ -969,6 +953,10 @@ export namespace GameStates {
 			}
 
 
+		maxPoints(): number {
+			return this.content.values().map(x => x.maxPoints()).reduce((a,b) => Math.max(a,b), 0);
+		}
+
 	}
 
 
@@ -995,6 +983,8 @@ export namespace GameStates {
 				// const pts = fullObjs.map(x => x.ofPlayer(this.playerTurn).points);
 				// maxElem = pts.reduce((a,b) => Math.max(a, b), 0);
 			// }
+			
+			maxElem = this.stateSet.maxPoints();
 			
 			console.log(`set size ${this.stateSet.size()} (${this.stateSet.numBundles()}) up to ${maxElem}`);
 		}
