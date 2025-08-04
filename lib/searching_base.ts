@@ -448,8 +448,9 @@ export class CardState {
 
 
 	function incStr(a: string, ind: number): string {
-		const aLen = a.length;
+		//const aLen = a.length;
 		const res = a.split('');
+					//Array.from(a);
 
 		const val = a.charCodeAt(ind);
 		res[ind] = String.fromCharCode(val+1);

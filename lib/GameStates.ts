@@ -199,9 +199,6 @@ export namespace GameStates {
 			const ind = (c-1) % 5;
 
 			const newBonuses = this.bonuses.incAt(ind);
-						
-				//if (getCardPoints(c) != POINT_TABLE[c]!) throw new Error("pts wrong");
-						
 			const newPoints = this.points + POINT_TABLE[c]!;//getCardPoints(c);
 
 			return new PlayerCards(newBonuses, newPoints, this.reserved);
@@ -309,8 +306,11 @@ export namespace GameStates {
 
 
 		static fromKeyString(s: string): TableCards {
-			const nums = s.substring(0,3).split('').map(c => c.charCodeAt(0));
-			const spread = s.substring(3,16).split('').map(c => c.charCodeAt(0));
+			//const nums = s.substring(0,3).split('').map(c => c.charCodeAt(0));
+			//const spread = s.substring(3,16).split('').map(c => c.charCodeAt(0));
+			
+			const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));
+			const spread = Array.from(s.substring(3,16), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));
 		
 			return new TableCards(nums, spread);
 		}
@@ -529,8 +529,8 @@ export namespace GameStates {
 
 	
 	function uniqueTokStates(states: TokenState[]): TokenState[] {
-		const uniqueSet = new Set(states.map(x => x.keyString()));
-		return uniqueSet.values().toArray().map(TokenState.fromKeyString);
+		const uniqueSet = new Set<string>(states.map(x => x.keyString()));
+		return uniqueSet.values() .toArray() .map(TokenState.fromKeyString);
 	}
 
 	function fixExcessiveStates(inputStates: TokenState[][], player: number): TokenState[][] {
@@ -826,7 +826,7 @@ export namespace GameStates {
 			
 			for (const [ind, c] of this.tableCards.spread.entries()) {
 				const nextTc = this.tableCards.grabAt(ind);
-				const nextPcSet = this.pcSet.values().toArray().map(ManyPlayerCards.fromKeyString).map(x => x.acquire(player, c).keyString());
+				const nextPcSet = this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).acquire(player, c).keyString());
 				
 				const nextBundle = new CardStateBundle();
 				nextBundle.tableCards = nextTc;
@@ -857,7 +857,7 @@ export namespace GameStates {
 		}
 		
 		size(): number {
-			return this.content.values().toArray().map(x => x.size()).reduce((a,b)=>a+b, 0);
+			return this.content.values().map(x => x.size()).reduce((a,b)=>a+b, 0);
 		}
 		
 		
@@ -869,15 +869,7 @@ export namespace GameStates {
 			res.content.set(initialCs.tableCards.keyString(), CardStateBundle.init(initialCs));
 			return res;
 		}
-		
-		// clear(): void { 
-			// this.content.clear();
-		// }
-		
-		// addStates(states: ManyPlayerCards[]): void {
-			// for (const st of states) this.mpcSet.add(st.keyString());
-		// }
-		
+
 		move(player: number): CardStateBundledSet {
 			const res = new CardStateBundledSet();
 			res.content = new Map<string, CardStateBundle>();//this.content);
@@ -956,17 +948,9 @@ export namespace GameStates {
 			// else
 				this.stateSet = this.stateSet.move(this.playerTurn);
 			
-			console.timeEnd('move');
-			
-			let maxElem = -1;
-			
-			// if (false) {
-				// const fullObjs = [...this.stateSet.content].map(CardState.fromKeyString);
-				// const pts = fullObjs.map(x => x.ofPlayer(this.playerTurn).points);
-				// maxElem = pts.reduce((a,b) => Math.max(a, b), 0);
-			// }
-			
-			maxElem = this.stateSet.maxPoints();
+			console.timeEnd('move');			
+
+			const maxElem = this.stateSet.maxPoints();
 			
 			console.log(`set size ${this.stateSet.size()} (${this.stateSet.numBundles()}) up to ${maxElem}`);
 		}
