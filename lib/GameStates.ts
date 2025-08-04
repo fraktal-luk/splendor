@@ -152,16 +152,15 @@ export namespace GameStates {
 	};
 	
 		
-		const POINT_CHAR_OFFSET = 0; // To avoid some unlucky char which breaks conversion
+		//const POINT_CHAR_OFFSET = 0; // To avoid some unlucky char which breaks conversion
 	
 		function encodeNum2(p: number) {
 			//return numStringH(p);
-			return String.fromCharCode(p + POINT_CHAR_OFFSET) + '\0';
+			return String.fromCharCode(p) + '\0';
 		}			
 	
 		function decodeNum2(s: string): number {
-			//return parseInt(s, 16);
-			return s.charCodeAt(0) - POINT_CHAR_OFFSET;
+			return s.charCodeAt(0);
 		}
 
 
@@ -177,25 +176,8 @@ export namespace GameStates {
 		}
 		
 		keyString(): string { 
-		
-		
-		
-				// const ks = `${encodeNum2(this.points)}${this.bonuses.str}`; 
-				// const rec = PlayerCards.fromKeyString(ks);
-				
-				// if (!rec.isSame(this)) {
-					// console.log(this);
-					// console.log(rec);
-					// console.log("||||||" + ks + "|||||");
-					
-					// throw new Error('f up');
-				// }
-				
-				return `${encodeNum2(this.points)}${this.bonuses.str}` ; 
-		
-		
+			return `${encodeNum2(this.points)}${this.bonuses.str}` ; 
 		}
-		//keyString(): string { return String.fromCharCode(this.points) + "\0" + this.bonuses.str; }
 		
 		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
 
@@ -205,7 +187,6 @@ export namespace GameStates {
 
 		static fromKeyString(s: string): PlayerCards { 
 			return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s.substring(0, 2)), []);
-			//return new PlayerCards(new TokenVec(s.substring(2, 8)), s.charCodeAt(0), []);			
 		}
 		
 		covers(other: PlayerCards): boolean {
@@ -311,7 +292,7 @@ export namespace GameStates {
 		
 		keyString(): string {			
 			const stackStr: string = String.fromCharCode(...this.stackNums);
-			const spreadStr: string = String.fromCharCode(...this.spread)!;
+			const spreadStr: string = String.fromCharCode(...this.spread);
 			
 			return `${stackStr}${spreadStr}0`; // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
 		}
