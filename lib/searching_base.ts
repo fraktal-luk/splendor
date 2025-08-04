@@ -450,20 +450,12 @@ export class CardState {
 	function incStr(a: string, ind: number): string {
 		const aLen = a.length;
 		const res = a.split('');
+
+		const val = a.charCodeAt(ind);
+		res[ind] = String.fromCharCode(val+1);
 		
-		for (let i = 0; i < aLen; i++) {
-			if (ind == i) {
-				//let val = parseInt(a[i], 16) + 1;
-				//res[i] = val.toString(16);
-				
-				const val = a.charCodeAt(i);
-				res[i] = String.fromCharCode(val+1);
-			}
-			else
-				res[i] = a[i];
-		}
 		return res.join('');
-	}	
+	}
 
 
 	function stringBinOp(func: StringBinFunc, a: string, b: string): string {

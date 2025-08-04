@@ -364,15 +364,11 @@ export namespace GameStates {
 			const col = Math.floor(index % 4);
 			const stackSize = this.stackNums[row]!;
 			
-				const newCard = TABLE_STACKS[row]![stackSize-1]!;
-				const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
-					const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
-					//const newSpread = (this.spread.toSpliced(index, 1, newCard));
-					//newSpread.sort((a,b) => a-b);
+			const newCard = TABLE_STACKS[row]![stackSize-1]!;
+			const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
 
-					const newSpread_N = [...this.spread];
-					sortSpread(newSpread_N, index, newCard);
-
+			const newSpread = [...this.spread];
+			sortSpread(newSpread, index, newCard);
 
 			return new TableCards(newStackNums, newSpread);
 		}
@@ -380,7 +376,7 @@ export namespace GameStates {
 		grab(c: Card): TableCards {
 			const index = this.spread.indexOf(c);
 			
-			if (index == -1) throw new Error("Card not on table");
+			//if (index == -1) throw new Error("Card not on table");
 			
 			return this.grabAt(index);		
 		}
