@@ -44,6 +44,8 @@ const INITIAL_TABLE_NUMS: number[][] =
 		  [53, 67, 75, 88] ];
 
 
+const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
+
 
 
 export namespace GameStates {
@@ -151,12 +153,10 @@ export namespace GameStates {
 
 	};
 	
-		
-		//const POINT_CHAR_OFFSET = 0; // To avoid some unlucky char which breaks conversion
-	
+			
 		function encodeNum2(p: number) {
-			//return numStringH(p);
-			return String.fromCharCode(p) + '\0';
+			//return String.fromCharCode(p) + '\0';
+			return String.fromCharCode(p, 0);
 		}			
 	
 		function decodeNum2(s: string): number {
@@ -176,7 +176,8 @@ export namespace GameStates {
 		}
 		
 		keyString(): string { 
-			return `${encodeNum2(this.points)}${this.bonuses.str}` ; 
+			//return `${encodeNum2(this.points)}${this.bonuses.str}`; 
+			return encodeNum2(this.points) + this.bonuses.str;
 		}
 		
 		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
@@ -186,7 +187,7 @@ export namespace GameStates {
 		}
 
 		static fromKeyString(s: string): PlayerCards { 
-			return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s.substring(0, 2)), []);
+			return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s /*.substring(0, 2)*/), []);
 		}
 		
 		covers(other: PlayerCards): boolean {
@@ -199,7 +200,9 @@ export namespace GameStates {
 
 			const newBonuses = this.bonuses.incAt(ind);
 						
-			const newPoints = this.points + getCardPoints(c);
+				//if (getCardPoints(c) != POINT_TABLE[c]!) throw new Error("pts wrong");
+						
+			const newPoints = this.points + POINT_TABLE[c]!;//getCardPoints(c);
 
 			return new PlayerCards(newBonuses, newPoints, this.reserved);
 		}
@@ -253,7 +256,11 @@ export namespace GameStates {
 			const ind = (c-1) % 5;
 
 			const newBonuses = thisPlayer.bonuses.incAt(ind);
-			const newPoints = thisPlayer.points + getCardPoints(c);
+			
+			//	if (getCardPoints(c) != POINT_TABLE[c]!) throw new Error("pts wrong");
+
+			
+			const newPoints = thisPlayer.points + POINT_TABLE[c]!;//getCardPoints(c);
 			
 			const thisPlayerNew = new PlayerCards(newBonuses, newPoints, thisPlayer.reserved);
 			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew));
@@ -291,10 +298,7 @@ export namespace GameStates {
 		}
 		
 		keyString(): string {			
-			const stackStr: string = String.fromCharCode(...this.stackNums);
-			const spreadStr: string = String.fromCharCode(...this.spread);
-			
-			return `${stackStr}${spreadStr}0`; // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
+			return String.fromCharCode(...this.stackNums, ...this.spread, 0); // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
 		}
 
 		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
@@ -311,7 +315,7 @@ export namespace GameStates {
 			return new TableCards(nums, spread);
 		}
 
-		
+
 		cardAt(index: number): Card {
 			if (index < 0 || index > 11) throw new Error("Wrong index");
 			return this.spread[index]!;
@@ -321,8 +325,8 @@ export namespace GameStates {
 		grabAt(index: number): TableCards {
 			if (index < 0 || index > 11) throw new Error("Wrong index");
 			
-			const row = Math.floor(index/4);
-			const col = Math.floor(index % 4);
+			const row = index >> 2;
+			const col = index & 3;
 			const stackSize = this.stackNums[row]!;
 			
 			const newCard = TABLE_STACKS[row]![stackSize-1]!;
@@ -336,9 +340,6 @@ export namespace GameStates {
 
 		grab(c: Card): TableCards {
 			const index = this.spread.indexOf(c);
-			
-			//if (index == -1) throw new Error("Card not on table");
-			
 			return this.grabAt(index);		
 		}
 		
