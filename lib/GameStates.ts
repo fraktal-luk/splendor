@@ -215,14 +215,9 @@ export namespace GameStates {
 
 		acquire(c: Card): PlayerCards {
 			const ind = (c-1) % 5;
-				 //const strBase = ["100000", "010000", "001000", "000100", "000010",];
-				//const increment = strBase[ind]!;
-			
-				// const newBonuses = this.bonuses.add(new TokenVec(increment));
-				const newBonuses = this.bonuses.incAt(ind);
-			
-				//if (newBonuses_N.str != newBonuses.str) console.log("huuuuuuuu");
-			
+
+			const newBonuses = this.bonuses.incAt(ind);
+						
 			const newPoints = this.points + getCardPoints(c);
 
 			return new PlayerCards(newBonuses, newPoints, this.reserved);
@@ -300,18 +295,10 @@ export namespace GameStates {
 
 			const ind = (c-1) % 5;
 
-				 // const strBase = ["100000", "010000", "001000", "000100", "000010",];
-				 // const increment = strBase[ind]!;
-			
-				 // const newBonuses = thisPlayer.bonuses.add(new TokenVec(increment));
-				 const newBonuses_N = thisPlayer.bonuses.incAt(ind);
-				
-				//if (newBonuses_N.str != newBonuses.str) throw new Error(`not same ${newBonuses_N.str}: ${newBonuses.str}`);
-				
-				
+			const newBonuses = thisPlayer.bonuses.incAt(ind);
 			const newPoints = thisPlayer.points + getCardPoints(c);
 			
-			const thisPlayerNew = new PlayerCards(newBonuses_N, newPoints, thisPlayer.reserved);
+			const thisPlayerNew = new PlayerCards(newBonuses, newPoints, thisPlayer.reserved);
 			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew));
 		}
 	}

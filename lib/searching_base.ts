@@ -453,8 +453,11 @@ export class CardState {
 		
 		for (let i = 0; i < aLen; i++) {
 			if (ind == i) {
-				let val = parseInt(a[i], 16) + 1;
-				res[i] = val.toString(16);
+				//let val = parseInt(a[i], 16) + 1;
+				//res[i] = val.toString(16);
+				
+				const val = a.charCodeAt(i);
+				res[i] = String.fromCharCode(val+1);
 			}
 			else
 				res[i] = a[i];
