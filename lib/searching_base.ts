@@ -456,7 +456,8 @@ export class CardState {
 				let val = parseInt(a[i], 16) + 1;
 				res[i] = val.toString(16);
 			}
-			res[i] = a[i];
+			else
+				res[i] = a[i];
 		}
 		return res.join('');
 	}	

@@ -215,8 +215,8 @@ export namespace GameStates {
 
 		acquire(c: Card): PlayerCards {
 			const ind = (c-1) % 5;
-				// const strBase = ["100000", "010000", "001000", "000100", "000010",];
-				// const increment = strBase[ind]!;
+				 //const strBase = ["100000", "010000", "001000", "000100", "000010",];
+				//const increment = strBase[ind]!;
 			
 				// const newBonuses = this.bonuses.add(new TokenVec(increment));
 				const newBonuses = this.bonuses.incAt(ind);
@@ -300,18 +300,37 @@ export namespace GameStates {
 
 			const ind = (c-1) % 5;
 
-				// const strBase = ["100000", "010000", "001000", "000100", "000010",];
-				// const increment = strBase[ind]!;
+				 // const strBase = ["100000", "010000", "001000", "000100", "000010",];
+				 // const increment = strBase[ind]!;
 			
-				// const newBonuses = this.bonuses.add(new TokenVec(increment));
-				const newBonuses = thisPlayer.bonuses.incAt(ind);
-							
+				 // const newBonuses = thisPlayer.bonuses.add(new TokenVec(increment));
+				 const newBonuses_N = thisPlayer.bonuses.incAt(ind);
+				
+				//if (newBonuses_N.str != newBonuses.str) throw new Error(`not same ${newBonuses_N.str}: ${newBonuses.str}`);
+				
+				
 			const newPoints = thisPlayer.points + getCardPoints(c);
 			
-			const thisPlayerNew = new PlayerCards(newBonuses, newPoints, thisPlayer.reserved);
+			const thisPlayerNew = new PlayerCards(newBonuses_N, newPoints, thisPlayer.reserved);
 			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew));
 		}
 	}
+
+	
+	function sortSpread(copied: number[], index: number, card: Card): void {
+		while (index < 11 && copied[index+1]! < card) {
+			copied[index] = copied[index+1]!;
+			index++;
+		}
+		
+		while (index > 0 && copied[index-1]! > card) {
+			copied[index] = copied[index-1]!;
+			index--;
+		}
+		
+		copied[index] = card;
+	}
+	
 
 
 	export class TableCards implements StateValue<TableCards> {
@@ -363,6 +382,10 @@ export namespace GameStates {
 					const newSpread = sortRows(this.spread.toSpliced(index, 1, newCard));
 					//const newSpread = (this.spread.toSpliced(index, 1, newCard));
 					//newSpread.sort((a,b) => a-b);
+
+					const newSpread_N = [...this.spread];
+					sortSpread(newSpread_N, index, newCard);
+
 
 			return new TableCards(newStackNums, newSpread);
 		}
