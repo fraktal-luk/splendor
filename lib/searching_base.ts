@@ -105,12 +105,12 @@ export function getReturns(surplus: number): string[] {
 
 
 export function getCardPrice(n: number): string {
-	const str = CARD_SPECS[n];
+	const str = CARD_SPECS[n-1];
 	return str.split(':')[1] + "0";
 }
 
 export function getCardPoints(n: number): number {
-	const str = CARD_SPECS[n];
+	const str = CARD_SPECS[n-1];
 	return parseInt(str[0]);
 }
 
@@ -445,7 +445,20 @@ export class CardState {
 
 
 	type StringBinFunc = (x: number, y: number) => number;
-	
+
+
+	function incStr(a: string, ind: number): string {
+		//const aLen = a.length;
+		const res = a.split('');
+					//Array.from(a);
+
+		const val = a.charCodeAt(ind);
+		res[ind] = String.fromCharCode(val+1);
+		
+		return res.join('');
+	}
+
+
 	function stringBinOp(func: StringBinFunc, a: string, b: string): string {
 		const aLen = a.length;
 		const res = a.split('');
@@ -469,6 +482,10 @@ export class CardState {
 		excessive(): boolean { return this.sum() > MAX_PLAYER_TOKS; }
 		
 		toLongString(): string { return '[' + this.sum().toString(16) + ']' + this.str; }
+		
+		incAt(i: number): TokenVec {
+			return new TokenVec(incStr(this.str, i));
+		}
 		
 		sum(): number {
 			let res = 0;
