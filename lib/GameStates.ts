@@ -125,11 +125,7 @@ export namespace GameStates {
 			return new TokenState(newTT, this.playerToks.with(player, newPT));
 		}
 
-		applyTakes(player: number, moves: string[]): TokenState[] {
-			const newStates = moves.map(s => this.applyTake(player, new TokenVec(s)));
-			return newStates;
-		}
-
+		applyTakes(player: number, moves: string[]): TokenState[] { return moves.map(s => this.applyTake(player, new TokenVec(s)));		}
 
 		// Only changes the player toks, not affecting table
 		applyDelta(player: number, move: TokenVec): TokenState {
@@ -147,21 +143,13 @@ export namespace GameStates {
 			return new TokenState(newTT, this.playerToks.with(player, newPT));
 		}
 
-		applyGives(player: number, moves: string[]): TokenState[] {
-			return moves.map(s => this.applyGive(player, new TokenVec(s)));
-		}
+		applyGives(player: number, moves: string[]): TokenState[] { return moves.map(s => this.applyGive(player, new TokenVec(s))); }
 
 	};
-	
-			
-		function encodeNum2(p: number) {
-			//return String.fromCharCode(p) + '\0';
-			return String.fromCharCode(p, 0);
-		}			
-	
-		function decodeNum2(s: string): number {
-			return s.charCodeAt(0);
-		}
+
+
+	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
+	function decodeNum2(s: string): number { return s.charCodeAt(0); }
 
 
 	export class PlayerCards implements StateValue<PlayerCards> {
@@ -175,20 +163,13 @@ export namespace GameStates {
 			this.reserved = r;
 		}
 		
-		keyString(): string { 
-			//return `${encodeNum2(this.points)}${this.bonuses.str}`; 
-			return encodeNum2(this.points) + this.bonuses.str;
-		}
+		keyString(): string { return encodeNum2(this.points) + this.bonuses.str; }
 		
 		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
 
-		isSame(other: PlayerCards): boolean {			
-			return this.bonuses.str == other.bonuses.str && this.points == other.points; // TODO: reserved cards when become relevant
-		}
+		isSame(other: PlayerCards): boolean { return this.bonuses.str == other.bonuses.str && this.points == other.points; /* TODO: reserved cards when become relevant*/ }
 
-		static fromKeyString(s: string): PlayerCards { 
-			return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s /*.substring(0, 2)*/), []);
-		}
+		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s), []); }
 		
 		covers(other: PlayerCards): boolean {
 			return false//(this.points >= other.points && this.bonuses.covers(other.bonuses))
@@ -197,11 +178,27 @@ export namespace GameStates {
 
 		acquire(c: Card): PlayerCards {
 			const ind = (c-1) % 5;
-
 			const newBonuses = this.bonuses.incAt(ind);
 			const newPoints = this.points + POINT_TABLE[c]!;//getCardPoints(c);
-
 			return new PlayerCards(newBonuses, newPoints, this.reserved);
+		}
+			
+		// If if can afford, otherwise undef
+		buyUniversal(c: Card): PlayerCards | undefined {
+			const ind = (c-1) % 5;
+			const deficit = this.bonuses.TMP_effPrice(c).sum();
+			const gold = parseInt(this.bonuses.str[5]!, 16);				
+			
+			if (deficit > gold) 
+				return undefined;
+
+			const newBonuses = this.bonuses.incAt(ind).payGold(deficit);
+			const newPoints = this.points + POINT_TABLE[c]!;//getCardPoints(c);
+			return new PlayerCards(newBonuses, newPoints, this.reserved);
+		}
+		
+		takeUniversal(): PlayerCards {
+			return new PlayerCards(this.bonuses.takeUniversal(), this.points, []);
 		}
 		
 	}
@@ -246,26 +243,23 @@ export namespace GameStates {
 
 		ofPlayer(player: number): PlayerCards { return this.arr[player]!; }
 
-
 		acquire(player: number, c: Card): ManyPlayerCards {
 			const thisPlayer = this.ofPlayer(player);
-
-			const ind = (c-1) % 5;
-
-			const newBonuses = thisPlayer.bonuses.incAt(ind);
-			
-			//	if (getCardPoints(c) != POINT_TABLE[c]!) throw new Error("pts wrong");
-
-			
-			const newPoints = thisPlayer.points + POINT_TABLE[c]!;//getCardPoints(c);
-			
-			const thisPlayerNew = new PlayerCards(newBonuses, newPoints, thisPlayer.reserved);
+			const thisPlayerNew = thisPlayer.acquire(c);
 			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew));
 		}
 		
-		maxPoints(): number {
-			return this.arr.map(x => x.points).reduce((a,b) => Math.max(a,b), 0);
+		buyUniversal(player: number, c: Card): ManyPlayerCards | undefined {
+			const thisPlayer = this.ofPlayer(player);
+			const thisPlayerNew = thisPlayer.buyUniversal(c);
+			if (thisPlayerNew == undefined) return undefined;
+			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew!));
 		}
+		
+		takeUniversal(player: number): ManyPlayerCards { return new ManyPlayerCards(this.arr.with(player, this.ofPlayer(player).takeUniversal())); }
+		maxPoints(): number { return this.arr.map(x => x.points).reduce((a,b) => Math.max(a,b), 0); }
+		minPoints(): number { return this.arr.map(x => x.points).reduce((a,b) => Math.min(a,b), 0); }
+		absDiffPoints(): number { return Math.abs(this.ofPlayer(0).points - this.ofPlayer(1).points); }
 	}
 
 	
@@ -304,23 +298,16 @@ export namespace GameStates {
 			return this.stackNums.toString() == other.stackNums.toString() && this.spread.toString() == other.spread.toString();
 		}
 
-
 		static fromKeyString(s: string): TableCards {
-			//const nums = s.substring(0,3).split('').map(c => c.charCodeAt(0));
-			//const spread = s.substring(3,16).split('').map(c => c.charCodeAt(0));
-			
 			const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));
-			const spread = Array.from(s.substring(3,16), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));
-		
+			const spread = Array.from(s.substring(3,16), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));		
 			return new TableCards(nums, spread);
 		}
-
 
 		cardAt(index: number): Card {
 			if (index < 0 || index > 11) throw new Error("Wrong index");
 			return this.spread[index]!;
 		}
-
 
 		grabAt(index: number): TableCards {
 			if (index < 0 || index > 11) throw new Error("Wrong index");
@@ -357,7 +344,7 @@ export namespace GameStates {
 		}
 		
 		keyString(): string { return this.tableCards.keyString() + this.mpc.keyString(); }
-		niceString(): string { return this.tableCards.niceString() + this.mpc.niceString(); }
+		niceString(): string { return this.tableCards.niceString() + '    ' + this.mpc.niceString(); }
 
 		isSame(other: CardState): boolean {			
 			if (!this.tableCards.isSame(other.tableCards)) return false;
@@ -366,7 +353,6 @@ export namespace GameStates {
 
 		static fromKeyString(s: string): CardState {
 			const tableCards = TableCards.fromKeyString(s.slice(0,16)); // TODO: verify size
-			//const eights = s.substring(30).match(/......../g)!; // TODO: size of slice should be: MAX_PLAYERS * 
 			const playerCards = ManyPlayerCards.fromKeyString(s.substring(16)).arr;
 			return new CardState(tableCards, playerCards);
 		}
@@ -375,18 +361,37 @@ export namespace GameStates {
 
 		ofPlayer(player: number): PlayerCards { return this.mpc.ofPlayer(player); }
 
-		steal(player: number, c: Card): CardState {
-			const newPlayerCards = [...this.mpc.arr];
-			newPlayerCards[player]! = newPlayerCards[player]!.acquire(c);
-			return new CardState(this.tableCards.grab(c), newPlayerCards);
+		takeUniversal(player: number): CardState { return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr); }			
+
+			steal(player: number, c: Card): CardState {
+				const newPlayerCards = [...this.mpc.arr];
+				newPlayerCards[player]! = newPlayerCards[player]!.acquire(c);
+				return new CardState(this.tableCards.grab(c), newPlayerCards);
+			}
+		
+		buyUniversal(player: number, c: Card): CardState | undefined {
+			const newPlayerCardsArr = [...this.mpc.arr];
+			const newPlayerCards = newPlayerCardsArr[player]!.buyUniversal(c);
+			
+			if (newPlayerCards == undefined) return undefined;
+			
+			newPlayerCardsArr[player]! = newPlayerCards!;
+			return new CardState(this.tableCards.grab(c), newPlayerCardsArr);
 		}
 		
-		genNext(player: number): CardState[] { return this.tableCards.spread.map(c => this.steal(player, c)); }
+			genNextStolen(player: number): CardState[] { return this.tableCards.spread.map(c => this.steal(player, c)); }
 
-		addNext(player: number): CardState[] {
-			const thisArr: CardState[] = [this];
-			return thisArr.concat(this.genNext(player));
-		}
+			addNextStolen(player: number): CardState[] {
+				const thisArr: CardState[] = [this.takeUniversal(player)];
+				return thisArr.concat(this.genNextStolen(player));
+			}
+
+		getPotentialPrevStates(): CardState[] {
+			const res: CardState[] = [];
+			
+			
+			return res;
+		}			
 
 	}
 
@@ -694,7 +699,8 @@ export namespace GameStates {
 
 				for (const s of this.content) {
 					const sFull = CardState.fromKeyString(s);
-					const next = sFull.addNext(player);
+					// TODO: implement buyUniversal for full CardState
+					const next = sFull.addNextStolen(player);
 					res.addStates(next);
 				}
 
@@ -702,7 +708,6 @@ export namespace GameStates {
 			}
 
 		}
-
 
 
 	export class State {
@@ -717,17 +722,6 @@ export namespace GameStates {
 		tokenStr(): string { return this.tokenState.toString(); }
 	}
 
-
-	export class StateSet {
-		states: State[] = [];
-		
-		addState(s: State): void {
-		}
-		
-		addStates(sa: State[]): void {
-		}
-	}
-	
 	
 	abstract class Wavefront {
 		readonly nPlayers = N_PLAYERS;
@@ -757,27 +751,11 @@ export namespace GameStates {
 			console.log(`{${this.round},${this.playerTurn}}`);
 
 			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, //this.round == 2 && this.playerTurn == 0, "pruned_full_2_0_Ex0");
-																		 false, "");
+			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, false, "");
 
 		}
-		
-			__playerMove(): void {
-				const tokState = this.states[0]!.tokenState;
-				const goodTakes = tokState.findPossibleTakes();
-							
-				// Choose random move of those possible
-				const chosenInd = Math.round(Math.random() * 1000000) % goodTakes.length;
-				const move = new TokenVec(goodTakes[chosenInd]!);
-				const newTS = tokState.applyTake(this.playerTurn, move);
 
-				console.log("   choose " + goodTakes[chosenInd]);// + " -> " + 
-				this.states[0] = new State(this.states[0]!.cardState, newTS);
-			}
-		
 	}
-
-
 
 
 	//////////////////////////////////////////////////////////
@@ -789,6 +767,21 @@ export namespace GameStates {
 		
 		size(): number {
 			return this.pcSet.size;
+		}
+		
+		toFullArray(): CardState[] {
+			return this.pcSet.values().map(x => new CardState(this.tableCards, ManyPlayerCards.fromKeyString(x).arr)).toArray();
+		}
+		
+		detailedString(): string {
+			let res = `detailed(${this.tableCards.niceString()}) {\n`;
+			
+			for (const p of this.pcSet)
+				res += "    " + ManyPlayerCards.fromKeyString(p).niceString() + "\n";
+			
+			res += "}\n;"
+			
+			return res;
 		}
 		
 		static init(cs: CardState): CardStateBundle {
@@ -803,12 +796,10 @@ export namespace GameStates {
 			for (const st of states) this.pcSet.add(st.keyString());
 		}
 
-		
 		absorb(otherSet: Set<string>): void {
 			for (const elem of otherSet)
 				this.pcSet.add(elem);
 		}
-		
 
 		merged(otherSet: Set<string>): CardStateBundle {
 			const res = new CardStateBundle();
@@ -821,8 +812,17 @@ export namespace GameStates {
 			return res;
 		}
 
-		move(player: number): CardStateBundle[] {
-			const res: CardStateBundle[] = [this];
+		
+		takeUniversal(player: number): CardStateBundle {
+			const res = new CardStateBundle();
+			res.tableCards = this.tableCards;
+			res.pcSet = new Set<string>(this.pcSet.values().map(ManyPlayerCards.fromKeyString).map(x => x.takeUniversal(player).keyString())/*.toArray()*/);
+			return res;
+		}
+
+
+		moveStolen(player: number): CardStateBundle[] {
+			const res: CardStateBundle[] = [this.takeUniversal(player)];
 			
 			for (const [ind, c] of this.tableCards.spread.entries()) {
 				const nextTc = this.tableCards.grabAt(ind);
@@ -837,13 +837,48 @@ export namespace GameStates {
 			
 			return res;
 		}
-		
-			shortInfo(): string {
-				return this.tableCards.niceString() + `, set(${this.pcSet.size})`;
+
+
+		moveBU(player: number): CardStateBundle[] {
+			const res: CardStateBundle[] = [this.takeUniversal(player)];
+			
+			// 
+			for (const [ind, c] of this.tableCards.spread.entries()) {	
+					// !! Here we can exclude columns from buying
+					if ((ind % 4) >= 4) continue;
+				
+				const nextTc = this.tableCards.grabAt(ind);
+				const nextPcSet = this.pcSet.values().toArray().map(x => ManyPlayerCards.fromKeyString(x).buyUniversal(player, c)).filter(x => x != undefined).map(x => x.keyString());
+				
+				if (nextPcSet.length > 0)
+				{
+					const newSet = new Set<string>(nextPcSet);
+					const nextBundle = new CardStateBundle();
+					nextBundle.tableCards = nextTc;
+					nextBundle.pcSet = newSet
+					res.push(nextBundle);
+				}
 			}
+			
+			return res;
+		}
+
+
+		shortInfo(): string {
+			return this.tableCards.niceString() + `, set(${this.pcSet.size})`;
+		}
 		
 		maxPoints(): number {
 			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).maxPoints()).reduce((a,b) => Math.max(a,b), 0);
+		}
+
+		minPoints(): number {
+			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).minPoints()).reduce((a,b) => Math.min(a,b), 0);
+		}
+
+		// TODO: extend to >2 players?
+		absDiffPoints(): number {
+			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).absDiffPoints()).reduce((a,b) => Math.max(a,b), 0);
 		}
 		
 	}
@@ -860,6 +895,34 @@ export namespace GameStates {
 			return this.content.values().map(x => x.size()).reduce((a,b)=>a+b, 0);
 		}
 		
+		toFullArray(): CardState[] {
+			return this.content.values().map(x => x.toFullArray()).toArray().flat();
+		}
+		
+			pointHistogram(): number[] {
+				let res: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ];
+				const fullArr = this.toFullArray();
+				
+				fullArr.forEach(x => {
+					const mp = x.mpc.maxPoints();
+					res[mp]++;
+				});
+				
+				return res;
+			}
+			
+			diffHistogram(): number[] {
+				let res: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ];
+				const fullArr = this.toFullArray();
+				
+				fullArr.forEach(x => {
+					const mp = x.mpc.absDiffPoints();
+					res[mp]++;
+				});
+				
+				return res;
+			}
+		
 		
 		static init(cs: CardState[]): CardStateBundledSet {
 			if (cs.length > 1) throw new Error("Must be one cardstate");
@@ -870,12 +933,13 @@ export namespace GameStates {
 			return res;
 		}
 
-		move(player: number): CardStateBundledSet {
+
+		moveBU(player: number): CardStateBundledSet {
 			const res = new CardStateBundledSet();
 			res.content = new Map<string, CardStateBundle>();//this.content);
 			
 			for (const [s, bundle] of this.content) {
-				const nextBundles = bundle.move(player);
+				const nextBundles = bundle.moveBU(player);
 				
 				for (const nb of nextBundles) {
 					const ks = nb.tableCards.keyString();
@@ -887,44 +951,42 @@ export namespace GameStates {
 			return res;
 		}
 
-			move_save(player: number): CardStateBundledSet {
-				const fs = require("fs");
-				const writer = fs.createWriteStream("saved_move.txt");
-								
-				const res = new CardStateBundledSet();
-				res.content = new Map<string, CardStateBundle>();//this.content);
+		moveBU_save(player: number): CardStateBundledSet {
+			const fs = require("fs");
+			const writer = fs.createWriteStream("saved_move.txt");
+							
+			const res = new CardStateBundledSet();
+			res.content = new Map<string, CardStateBundle>();
+			
+			for (const [s, bundle] of this.content) {
+				const nextBundles = bundle.moveBU(player);
 				
-				for (const [s, bundle] of this.content) {
-					const nextBundles = bundle.move(player);
+				writer.write(">\n");
+				
+				for (const nb of nextBundles) {
+					writer.write(nb.shortInfo() );
 					
-					writer.write(">\n");
-					
-					for (const nb of nextBundles) {
-						writer.write(nb.shortInfo() );
+					const ks = nb.tableCards.keyString();
+					if (res.content.has(ks)) {
+						const prevS = res.content.get(ks)!.size()
+						res.content.get(ks)!.absorb(nb.pcSet);
+						const nextS = res.content.get(ks)!.size();
+						writer.write(`  update ${prevS}->${nextS}, (+${nextS - prevS})\n`);
 						
-						
-						const ks = nb.tableCards.keyString();
-						if (res.content.has(ks)) {
-							const prevS = res.content.get(ks)!.size()
-							res.content.get(ks)!.absorb(nb.pcSet);
-							const nextS = res.content.get(ks)!.size();
-							writer.write(`  update ${prevS}->${nextS}, (+${nextS - prevS})`);
-
-						}
-						else {
-							writer.write("  new entry");
-							res.content.set(ks, nb);
-						}
-						
-						writer.write('\n');
+						if (nextS >= 100) writer.write(res.content.get(ks)!.detailedString());
 					}
+					else {
+						writer.write("  new entry\n");
+						res.content.set(ks, nb);
+					}
+
 				}
-
-				writer.end();
-
-
-				return res;
 			}
+
+			writer.end();
+
+			return res;
+		}
 
 
 		maxPoints(): number {
@@ -943,16 +1005,18 @@ export namespace GameStates {
 			console.time('move');
 			
 			
-			// if (this.round == 2 && this.playerTurn == 1)
-				// this.stateSet = this.stateSet.move_save(this.playerTurn);
-			// else
-				this.stateSet = this.stateSet.move(this.playerTurn);
+			if (this.round == 8 && this.playerTurn == 1)
+				this.stateSet = this.stateSet.moveBU_save(this.playerTurn);
+			else
+				this.stateSet = this.stateSet.moveBU(this.playerTurn);
 			
 			console.timeEnd('move');			
 
 			const maxElem = this.stateSet.maxPoints();
 			
 			console.log(`set size ${this.stateSet.size()} (${this.stateSet.numBundles()}) up to ${maxElem}`);
+			console.log(this.stateSet.pointHistogram().toString());
+			console.log(this.stateSet.diffHistogram().toString());
 		}
 		
 	}
@@ -982,20 +1046,20 @@ export namespace GameStates {
 	}
 	
 
-	function TMP_logCardStates(states: CardState[], fname: string): void {
-		const fs = require("fs");
-		const writer = fs.createWriteStream(fname);
-		const LEN = states.length;
-		for (let i = 0; i < states.length; i++) {
-			const state = states[i]!;
+	// function TMP_logCardStates(states: CardState[], fname: string): void {
+		// const fs = require("fs");
+		// const writer = fs.createWriteStream(fname);
+		// const LEN = states.length;
+		// for (let i = 0; i < states.length; i++) {
+			// const state = states[i]!;
 			
-			const desc = `M=${Math.max(state.ofPlayer(0).points,state.ofPlayer(1).points)}, D=${state.ofPlayer(0).points - state.ofPlayer(1).points}`;
+			// const desc = `M=${Math.max(state.ofPlayer(0).points,state.ofPlayer(1).points)}, D=${state.ofPlayer(0).points - state.ofPlayer(1).points}`;
 			
-			writer.write(`${i}: ${state.niceString()}   |  ${TableCardsConcise.fromCardState(state).toString()} || ${desc}\n`);
-		}
+			// writer.write(`${i}: ${state.niceString()}   |  ${TableCardsConcise.fromCardState(state).toString()} || ${desc}\n`);
+		// }
 		
-		writer.end();
-	}
+		// writer.end();
+	// }
 	
 
 }

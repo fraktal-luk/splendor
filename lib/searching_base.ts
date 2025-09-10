@@ -335,8 +335,8 @@ export class PlayerCardState {
 	}
 
 	// Price to pay regarding this player's bonuses
-	effectivePrice(n: number): string {
-		const basePrice = getCardPrice(n);
+	effectivePrice(c: Card): string {
+		const basePrice = getCardPrice(c);
 		const bonuses = this.getBonuses();
 		// max(0, a - b)
 		//  a => b -> a-b, b == min(a, b) 
@@ -486,6 +486,31 @@ export class CardState {
 		incAt(i: number): TokenVec {
 			return new TokenVec(incStr(this.str, i));
 		}
+		
+		takeUniversal(): TokenVec {
+			const nums = Array.from(this.str, c => parseInt(c, 16));
+			nums[5] = Math.min(MAX_PLAYER_TOKS, nums[5]! + 3);
+			
+			return new TokenVec(nums.map(x => x.toString(16)).join(''));
+		}
+		
+		payGold(gold: number): TokenVec {
+			const nums = Array.from(this.str, c => parseInt(c, 16));
+			nums[5] -= gold;
+			return new TokenVec(nums.map(x => x.toString(16)).join(''));
+		}
+		
+		
+			TMP_effPrice(c: Card): TokenVec {
+				const basePrice = getCardPrice(c);
+				const bonuses = this.str;
+				// max(0, a - b)
+				//  a => b -> a-b, b == min(a, b) 
+				//  a < b  -> 0 == a-a, a == min(a, b)
+				// max(0, a-b) == a - min(a, b)
+				const reduction = new TokenVec(minStates(bonuses, basePrice));
+				return new TokenVec(basePrice).sub(reduction);
+			}
 		
 		sum(): number {
 			let res = 0;
