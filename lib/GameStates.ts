@@ -321,12 +321,13 @@ export namespace GameStates {
 				return thisArr.concat(this.genNextStolen(player));
 			}
 
-		getPotentialPrevStates(): CardState[] {
-			const res: CardState[] = [];
-			
-			
-			return res;
-		}			
+			genNextBU(player: number): (CardState|undefined)[] {
+				let res: (CardState|undefined)[] = [this];
+				res = res.concat( this.tableCards.spread.map(c => this.buyUniversal(player, c)) );
+				
+				
+				return res;
+			}
 
 	}
 
@@ -635,11 +636,30 @@ export namespace GameStates {
 		lastBatch = [new StateDesc(0)];
 		
 		
+		summary(): string {
+			return `Moves: ${this.sizeRecord.length-1}, lastBatch: ${this.lastBatch.length}, all: ${this.states.length}`;
+		}
+		
+		
+		makeNewBatch(): StateDesc[] {
+			const player = (this.sizeRecord.length - 1) % N_PLAYERS
+			
+			//let res: StateDesc[] = [];
+			
+			
+			const nextStates = this.lastBatch.map(x => x.state.genNextBU(player)).flat();
+			
+				const res = nextStates.map(x => new StateDesc(-1));
+			
+			return res;
+		}
+		
+		
 		makeMove(): void {
 			const nMovesSoFar = this.sizeRecord.length - 1;
 			const sizeBeforeLast = (nMovesSoFar == 0)? 0 : this.sizeRecord[nMovesSoFar-1]!;
 			
-			const newStates = this.lastBatch; // TODO: generate next
+			const newStates = this.makeNewBatch();//lastBatch; // TODO: generate next
 			this.lastBatch = newStates;
 			
 			this.states = this.states.concat(newStates);
@@ -667,7 +687,7 @@ export namespace GameStates {
 			
 			this.stateBase.makeMove();
 			
-				console.log(this.stateBase);
+				console.log(this.stateBase.summary());
 			
 			console.timeEnd('move');			
 
