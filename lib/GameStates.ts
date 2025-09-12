@@ -623,6 +623,8 @@ export namespace GameStates {
 		id: StateId;
 		seq: string = "";
 		state: CardState = DEFAULT_CARDS;
+		next?: StateId[]; //
+		
 		
 		constructor(id: StateId) {
 			this.id = id;
@@ -660,10 +662,24 @@ export namespace GameStates {
 		descriptors: StateDesc[] = [new StateDesc(0)];
 		
 		
-		genFollowers(player: number, input: StateId[]): StateId[] {
-			const res: StateId[] = [];
+		getFollowers(player: number, state: StateId): StateId[] {
+			const desc = this.descriptors[state];
 			
-			return res;
+			if (desc == undefined) throw new Error("State not existing");
+			
+			const storedFollowers = desc!.next;
+			
+			if (storedFollowers == undefined) {
+				// Need to create
+				desc!.next = [0, 0, 0];
+			}
+			
+			return [...desc!.next!];
+		}
+		
+		
+		genBatchFollowers(player: number, input: StateId[]): StateId[] {
+			return input.map(x => this.getFollowers(player, x)).flat();
 		}
 	}
 
@@ -686,7 +702,9 @@ export namespace GameStates {
 					this.stateSet = this.stateSet.moveBU(this.playerTurn);
 				
 			
-			const newFront = this.stateBase.genFollowers(this.playerTurn, this.latest);
+			const newFront = this.stateBase.genBatchFollowers(this.playerTurn, this.latest);
+			
+				console.log(newFront);
 			
 			this.latest = newFront;
 			
