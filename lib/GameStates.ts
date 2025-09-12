@@ -616,81 +616,54 @@ export namespace GameStates {
 		}
 
 
+	type StateId = number;
 
 
 	class StateDesc {
-		id: number;
+		id: StateId;
 		seq: string = "";
 		state: CardState = DEFAULT_CARDS;
 		
-		constructor(id: number) {
+		constructor(id: StateId) {
 			this.id = id;
 		}
 		
-		static fromState(state: CardState | undefined): StateDesc {
-			const res = new StateDesc(-1);
-			if (state != undefined) {
-				res.state = state!;
-					res.id = 0;
-			}
-			else {
+		// static fromState(state: CardState | undefined): StateDesc {
+			// const res = new StateDesc(-1);
+			// if (state != undefined) {
+				// res.state = state!;
+					// res.id = 0;
+			// }
+			// else {
 
-			}	
-			return res;
-		}
+			// }	
+			// return res;
+		// }
 		
-		getNext(player: number): StateDesc[] {
-			let res: StateDesc[] = [];
+		// getNext(player: number): StateDesc[] {
+			// let res: StateDesc[] = [];
 			
-			const nextStates = this.state.genNextBU(player);
+			// const nextStates = this.state.genNextBU(player);
 			
-			res = nextStates.map(StateDesc.fromState);
+			// res = nextStates.map(StateDesc.fromState);
 			
-			for (const [ind, desc] of res.entries()) {
-				desc.seq = this.seq + ind.toString(16);
-			}
+			// for (const [ind, desc] of res.entries()) {
+				// desc.seq = this.seq + ind.toString(16);
+			// }
 			
-			return res;
-		}
+			// return res;
+		// }
 	}
 
 
 	class StateBase {
-		states: StateDesc[] = [new StateDesc(0)];
-		sizeRecord: number[] = [1];
-		
-		lastBatch = [new StateDesc(0)];
+		descriptors: StateDesc[] = [new StateDesc(0)];
 		
 		
-		summary(): string {
-			return `Moves: ${this.sizeRecord.length-1}, lastBatch: ${this.lastBatch.length}, all: ${this.states.length}`;
-		}
-		
-		
-		makeNewBatch(): StateDesc[] {
-			const player = (this.sizeRecord.length - 1) % N_PLAYERS;
-			
-			//let res: StateDesc[] = [];
-			
-			
-			const nextStates = this.lastBatch.map(x => x.state.genNextBU(player)).flat();
-			
-				const res = this.lastBatch.map(x => x.getNext(player)).flat() ;//nextStates.map(x => new StateDesc(-1));
+		genFollowers(player: number, input: StateId[]): StateId[] {
+			const res: StateId[] = [];
 			
 			return res;
-		}
-		
-		
-		makeMove(): void {
-			const nMovesSoFar = this.sizeRecord.length - 1;
-			const sizeBeforeLast = (nMovesSoFar == 0)? 0 : this.sizeRecord[nMovesSoFar-1]!;
-			
-			const newStates = this.makeNewBatch();//lastBatch; // TODO: generate next
-			this.lastBatch = newStates;
-			
-			this.states = this.states.concat(newStates);
-			
-			this.sizeRecord.push(this.states.length);
 		}
 	}
 
@@ -700,20 +673,22 @@ export namespace GameStates {
 		stateSet = CardStateBundledSet.init([DEFAULT_CARDS]);
 		stateBase = new StateBase();
 
+		latest: StateId[] = [0];
+
 		moveImpl(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
 			
 			console.time('move');
 			
+				if (this.round == 8 && this.playerTurn == 1)
+					this.stateSet = this.stateSet.moveBU_save(this.playerTurn);
+				else
+					this.stateSet = this.stateSet.moveBU(this.playerTurn);
+				
 			
-			if (this.round == 8 && this.playerTurn == 1)
-				this.stateSet = this.stateSet.moveBU_save(this.playerTurn);
-			else
-				this.stateSet = this.stateSet.moveBU(this.playerTurn);
+			const newFront = this.stateBase.genFollowers(this.playerTurn, this.latest);
 			
-			this.stateBase.makeMove();
-			
-				console.log(this.stateBase.summary());
+			this.latest = newFront;
 			
 			console.timeEnd('move');			
 
