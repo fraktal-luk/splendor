@@ -47,109 +47,44 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
+const N_PLAYERS = 2;
 
-export namespace GameStates {
-	// For now we assume 2 players, so 44444 token stacks
-	export const MAX_TOKEN_STACKS = "444440";
-									"555550";
-									"777770";
-	const N_PLAYERS = 2;
 
+	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
+	function decodeNum2(s: string): number { return s.charCodeAt(0); }
+
+
+
+	abstract class Wavefront {
+		readonly nPlayers = N_PLAYERS;
+		round = 0;     // Round that lasts until all players make move 
+		playerTurn = 0; // Player to move next
+		
+		move(): void {
+			this.moveImpl();
+
+			this.playerTurn++;
+			if (this.playerTurn == this.nPlayers) {
+				this.playerTurn = 0;
+				this.round++;
+			}
+		}
+		
+		abstract moveImpl(): void;
+	}
+	
 	interface StateValue<T> {
 		keyString(): string;
 		niceString(): string;
 		isSame(other: T): boolean;
 	}
 
-	export class TokenState implements StateValue<TokenState> {
-		readonly tableToks: TokenVec;
-		readonly playerToks: TokenVec[];
-		
-		constructor(t: TokenVec, p: TokenVec[]) {
-			this.tableToks = t;
-			this.playerToks = p;	
-		}
+export namespace GameStates {
+	// For now we assume 2 players, so 44444 token stacks
+	export const MAX_TOKEN_STACKS = "444440";
+									"555550";
+									"777770";
 
-		keyString(): string { return this.tableToks.str + this.playerToks.map(x => x.str).join(''); }	// TODO: remember to change later to prepend tok sum	
-		niceString(): string { return this.tableToks.toLongString() + "|" + this.playerToks.map(x => x.toLongString()).join(','); }
-
-		isSame(other: TokenState): boolean { throw new Error("not implemented"); }
-
-		compare(other: TokenState): number {
-			const cmpT = this.tableToks.compare(other.tableToks);
-			if (cmpT != 0) return cmpT;
-			
-			for (let i = 0; i < this.playerToks.length; i++) {
-				const cmpP = this.playerToks[i]!.compare(other.playerToks[i]!);
-				if (cmpP != 0) return cmpP;
-			}
-			return 0;
-		}
-
-		playerString(): string { return this.playerToks.map(x => x.toLongString()).join('|'); }
-			playerKString(): string { return this.playerToks.map(x => x.str).join(); }
-		ofPlayer(player: number): TokenVec { return this.playerToks[player]!; }
-
-		static fromKeyString(s: string): TokenState {
-			const sixes = s.match(/....../g)!;
-			const tv = sixes.map(x => new TokenVec(x));
-			return new TokenState(tv[0]!, tv.slice(1));
-		}
-		
-		findPossibleTakes(): string[] {
-			const tableToks = this.tableToks;
-			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
-			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
-
-			if (goodTakes.length == 0) goodTakes = STR_2x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
-			if (goodTakes.length == 0) goodTakes = STR_1x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
-			if (goodTakes.length == 0) goodTakes = ["000000"];
-			
-			return goodTakes;
-		}
-
-		findReductions(player: number): string[] {
-			const playerToks = this.ofPlayer(player);
-			const surplus = playerToks.sum() - MAX_PLAYER_TOKS;
-			if (surplus > 3 || surplus < 1) throw new Error("Wrong, over 3 too much or not too much");
-			
-			const giveString = (surplus == 3) ? STR_RET3 : (surplus == 2) ? STR_RET2 : STR_RET1;
-			const gives = giveString.map(s => s + "0");
-			return gives.filter(s => playerToks.atLeast(new TokenVec(s)));
-		}
-		
-		applyTake(player: number, move: TokenVec): TokenState {
-			const playerToks = this.ofPlayer(player);			
-			const newPT = playerToks.add(move);
-			const newTT = this.tableToks.sub(move);
-			return new TokenState(newTT, this.playerToks.with(player, newPT));
-		}
-
-		applyTakes(player: number, moves: string[]): TokenState[] { return moves.map(s => this.applyTake(player, new TokenVec(s)));		}
-
-		// Only changes the player toks, not affecting table
-		applyDelta(player: number, move: TokenVec): TokenState {
-			const playerToks = this.ofPlayer(player);
-			const newPT = playerToks.add(move);
-			return new TokenState(this.tableToks, this.playerToks.with(player, newPT));
-		}
-
-		applyDeltas(player: number, moves: string[]): TokenState[] { return moves.map(s => this.applyDelta(player, new TokenVec(s))); }
-
-		applyGive(player: number, move: TokenVec): TokenState {
-			const playerToks = this.ofPlayer(player);			
-			const newPT = playerToks.sub(move);
-			const newTT = this.tableToks.add(move);
-			return new TokenState(newTT, this.playerToks.with(player, newPT));
-		}
-
-		applyGives(player: number, moves: string[]): TokenState[] { return moves.map(s => this.applyGive(player, new TokenVec(s))); }
-
-	};
-
-
-	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
-	function decodeNum2(s: string): number { return s.charCodeAt(0); }
 
 
 	export class PlayerCards implements StateValue<PlayerCards> {
@@ -396,275 +331,6 @@ export namespace GameStates {
 	}
 
 
-	function handleExcessive(states: TokenState[], player: number): TokenState[] {
-		let arrArr: TokenState[][] = [];
-		
-		states.forEach(x => {
-			if (x.ofPlayer(player).excessive()) {					
-				const gives = x.findReductions(player);
-				const y = x.applyGives(player, gives);
-				arrArr.push(y);
-			}
-			else {
-				arrArr.push([x]);
-			}
-		});
-		
-		return arrArr.flat();
-	}
-
-
-		class PruningResult {
-			res: TokenState[] = [];
-			copied: TokenState[] = [];
-			counts: number[] = [];
-			totalCount = 0;
-		};
-
-		// Naive implementation - compare each state to previous states (assumes sorted by falling sum!)
-		function pruneInternal_Default(statesCopy: TokenState[], player: number): PruningResult {
-			let pruningResult = new PruningResult();
-			
-			while (statesCopy.length > 0) {
-				const last = statesCopy.pop()!;
-				let found = false;
-				let thisCount = 0;
-				
-				// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
-				for (const st of statesCopy) {
-					if (st.ofPlayer(player).sum() <= last.ofPlayer(player).sum()) break;
-					
-					thisCount++;
-					
-					if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
-						found = true;
-						break;
-					}
-				}
-				
-				pruningResult.totalCount += thisCount;
-				
-				if (!found) {
-					pruningResult.res.push(last);
-					thisCount = -1;
-				}
-				pruningResult.copied.push(last);
-				pruningResult.counts.push(thisCount);
-			}
-			return pruningResult;
-		}
-		
-		type PruningFunction = typeof pruneInternal_Default;
-
-		// For each state, generates states that are "bigger" by 1 or 2 and checks whether they are present
-		function pruneInternal_Ex0(statesCopy: TokenState[], player: number): PruningResult {
-			const MAX_SUM = statesCopy[0]!.ofPlayer(player).sum();
-			const MIN_SUM = statesCopy[0]!.ofPlayer(player).sum();
-			
-			if (MAX_SUM - MIN_SUM > 2) throw new Error("Sum span for player is over 2!");
-			
-			let pruningResult = new PruningResult();
-			
-			const grouped = Map.groupBy(statesCopy, x => x.ofPlayer(player).str);
-
-			while (statesCopy.length > 0) {
-				const last = statesCopy.pop()!;
-				let found = false;
-				let foundUp1 = false;
-				let foundUp2 = false;
-				let thisCount = 0;
-				let thisCountUp1 = 0;
-				let thisCountUp2 = 0;
-				
-				const thisSum = last.ofPlayer(player).sum();
-				
-				if (thisSum < MAX_PLAYER_TOKS)
-				{
-					// Generate all possible player token vecs larger by 1 or 2 than current one 
-					const add1 = getVectorsSum1();
-					const add2 = getVectorsSum2();
-					
-					const up1 = last.applyDeltas(player, add1);
-					const up2 = last.applyDeltas(player, add2);
-
-					for (const s of up1) {
-						thisCountUp1++;
-						if (grouped.has(s.ofPlayer(player).str)) {
-							const arr = grouped.get(s.ofPlayer(player).str)!;
-							
-							if (arr.some(x => x.playerKString() == s.playerKString())) foundUp1 = true;
-							
-							//	foundUp1 = true;
-							break;
-						}
-					}
-					
-					//if (thisSum < MAX_PLAYER_TOKS - 1)					
-						for (const s of up2) {
-							thisCountUp2++;
-							if (grouped.has(s.ofPlayer(player).str)) {
-								const arr = grouped.get(s.ofPlayer(player).str)!;
-
-								if (arr.some(x => x.playerKString() == s.playerKString())) foundUp2 = true;
-
-								//	foundUp2 = true;
-								break;
-							}
-						}
-				}
-				
-				found = foundUp1 || foundUp2;
-				thisCount = thisCountUp1 + thisCountUp2;
-
-				pruningResult.totalCount += thisCount;
-				
-				if (found && !foundUp1 && !foundUp2) throw new Error("Wrong finings");
-				
-				if (!found) {
-					if (foundUp1 || foundUp2) throw new Error("Other wrong finings");
-					
-					pruningResult.res.push(last);
-					thisCount = -1;
-				}
-				pruningResult.copied.push(last);
-				pruningResult.counts.push(thisCount);
-			}
-			return pruningResult;
-		}
-
-	
-	function uniqueTokStates(states: TokenState[]): TokenState[] {
-		const uniqueSet = new Set<string>(states.map(x => x.keyString()));
-		return uniqueSet.values() .toArray() .map(TokenState.fromKeyString);
-	}
-
-	function fixExcessiveStates(inputStates: TokenState[][], player: number): TokenState[][] {
-		let res: TokenState[][] = [];
-		
-		inputStates.forEach(x => {
-			const y = handleExcessive(x, player);
-			res.push(y);
-		});
-		
-		return res;
-	}
-
-
-	export class TokenStateSet {
-		private states: TokenState[] = [];
-		
-		size(): number { return this.states.length; }
-		
-		static fromArray(sa: TokenState[]) {
-			let res = new TokenStateSet();
-			res.states = [...sa];
-			res.makeUnique();
-			return res;
-		}
-		
-		makeUnique(): void { this.states = uniqueTokStates(this.states); }
-
-		showSplit(player: number): void {
-			const grouped = Map.groupBy(this.states, x => x.ofPlayer(player).sum());
-			let str = "";
-			for (const [num, list] of grouped) str += `${num} => ${list.length}, `;
-			console.log(str);
-		}
-
-		
-		// Apply takes to each state
-		generateNewStates(player: number): TokenState[][] {
-			let res: TokenState[][] = [];
-
-			this.states.forEach(x => {
-				const moves = x.findPossibleTakes();
-				const y = x.applyTakes(player, moves);				
-				res.push(y);
-			});
-			
-			return res;
-		}
-
-		
-		// For every state in set, make all possible takes
-		applyNewTakes(player: number): TokenStateSet {
-			console.time('takes A_1');
-			
-			const fwStates = this.generateNewStates(player);
-			const fwFlat = fwStates.flat();
-			const sizeGenerated = fwFlat.length;
-			const fwUnique = [uniqueTokStates(fwFlat)];
-
-			console.timeEnd('takes A_1');
-
-
-			console.time('takes A_2');
-			const newStates = fixExcessiveStates(fwUnique, player);
-			console.timeEnd('takes A_2');
-
-			console.time('takes B');
-			
-			const newStatesFlat = newStates[0]!
-			let newStatesAdjustedUnique = uniqueTokStates(newStatesFlat);							
-			newStatesAdjustedUnique.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
-			const res = TokenStateSet.fromArray(newStatesAdjustedUnique);
-
-			console.timeEnd('takes B');
-			
-			console.log(`New states: ${this.size()} -> (${sizeGenerated}) -> (${newStatesFlat.length}) -> ${newStatesAdjustedUnique.length} ` +
-						`// avg (${sizeGenerated/this.size()}) -> (${newStatesFlat.length/this.size()}) -> ${newStatesAdjustedUnique.length/this.size()}`);
-
-			return res;
-		}
-		
-		
-		// Remove non-optimal states for given player
-		__prune(player: number, func: PruningFunction, write: boolean, fname: string): void {		
-			console.log('prune for player ' + player);
-			
-			console.time('prune');
-			const statesCopy = [...this.states];
-			
-			// Don't sort, must be already sorted!
-			//statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
-			
-			let pruningResult = func(statesCopy, player);
-			
-			console.timeEnd('prune');
-			console.log(`Pruned: ${this.size()} -> ` + pruningResult.res.length + 
-							` // all ${pruningResult.totalCount}, avg ${pruningResult.totalCount / (this.size())}`);
-
-			pruningResult.res.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
-
-			this.showSplit(player);
-			this.states = pruningResult.res;
-			this.showSplit(player);
-
-			if (write) writePruning(fname, pruningResult.copied, player, pruningResult.counts);	
-		}
-		
-	}
-
-		// TODO: must reorganize into short strings
-		export class TableCardsConcise {
-			stackImg: string = ""; // Begins with sum of stacks so that sorting is done first with regard to total cards remaining
-			rowImg0: string = "";
-			rowImg1: string = "";
-			rowImg2: string = "";
-			
-			toString(): string { return [this.stackImg, this.rowImg0, this.rowImg1, this.rowImg2, ].join(' '); }
-			
-			static fromCardState(st: CardState): TableCardsConcise {
-				let cc = new TableCardsConcise();
-				cc.stackImg = [st.tableCards.stackNums[0]! + st.tableCards.stackNums[1]! + st.tableCards.stackNums[2]!,
-								st.tableCards.stackNums[0]!, st.tableCards.stackNums[1]!, st.tableCards.stackNums[2]!].map(numStringH).join('');
-				cc.rowImg0 = st.tableCards.spread.slice(0, 4).map(cardStringH).join('');
-				cc.rowImg1 = st.tableCards.spread.slice(4, 8).map(cardStringH).join('');
-				cc.rowImg2 = st.tableCards.spread.slice(8, 12).map(cardStringH).join('');
-				return cc;
-			}
-		}
-
 
 	export const DEFAULT_CARDS = new CardState(
 										DEFAULT_TABLE_CARDS, 
@@ -710,53 +376,6 @@ export namespace GameStates {
 		}
 
 
-	export class State {
-		readonly cardState: CardState;
-		readonly tokenState: TokenState;
-		
-		constructor(c: CardState, t: TokenState) {
-			this.cardState = c;
-			this.tokenState = t;
-		}
-		
-		tokenStr(): string { return this.tokenState.toString(); }
-	}
-
-	
-	abstract class Wavefront {
-		readonly nPlayers = N_PLAYERS;
-		round = 0;     // Round that lasts until all players make move 
-		playerTurn = 0; // Player to move next
-		
-		move(): void {
-			this.moveImpl();
-
-			this.playerTurn++;
-			if (this.playerTurn == this.nPlayers) {
-				this.playerTurn = 0;
-				this.round++;
-			}
-		}
-		
-		abstract moveImpl(): void;
-	}
-	
-	
-	// Experimental, for tokens only
-	export class WavefrontT extends Wavefront {
-		states: State[] = [INITIAL_STATE];
-		__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
-
-		moveImpl(): void {
-			console.log(`{${this.round},${this.playerTurn}}`);
-
-			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, false, "");
-
-		}
-
-	}
-
 
 	//////////////////////////////////////////////////////////
 	
@@ -779,7 +398,7 @@ export namespace GameStates {
 			for (const p of this.pcSet)
 				res += "    " + ManyPlayerCards.fromKeyString(p).niceString() + "\n";
 			
-			res += "}\n;"
+			res += "}\n";
 			
 			return res;
 		}
@@ -1021,45 +640,5 @@ export namespace GameStates {
 		
 	}
 
-
-	export const INITIAL_STATE = new State(
-		DEFAULT_CARDS,
-		new TokenState(
-			new TokenVec(MAX_TOKEN_STACKS),
-			[new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000")].slice(0, N_PLAYERS)
-		)
-	);
-
-
-
-	function writePruning(fname: string, states: TokenState[], player: number, counts: number[]): void { 
-		const fs = require("fs");
-		const writer = fs.createWriteStream(fname);
-		const LEN = states.length;
-		for (let i = 0; i < states.length; i++) {
-			const thisCount = counts[i]!;
-			const killer = thisCount == -1 ? "" : states[LEN-thisCount]!.niceString();
-			writer.write(`${i}: ${states[i]!.niceString()}, ${thisCount}: ${killer}\n`);
-		}
-		
-		writer.end();
-	}
-	
-
-	// function TMP_logCardStates(states: CardState[], fname: string): void {
-		// const fs = require("fs");
-		// const writer = fs.createWriteStream(fname);
-		// const LEN = states.length;
-		// for (let i = 0; i < states.length; i++) {
-			// const state = states[i]!;
-			
-			// const desc = `M=${Math.max(state.ofPlayer(0).points,state.ofPlayer(1).points)}, D=${state.ofPlayer(0).points - state.ofPlayer(1).points}`;
-			
-			// writer.write(`${i}: ${state.niceString()}   |  ${TableCardsConcise.fromCardState(state).toString()} || ${desc}\n`);
-		// }
-		
-		// writer.end();
-	// }
-	
 
 }
