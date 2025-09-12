@@ -53,7 +53,19 @@ const N_PLAYERS = 2;
 	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
 	function decodeNum2(s: string): number { return s.charCodeAt(0); }
 
-
+	function sortSpread(copied: number[], index: number, card: Card): void {
+		while (index < 11 && copied[index+1]! < card) {
+			copied[index] = copied[index+1]!;
+			index++;
+		}
+		
+		while (index > 0 && copied[index-1]! > card) {
+			copied[index] = copied[index-1]!;
+			index--;
+		}
+		
+		copied[index] = card;
+	}
 
 	abstract class Wavefront {
 		readonly nPlayers = N_PLAYERS;
@@ -198,19 +210,7 @@ export namespace GameStates {
 	}
 
 	
-	function sortSpread(copied: number[], index: number, card: Card): void {
-		while (index < 11 && copied[index+1]! < card) {
-			copied[index] = copied[index+1]!;
-			index++;
-		}
-		
-		while (index > 0 && copied[index-1]! > card) {
-			copied[index] = copied[index-1]!;
-			index--;
-		}
-		
-		copied[index] = card;
-	}
+
 	
 
 
@@ -378,245 +378,281 @@ export namespace GameStates {
 
 
 	//////////////////////////////////////////////////////////
-	
-	// Represents a set of states with shared TableCards
-	class CardStateBundle {
-		tableCards: TableCards = DEFAULT_TABLE_CARDS;
-		pcSet = new Set<string>();
 		
-		size(): number {
-			return this.pcSet.size;
-		}
-		
-		toFullArray(): CardState[] {
-			return this.pcSet.values().map(x => new CardState(this.tableCards, ManyPlayerCards.fromKeyString(x).arr)).toArray();
-		}
-		
-		detailedString(): string {
-			let res = `detailed(${this.tableCards.niceString()}) {\n`;
+		// Represents a set of states with shared TableCards
+		class CardStateBundle {
+			tableCards: TableCards = DEFAULT_TABLE_CARDS;
+			pcSet = new Set<string>();
 			
-			for (const p of this.pcSet)
-				res += "    " + ManyPlayerCards.fromKeyString(p).niceString() + "\n";
-			
-			res += "}\n";
-			
-			return res;
-		}
-		
-		static init(cs: CardState): CardStateBundle {
-			const res = new CardStateBundle();
-			res.tableCards = cs.tableCards;
-			res.pcSet.add(cs.mpc.keyString());
-
-			return res;			
-		}
-
-		addStates(states: ManyPlayerCards[]): void {
-			for (const st of states) this.pcSet.add(st.keyString());
-		}
-
-		absorb(otherSet: Set<string>): void {
-			for (const elem of otherSet)
-				this.pcSet.add(elem);
-		}
-
-		merged(otherSet: Set<string>): CardStateBundle {
-			const res = new CardStateBundle();
-			res.tableCards = this.tableCards;
-			res.pcSet = new Set<string>(this.pcSet);
-			
-			for (const elem of otherSet)
-				res.pcSet.add(elem);
-			
-			return res;
-		}
-
-		
-		takeUniversal(player: number): CardStateBundle {
-			const res = new CardStateBundle();
-			res.tableCards = this.tableCards;
-			res.pcSet = new Set<string>(this.pcSet.values().map(ManyPlayerCards.fromKeyString).map(x => x.takeUniversal(player).keyString())/*.toArray()*/);
-			return res;
-		}
-
-
-		moveStolen(player: number): CardStateBundle[] {
-			const res: CardStateBundle[] = [this.takeUniversal(player)];
-			
-			for (const [ind, c] of this.tableCards.spread.entries()) {
-				const nextTc = this.tableCards.grabAt(ind);
-				const nextPcSet = this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).acquire(player, c).keyString());
-				
-				const nextBundle = new CardStateBundle();
-				nextBundle.tableCards = nextTc;
-				nextBundle.pcSet = new Set<string>(nextPcSet);
-				
-				res.push(nextBundle);
+			size(): number {
+				return this.pcSet.size;
 			}
 			
-			return res;
-		}
-
-
-		moveBU(player: number): CardStateBundle[] {
-			const res: CardStateBundle[] = [this.takeUniversal(player)];
+			toFullArray(): CardState[] {
+				return this.pcSet.values().map(x => new CardState(this.tableCards, ManyPlayerCards.fromKeyString(x).arr)).toArray();
+			}
 			
-			// 
-			for (const [ind, c] of this.tableCards.spread.entries()) {	
-					// !! Here we can exclude columns from buying
-					if ((ind % 4) >= 4) continue;
+			detailedString(): string {
+				let res = `detailed(${this.tableCards.niceString()}) {\n`;
 				
-				const nextTc = this.tableCards.grabAt(ind);
-				const nextPcSet = this.pcSet.values().toArray().map(x => ManyPlayerCards.fromKeyString(x).buyUniversal(player, c)).filter(x => x != undefined).map(x => x.keyString());
+				for (const p of this.pcSet)
+					res += "    " + ManyPlayerCards.fromKeyString(p).niceString() + "\n";
 				
-				if (nextPcSet.length > 0)
-				{
-					const newSet = new Set<string>(nextPcSet);
+				res += "}\n";
+				
+				return res;
+			}
+			
+			static init(cs: CardState): CardStateBundle {
+				const res = new CardStateBundle();
+				res.tableCards = cs.tableCards;
+				res.pcSet.add(cs.mpc.keyString());
+
+				return res;			
+			}
+
+			addStates(states: ManyPlayerCards[]): void {
+				for (const st of states) this.pcSet.add(st.keyString());
+			}
+
+			absorb(otherSet: Set<string>): void {
+				for (const elem of otherSet)
+					this.pcSet.add(elem);
+			}
+
+			merged(otherSet: Set<string>): CardStateBundle {
+				const res = new CardStateBundle();
+				res.tableCards = this.tableCards;
+				res.pcSet = new Set<string>(this.pcSet);
+				
+				for (const elem of otherSet)
+					res.pcSet.add(elem);
+				
+				return res;
+			}
+
+			
+			takeUniversal(player: number): CardStateBundle {
+				const res = new CardStateBundle();
+				res.tableCards = this.tableCards;
+				res.pcSet = new Set<string>(this.pcSet.values().map(ManyPlayerCards.fromKeyString).map(x => x.takeUniversal(player).keyString())/*.toArray()*/);
+				return res;
+			}
+
+
+			moveStolen(player: number): CardStateBundle[] {
+				const res: CardStateBundle[] = [this.takeUniversal(player)];
+				
+				for (const [ind, c] of this.tableCards.spread.entries()) {
+					const nextTc = this.tableCards.grabAt(ind);
+					const nextPcSet = this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).acquire(player, c).keyString());
+					
 					const nextBundle = new CardStateBundle();
 					nextBundle.tableCards = nextTc;
-					nextBundle.pcSet = newSet
+					nextBundle.pcSet = new Set<string>(nextPcSet);
+					
 					res.push(nextBundle);
 				}
-			}
-			
-			return res;
-		}
-
-
-		shortInfo(): string {
-			return this.tableCards.niceString() + `, set(${this.pcSet.size})`;
-		}
-		
-		maxPoints(): number {
-			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).maxPoints()).reduce((a,b) => Math.max(a,b), 0);
-		}
-
-		minPoints(): number {
-			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).minPoints()).reduce((a,b) => Math.min(a,b), 0);
-		}
-
-		// TODO: extend to >2 players?
-		absDiffPoints(): number {
-			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).absDiffPoints()).reduce((a,b) => Math.max(a,b), 0);
-		}
-		
-	}
-
-
-	class CardStateBundledSet {
-		content = new Map<string, CardStateBundle>();
-		
-		numBundles(): number {
-			return this.content.size;
-		}
-		
-		size(): number {
-			return this.content.values().map(x => x.size()).reduce((a,b)=>a+b, 0);
-		}
-		
-		toFullArray(): CardState[] {
-			return this.content.values().map(x => x.toFullArray()).toArray().flat();
-		}
-		
-			pointHistogram(): number[] {
-				let res: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ];
-				const fullArr = this.toFullArray();
-				
-				fullArr.forEach(x => {
-					const mp = x.mpc.maxPoints();
-					res[mp]++;
-				});
 				
 				return res;
 			}
-			
-			diffHistogram(): number[] {
-				let res: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ];
-				const fullArr = this.toFullArray();
-				
-				fullArr.forEach(x => {
-					const mp = x.mpc.absDiffPoints();
-					res[mp]++;
-				});
-				
-				return res;
-			}
-		
-		
-		static init(cs: CardState[]): CardStateBundledSet {
-			if (cs.length > 1) throw new Error("Must be one cardstate");
-			const initialCs = cs[0]!;
-			
-			const res = new CardStateBundledSet();
-			res.content.set(initialCs.tableCards.keyString(), CardStateBundle.init(initialCs));
-			return res;
-		}
 
 
-		moveBU(player: number): CardStateBundledSet {
-			const res = new CardStateBundledSet();
-			res.content = new Map<string, CardStateBundle>();//this.content);
-			
-			for (const [s, bundle] of this.content) {
-				const nextBundles = bundle.moveBU(player);
+			moveBU(player: number): CardStateBundle[] {
+				const res: CardStateBundle[] = [this.takeUniversal(player)];
 				
-				for (const nb of nextBundles) {
-					const ks = nb.tableCards.keyString();
-					if (res.content.has(ks)) { res.content.get(ks)!.absorb(nb.pcSet); }
-					else res.content.set(ks, nb);
-				}
-			}
-
-			return res;
-		}
-
-		moveBU_save(player: number): CardStateBundledSet {
-			const fs = require("fs");
-			const writer = fs.createWriteStream("saved_move.txt");
-							
-			const res = new CardStateBundledSet();
-			res.content = new Map<string, CardStateBundle>();
-			
-			for (const [s, bundle] of this.content) {
-				const nextBundles = bundle.moveBU(player);
-				
-				writer.write(">\n");
-				
-				for (const nb of nextBundles) {
-					writer.write(nb.shortInfo() );
+				// 
+				for (const [ind, c] of this.tableCards.spread.entries()) {	
+						// !! Here we can exclude columns from buying
+						if ((ind % 4) >= 4) continue;
 					
-					const ks = nb.tableCards.keyString();
-					if (res.content.has(ks)) {
-						const prevS = res.content.get(ks)!.size()
-						res.content.get(ks)!.absorb(nb.pcSet);
-						const nextS = res.content.get(ks)!.size();
-						writer.write(`  update ${prevS}->${nextS}, (+${nextS - prevS})\n`);
-						
-						if (nextS >= 100) writer.write(res.content.get(ks)!.detailedString());
+					const nextTc = this.tableCards.grabAt(ind);
+					const nextPcSet = this.pcSet.values().toArray().map(x => ManyPlayerCards.fromKeyString(x).buyUniversal(player, c)).filter(x => x != undefined).map(x => x.keyString());
+					
+					if (nextPcSet.length > 0)
+					{
+						const newSet = new Set<string>(nextPcSet);
+						const nextBundle = new CardStateBundle();
+						nextBundle.tableCards = nextTc;
+						nextBundle.pcSet = newSet
+						res.push(nextBundle);
 					}
-					else {
-						writer.write("  new entry\n");
-						res.content.set(ks, nb);
-					}
-
 				}
+				
+				return res;
 			}
 
-			writer.end();
 
-			return res;
+			shortInfo(): string {
+				return this.tableCards.niceString() + `, set(${this.pcSet.size})`;
+			}
+			
+			maxPoints(): number {
+				return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).maxPoints()).reduce((a,b) => Math.max(a,b), 0);
+			}
+
+			minPoints(): number {
+				return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).minPoints()).reduce((a,b) => Math.min(a,b), 0);
+			}
+
+			// TODO: extend to >2 players?
+			absDiffPoints(): number {
+				return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).absDiffPoints()).reduce((a,b) => Math.max(a,b), 0);
+			}
+			
 		}
 
 
-		maxPoints(): number {
-			return this.content.values().map(x => x.maxPoints()).reduce((a,b) => Math.max(a,b), 0);
+		class CardStateBundledSet {
+			content = new Map<string, CardStateBundle>();
+			
+			numBundles(): number {
+				return this.content.size;
+			}
+			
+			size(): number {
+				return this.content.values().map(x => x.size()).reduce((a,b)=>a+b, 0);
+			}
+			
+			toFullArray(): CardState[] {
+				return this.content.values().map(x => x.toFullArray()).toArray().flat();
+			}
+			
+				pointHistogram(): number[] {
+					let res: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ];
+					const fullArr = this.toFullArray();
+					
+					fullArr.forEach(x => {
+						const mp = x.mpc.maxPoints();
+						res[mp]++;
+					});
+					
+					return res;
+				}
+				
+				diffHistogram(): number[] {
+					let res: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ];
+					const fullArr = this.toFullArray();
+					
+					fullArr.forEach(x => {
+						const mp = x.mpc.absDiffPoints();
+						res[mp]++;
+					});
+					
+					return res;
+				}
+			
+			
+			static init(cs: CardState[]): CardStateBundledSet {
+				if (cs.length > 1) throw new Error("Must be one cardstate");
+				const initialCs = cs[0]!;
+				
+				const res = new CardStateBundledSet();
+				res.content.set(initialCs.tableCards.keyString(), CardStateBundle.init(initialCs));
+				return res;
+			}
+
+
+			moveBU(player: number): CardStateBundledSet {
+				const res = new CardStateBundledSet();
+				res.content = new Map<string, CardStateBundle>();//this.content);
+				
+				for (const [s, bundle] of this.content) {
+					const nextBundles = bundle.moveBU(player);
+					
+					for (const nb of nextBundles) {
+						const ks = nb.tableCards.keyString();
+						if (res.content.has(ks)) { res.content.get(ks)!.absorb(nb.pcSet); }
+						else res.content.set(ks, nb);
+					}
+				}
+
+				return res;
+			}
+
+			moveBU_save(player: number): CardStateBundledSet {
+				const fs = require("fs");
+				const writer = fs.createWriteStream("saved_move.txt");
+								
+				const res = new CardStateBundledSet();
+				res.content = new Map<string, CardStateBundle>();
+				
+				for (const [s, bundle] of this.content) {
+					const nextBundles = bundle.moveBU(player);
+					
+					writer.write(">\n");
+					
+					for (const nb of nextBundles) {
+						writer.write(nb.shortInfo() );
+						
+						const ks = nb.tableCards.keyString();
+						if (res.content.has(ks)) {
+							const prevS = res.content.get(ks)!.size()
+							res.content.get(ks)!.absorb(nb.pcSet);
+							const nextS = res.content.get(ks)!.size();
+							writer.write(`  update ${prevS}->${nextS}, (+${nextS - prevS})\n`);
+							
+							if (nextS >= 100) writer.write(res.content.get(ks)!.detailedString());
+						}
+						else {
+							writer.write("  new entry\n");
+							res.content.set(ks, nb);
+						}
+
+					}
+				}
+
+				writer.end();
+
+				return res;
+			}
+
+
+			maxPoints(): number {
+				return this.content.values().map(x => x.maxPoints()).reduce((a,b) => Math.max(a,b), 0);
+			}
+
 		}
 
+
+
+
+	class StateDesc {
+		id: number;
+		seq: string = "";
+		state: CardState = DEFAULT_CARDS;
+		
+		constructor(id: number) {
+			this.id = id;
+		}
 	}
+
+
+	class StateBase {
+		states: StateDesc[] = [new StateDesc(0)];
+		sizeRecord: number[] = [1];
+		
+		lastBatch = [new StateDesc(0)];
+		
+		
+		makeMove(): void {
+			const nMovesSoFar = this.sizeRecord.length - 1;
+			const sizeBeforeLast = (nMovesSoFar == 0)? 0 : this.sizeRecord[nMovesSoFar-1]!;
+			
+			const newStates = this.lastBatch; // TODO: generate next
+			this.lastBatch = newStates;
+			
+			this.states = this.states.concat(newStates);
+			
+			this.sizeRecord.push(this.states.length);
+		}
+	}
+
 
 
 	export class WavefrontC extends Wavefront {
 		stateSet = CardStateBundledSet.init([DEFAULT_CARDS]);
+		stateBase = new StateBase();
 
 		moveImpl(): void {
 			console.log(`{${this.round},${this.playerTurn}}`);
@@ -629,13 +665,12 @@ export namespace GameStates {
 			else
 				this.stateSet = this.stateSet.moveBU(this.playerTurn);
 			
+			this.stateBase.makeMove();
+			
+				console.log(this.stateBase);
+			
 			console.timeEnd('move');			
 
-			const maxElem = this.stateSet.maxPoints();
-			
-			console.log(`set size ${this.stateSet.size()} (${this.stateSet.numBundles()}) up to ${maxElem}`);
-			console.log(this.stateSet.pointHistogram().toString());
-			console.log(this.stateSet.diffHistogram().toString());
 		}
 		
 	}
