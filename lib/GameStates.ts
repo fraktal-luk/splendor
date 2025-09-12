@@ -626,6 +626,32 @@ export namespace GameStates {
 		constructor(id: number) {
 			this.id = id;
 		}
+		
+		static fromState(state: CardState | undefined): StateDesc {
+			const res = new StateDesc(-1);
+			if (state != undefined) {
+				res.state = state!;
+					res.id = 0;
+			}
+			else {
+
+			}	
+			return res;
+		}
+		
+		getNext(player: number): StateDesc[] {
+			let res: StateDesc[] = [];
+			
+			const nextStates = this.state.genNextBU(player);
+			
+			res = nextStates.map(StateDesc.fromState);
+			
+			for (const [ind, desc] of res.entries()) {
+				desc.seq = this.seq + ind.toString(16);
+			}
+			
+			return res;
+		}
 	}
 
 
@@ -642,14 +668,14 @@ export namespace GameStates {
 		
 		
 		makeNewBatch(): StateDesc[] {
-			const player = (this.sizeRecord.length - 1) % N_PLAYERS
+			const player = (this.sizeRecord.length - 1) % N_PLAYERS;
 			
 			//let res: StateDesc[] = [];
 			
 			
 			const nextStates = this.lastBatch.map(x => x.state.genNextBU(player)).flat();
 			
-				const res = nextStates.map(x => new StateDesc(-1));
+				const res = this.lastBatch.map(x => x.getNext(player)).flat() ;//nextStates.map(x => new StateDesc(-1));
 			
 			return res;
 		}
