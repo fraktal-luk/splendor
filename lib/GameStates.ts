@@ -322,7 +322,7 @@ export namespace GameStates {
 			}
 
 			genNextBU(player: number): (CardState|undefined)[] {
-				let res: (CardState|undefined)[] = [this];
+				let res: (CardState|undefined)[] = [this.takeUniversal(player)];
 				res = res.concat( this.tableCards.spread.map(c => this.buyUniversal(player, c)) );
 				
 				
@@ -622,12 +622,13 @@ export namespace GameStates {
 	class StateDesc {
 		id: StateId;
 		seq: string = "";
-		state: CardState = DEFAULT_CARDS;
+		state: CardState;// = DEFAULT_CARDS;
 		next?: StateId[]; //
 		
 		
-		constructor(id: StateId) {
+		constructor(id: StateId, state: CardState) {
 			this.id = id;
+			this.state = state;
 		}
 		
 		// static fromState(state: CardState | undefined): StateDesc {
@@ -659,8 +660,17 @@ export namespace GameStates {
 
 
 	class StateBase {
-		descriptors: StateDesc[] = [new StateDesc(0)];
+		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
+		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
 		
+		addDescriptor(cs: CardState): StateId {
+			const newId = this.descriptors.length;
+			this.descriptors.push(new StateDesc(newId, cs));
+			
+			this.idMap.set(cs.keyString(), newId);
+			
+			return newId;
+		}
 		
 		getFollowers(player: number, state: StateId): StateId[] {
 			const desc = this.descriptors[state];
@@ -671,7 +681,31 @@ export namespace GameStates {
 			
 			if (storedFollowers == undefined) {
 				// Need to create
-				desc!.next = [0, 0, 0];
+				const nextStates = desc.state.genNextBU(player);
+				
+				desc!.next = []; // Create list
+				
+				// Find the states, if not existent then add
+				for (const [i, s] of nextStates.entries()) {
+					console.log(`> ${i}: ${s}`);
+					
+					if (s == undefined) continue;
+					
+					// Have we seen s somewhere?
+					// Find s in base...
+					const keyStr = s.keyString();
+					const theId = this.idMap.get(keyStr);
+					
+					if (theId != undefined) {
+						desc!.next.push(theId);
+					}
+					else {
+						const newId = this.addDescriptor(s);
+						desc!.next.push(newId)	
+					}
+				}
+				
+				//desc!.next = [0, 0, 0];
 			}
 			
 			return [...desc!.next!];
@@ -700,7 +734,7 @@ export namespace GameStates {
 					this.stateSet = this.stateSet.moveBU_save(this.playerTurn);
 				else
 					this.stateSet = this.stateSet.moveBU(this.playerTurn);
-				
+
 			
 			const newFront = this.stateBase.genBatchFollowers(this.playerTurn, this.latest);
 			
