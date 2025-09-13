@@ -235,7 +235,7 @@ export namespace GameStates {
 
 		static fromKeyString(s: string): TableCards {
 			const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));
-			const spread = Array.from(s.substring(3,16), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));		
+			const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));		
 			return new TableCards(nums, spread);
 		}
 
@@ -325,6 +325,11 @@ export namespace GameStates {
 				let res: (CardState|undefined)[] = [this.takeUniversal(player)];
 				res = res.concat( this.tableCards.spread.map(c => this.buyUniversal(player, c)) );
 				
+				
+					const dbStr =	'15,26,36 [02,04,13,20,24,31,39,44,53,67,75,88]    (00)[a]00000a []  (04)[3]001002 []';
+					if (res.some(x => (x != undefined) && x.niceString() == dbStr)) {
+						console.log(`         Yes: ${this.niceString()} => ${dbStr}`);
+					}
 				
 				return res;
 			}
@@ -709,6 +714,8 @@ export namespace GameStates {
 				//desc!.next = [0, 0, 0];
 			}
 			
+				if (desc!.next!.indexOf(115) != -1) console.log(` Reading: ${state} -> ${desc!.next!} `);
+			
 			return [...desc!.next!];
 		}
 		
@@ -723,6 +730,10 @@ export namespace GameStates {
 			console.log(str);
 		}
 		
+		getKeyStrings(input: StateId[]): string[] {
+			return input.map(x => this.descriptors[x]!.state.keyString());
+		}
+		
 		
 	}
 
@@ -735,7 +746,7 @@ export namespace GameStates {
 		latest: StateId[] = [0];
 
 		moveImpl(): void {
-			console.log(`{${this.round},${this.playerTurn}}`);
+			console.log(`\n{${this.round},${this.playerTurn}}`);
 			
 			console.time('move');
 			
@@ -747,16 +758,45 @@ export namespace GameStates {
 			
 			const newFront = this.stateBase.genBatchFollowers(this.playerTurn, this.latest);
 			
-				console.log(newFront);
 			
 			this.latest = newFront;
 						
 			console.timeEnd('move');			
 
 				//this.stateBase.showTable();
-				
-				console.log(` old ${this.stateSet.size()}, num new ${this.latest.length}`);
+				console.log(newFront);
 
+				console.log(` old ${this.stateSet.size()}, num new ${this.latest.length}`);
+				
+				 const oldArr =	this.stateSet.toFullArray();
+				
+				 const oldKeyArr =	this.stateSet.toFullArray().map(x => x.keyString());
+				 const newKeyArr =	this.stateBase.getKeyStrings(this.latest);
+				 
+				 const oldSet = new Set<string>(oldKeyArr);
+				 const newSet = new Set<string>(newKeyArr);
+				 
+				 console.log(`Old ${oldKeyArr.length} (${oldSet.size}); New ${newKeyArr.length} (${newSet.size})`);
+
+				 const diffSet = newSet.difference(oldSet);
+
+					const os = oldKeyArr.map(s => CardState.fromKeyString(s).niceString());
+					const ns = newKeyArr.map(s => CardState.fromKeyString(s).niceString());
+
+					const srcStr =  '16,26,36 [02,08,13,20,24,31,39,44,53,67,75,88]    (00)[a]00000a []  (00)[9]000009 []';
+					const dbStr =	'15,26,36 [02,04,13,20,24,31,39,44,53,67,75,88]    (00)[a]00000a []  (04)[3]001002 []';
+					
+					console.log(`Old s ${os.indexOf(srcStr)}, new ${ns.indexOf(srcStr)} `);
+					console.log(`Old d ${os.indexOf(dbStr)}, new ${ns.indexOf(dbStr)} `);
+					
+
+						//console.log(this.latest[111]);
+				 
+				 
+				// console.log([...diffSet].map(s => CardState.fromKeyString(s).niceString()));
+				 
+				// console.log(oldKeyArr.map(s => CardState.fromKeyString(s).niceString()));
+				// console.log(newKeyArr.map(s => CardState.fromKeyString(s).niceString()));
 		}
 		
 	}
