@@ -591,6 +591,7 @@ export namespace GameStates {
 							const prevS = res.content.get(ks)!.size()
 							res.content.get(ks)!.absorb(nb.pcSet);
 							const nextS = res.content.get(ks)!.size();
+							
 							writer.write(`  update ${prevS}->${nextS}, (+${nextS - prevS})\n`);
 							
 							if (nextS >= 100) writer.write(res.content.get(ks)!.detailedString());
@@ -687,7 +688,7 @@ export namespace GameStates {
 				
 				// Find the states, if not existent then add
 				for (const [i, s] of nextStates.entries()) {
-					console.log(`> ${i}: ${s}`);
+						//console.log(`> ${i}: ${s}`);
 					
 					if (s == undefined) continue;
 					
@@ -713,8 +714,16 @@ export namespace GameStates {
 		
 		
 		genBatchFollowers(player: number, input: StateId[]): StateId[] {
-			return input.map(x => this.getFollowers(player, x)).flat();
+			const flatArr = input.map(x => this.getFollowers(player, x)).flat();
+			return Array.from(new Set<StateId>(flatArr));
 		}
+		
+		showTable(): void {
+			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n')
+			console.log(str);
+		}
+		
+		
 	}
 
 
@@ -741,8 +750,12 @@ export namespace GameStates {
 				console.log(newFront);
 			
 			this.latest = newFront;
-			
+						
 			console.timeEnd('move');			
+
+				//this.stateBase.showTable();
+				
+				console.log(` old ${this.stateSet.size()}, num new ${this.latest.length}`);
 
 		}
 		
