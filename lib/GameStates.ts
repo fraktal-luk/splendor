@@ -224,7 +224,7 @@ export namespace GameStates {
 		}
 		
 		keyString(): string {			
-			return String.fromCharCode(...this.stackNums, ...this.spread, 0); // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
+			return String.fromCharCode(...this.stackNums, ...this.spread); // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
 		}
 
 		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
@@ -272,13 +272,15 @@ export namespace GameStates {
 	export class CardState implements StateValue<CardState> {
 		readonly tableCards: TableCards;
 		readonly mpc: ManyPlayerCards;
+		readonly moves: number; 
 		
-		constructor(t: TableCards, p: PlayerCards[]) {
+		constructor(t: TableCards, p: PlayerCards[], moves: number) {
 			this.tableCards = t;
 			this.mpc = new ManyPlayerCards(p);
+			this.moves = moves;
 		}
 		
-		keyString(): string { return this.tableCards.keyString() + this.mpc.keyString(); }
+		keyString(): string { return this.tableCards.keyString() + String.fromCharCode(this.moves) + this.mpc.keyString(); }
 		niceString(): string { return this.tableCards.niceString() + '    ' + this.mpc.niceString(); }
 
 		isSame(other: CardState): boolean {			
@@ -289,19 +291,19 @@ export namespace GameStates {
 		static fromKeyString(s: string): CardState {
 			const tableCards = TableCards.fromKeyString(s.slice(0,16)); // TODO: verify size
 			const playerCards = ManyPlayerCards.fromKeyString(s.substring(16)).arr;
-			return new CardState(tableCards, playerCards);
+			return new CardState(tableCards, playerCards, s.charCodeAt(15));
 		}
 
 		playerKString(): string { return this.mpc.playerKString(); }
 
 		ofPlayer(player: number): PlayerCards { return this.mpc.ofPlayer(player); }
 
-		takeUniversal(player: number): CardState { return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr); }			
+		takeUniversal(player: number): CardState { return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS); }			
 
 			steal(player: number, c: Card): CardState {
 				const newPlayerCards = [...this.mpc.arr];
 				newPlayerCards[player]! = newPlayerCards[player]!.acquire(c);
-				return new CardState(this.tableCards.grab(c), newPlayerCards);
+				return new CardState(this.tableCards.grab(c), newPlayerCards, (player+1) % N_PLAYERS);
 			}
 		
 		buyUniversal(player: number, c: Card): CardState | undefined {
@@ -311,7 +313,7 @@ export namespace GameStates {
 			if (newPlayerCards == undefined) return undefined;
 			
 			newPlayerCardsArr[player]! = newPlayerCards!;
-			return new CardState(this.tableCards.grab(c), newPlayerCardsArr);
+			return new CardState(this.tableCards.grab(c), newPlayerCardsArr, (player+1) % N_PLAYERS);
 		}
 		
 			genNextStolen(player: number): CardState[] { return this.tableCards.spread.map(c => this.steal(player, c)); }
@@ -340,7 +342,8 @@ export namespace GameStates {
 
 	export const DEFAULT_CARDS = new CardState(
 										DEFAULT_TABLE_CARDS, 
-										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS)
+										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS),
+										0
 										);
 
 		// Not used; replaced by CardStateBundledSet
@@ -395,7 +398,7 @@ export namespace GameStates {
 			}
 			
 			toFullArray(): CardState[] {
-				return this.pcSet.values().map(x => new CardState(this.tableCards, ManyPlayerCards.fromKeyString(x).arr)).toArray();
+				return this.pcSet.values().map(x => new CardState(this.tableCards, ManyPlayerCards.fromKeyString(x).arr, -1)).toArray();
 			}
 			
 			detailedString(): string {
