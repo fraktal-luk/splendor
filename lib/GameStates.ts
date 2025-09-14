@@ -98,7 +98,6 @@ export namespace GameStates {
 									"777770";
 
 
-
 	export class PlayerCards implements StateValue<PlayerCards> {
 		readonly bonuses: TokenVec;
 		readonly points: number;
@@ -117,19 +116,7 @@ export namespace GameStates {
 		isSame(other: PlayerCards): boolean { return this.bonuses.str == other.bonuses.str && this.points == other.points; /* TODO: reserved cards when become relevant*/ }
 
 		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s), []); }
-		
-		covers(other: PlayerCards): boolean {
-			return false//(this.points >= other.points && this.bonuses.covers(other.bonuses))
-				|| (this.points > other.points && this.bonuses.str == (other.bonuses.str));
-		}
 
-		acquire(c: Card): PlayerCards {
-			const ind = (c-1) % 5;
-			const newBonuses = this.bonuses.incAt(ind);
-			const newPoints = this.points + POINT_TABLE[c]!;//getCardPoints(c);
-			return new PlayerCards(newBonuses, newPoints, this.reserved);
-		}
-			
 		// If if can afford, otherwise undef
 		buyUniversal(c: Card): PlayerCards | undefined {
 			const ind = (c-1) % 5;
@@ -189,12 +176,6 @@ export namespace GameStates {
 		playerKString(): string { return this.arr.map(x => x.keyString()).join(''); }
 
 		ofPlayer(player: number): PlayerCards { return this.arr[player]!; }
-
-		acquire(player: number, c: Card): ManyPlayerCards {
-			const thisPlayer = this.ofPlayer(player);
-			const thisPlayerNew = thisPlayer.acquire(c);
-			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew));
-		}
 		
 		buyUniversal(player: number, c: Card): ManyPlayerCards | undefined {
 			const thisPlayer = this.ofPlayer(player);
@@ -204,6 +185,7 @@ export namespace GameStates {
 		}
 		
 		takeUniversal(player: number): ManyPlayerCards { return new ManyPlayerCards(this.arr.with(player, this.ofPlayer(player).takeUniversal())); }
+		
 		maxPoints(): number { return this.arr.map(x => x.points).reduce((a,b) => Math.max(a,b), 0); }
 	}
 
@@ -234,10 +216,6 @@ export namespace GameStates {
 			return new TableCards(nums, spread);
 		}
 
-		cardAt(index: number): Card {
-			if (index < 0 || index > 11) throw new Error("Wrong index");
-			return this.spread[index]!;
-		}
 
 		grabAt(index: number): TableCards {
 			if (index < 0 || index > 11) throw new Error("Wrong index");
@@ -295,19 +273,21 @@ export namespace GameStates {
 
 		takeUniversal(player: number): CardState { return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS); }			
 		
-		buyUniversal(player: number, c: Card): CardState | undefined {
+		buyUniversal(player: number, ind: number): CardState | undefined {
+			const c = this.tableCards.spread[ind]!;
 			const newPlayerCardsArr = [...this.mpc.arr];
 			const newPlayerCards = newPlayerCardsArr[player]!.buyUniversal(c);
 			
 			if (newPlayerCards == undefined) return undefined;
 			
 			newPlayerCardsArr[player]! = newPlayerCards!;
-			return new CardState(this.tableCards.grab(c), newPlayerCardsArr, (player+1) % N_PLAYERS);
+			return new CardState(this.tableCards.grabAt(ind), newPlayerCardsArr, (player+1) % N_PLAYERS);
 		}
 
 		genNextBU(player: number): (CardState|undefined)[] {
 			let res: (CardState|undefined)[] = [this.takeUniversal(player)];
-			res = res.concat( this.tableCards.spread.map(c => this.buyUniversal(player, c)) );
+			
+			res = res.concat( this.tableCards.spread.keys().toArray().map(i => this.buyUniversal(player, i)));
 			return res;
 		}
 
@@ -348,11 +328,11 @@ export namespace GameStates {
 		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
 		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
 		
-		addDescriptor(cs: CardState): StateId {
+		addDescriptor(cs: CardState, ks: string): StateId {
 			const newId = this.descriptors.length;
 			this.descriptors.push(new StateDesc(newId, cs));
 			
-			this.idMap.set(cs.keyString(), newId);
+			this.idMap.set(ks, newId);
 			
 			return newId;
 		}
@@ -365,9 +345,7 @@ export namespace GameStates {
 			const storedFollowers = desc!.next;
 			
 			if (storedFollowers == undefined) {
-				// Need to create
 				const nextStates = desc.state.genNextBU(player);
-				
 				desc!.next = []; // Create list
 				
 				// Find the states, if not existent then add
@@ -385,12 +363,12 @@ export namespace GameStates {
 						desc!.next.push(theId);
 					}
 					else {
-						const newId = this.addDescriptor(s);
+						const newId = this.addDescriptor(s, keyStr);
 						desc!.next.push(newId)	
 					}
-				}				
+				}	
 			}
-			
+
 			return [...desc!.next!];
 		}
 		

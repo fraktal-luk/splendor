@@ -9,7 +9,12 @@ import {GameStates} from './lib/GameStates.ts'
 
 let waveC = new GameStates.WavefrontC();
 console.time('1');
-for (let loopInd = 0; loopInd < 16; loopInd++) {
+for (let loopInd = 0; loopInd < 12; loopInd++) {
 	waveC.move();
 }
+
+console.log();
+
 console.timeEnd('1');
+
+console.log(process.memoryUsage());
