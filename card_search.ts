@@ -9,7 +9,7 @@ import {GameStates} from './lib/GameStates.ts'
 
 let waveC = new GameStates.WavefrontC();
 console.time('1');
-for (let loopInd = 0; loopInd < 10; loopInd++) {
+for (let loopInd = 0; loopInd < 16; loopInd++) {
 	waveC.move();
 }
 console.timeEnd('1');
