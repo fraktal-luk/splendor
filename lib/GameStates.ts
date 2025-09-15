@@ -368,12 +368,13 @@ export namespace GameStates {
 			const pts1 = this.state.mpc.ofPlayer(1).points;
 			
 			if (pts0 >= TMP_TH || pts1 >= TMP_TH) {
+				this.next = [];
 				this.isFinal = true;
 			}
 		}
 
 		rateFinal(): void {
-			if (!this.isFinal) return;
+			if (this.isDone || !this.isFinal) return;
 			
 			const TMP_TH = 10;
 			
@@ -386,6 +387,14 @@ export namespace GameStates {
 			
 			this.isDone = true;
 		}
+
+		// rateNonfinal(): void {
+			// if (this.isDone) return;
+			
+			
+			
+			// //this.isDone = true;
+		// }
 
 	}
 
@@ -407,6 +416,8 @@ export namespace GameStates {
 			const desc = this.descriptors[state];
 			
 			if (desc == undefined) throw new Error("State not existing");
+			
+			if (desc.isDone) return [];
 			
 			const storedFollowers = desc!.next;
 			
@@ -446,6 +457,10 @@ export namespace GameStates {
 		
 		followersRatings(state: StateId): GameRating[] {
 			return this.getFollowerDescs(state).map(x => x.rating);
+		}
+
+		followersTMP_Ratings(state: StateId): GameRating[] {
+			return this.getFollowerDescs(state).map(x => x.TMP_rating);
 		}
 
 		followersRated(state: StateId): boolean {
@@ -517,7 +532,48 @@ export namespace GameStates {
 			
 			return this.descriptors.filter(x => x.isFinal).length;
 		}
+
+		rateNonfinals(): number {			
+			this.descriptors.forEach(x => this.processNonfinal(x));
+			
+			return this.descriptors.filter(x => x.isDone).length;
+		}
 		
+		processNonfinal(desc: StateDesc): void {
+			if (desc.isDone || desc.isFinal) return;
+			
+			if (desc.next == undefined) return;
+			
+			const ratings = this.followersTMP_Ratings(desc.id);
+
+				const has0 = ratings.includes('0');
+				const has1 = ratings.includes('1');
+				const hasU = ratings.includes('U');
+				const hasD = ratings.includes('D');
+
+			if (has0 || has1 || hasD) {
+				let rating = 'U' as GameRating;
+				const mover = desc.state.moves;
+
+				if (mover == 0) {
+					if (has0) rating = '0';
+					else if (hasU) rating = 'U'; // CAREFUL: here we discard possibility of draw if not certain
+					else if (hasD) rating = 'D';
+					else rating = '1';
+				}
+				else if (mover == 1) {
+					if (has1) rating = '1';
+					else if (hasU) rating = 'U'; // CAREFUL: here we discard possibility of draw if not certain
+					else if (hasD) rating = 'D';
+					else rating = '0';
+				}
+				
+				desc.rating = rating;
+				if (rating != 'U') desc.isDone = true;
+			}
+			
+		}
+
 	}
 
 
@@ -527,6 +583,10 @@ export namespace GameStates {
 
 		latest: StateId[] = [0];
 		record: StateId[][] = [[0]];
+
+		moveTimes(n: number): void {
+			for (let i = 0; i < n; i++) this.move();
+		}
 
 		moveImpl(): void {
 			console.log(`\n{${this.round},${this.playerTurn}}`);
@@ -604,6 +664,8 @@ export namespace GameStates {
 			const nFinal = this.stateBase.markAndRateFinals();
 			console.log(`nFinal: ${nFinal}`);
 			
+			const nDone = this.stateBase.rateNonfinals();
+			console.log(`nDone: ${nDone}`);
 			
 			this.bt_v1();
 		}
