@@ -233,10 +233,10 @@ export namespace GameStates {
 			return new TableCards(newStackNums, newSpread);
 		}
 
-		grab(c: Card): TableCards {
-			const index = this.spread.indexOf(c);
-			return this.grabAt(index);		
-		}
+			grab(c: Card): TableCards {
+				const index = this.spread.indexOf(c);
+				return this.grabAt(index);		
+			}
 		
 	}
 	
@@ -274,6 +274,10 @@ export namespace GameStates {
 		takeUniversal(player: number): CardState { return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS); }			
 		
 		buyUniversal(player: number, ind: number): CardState | undefined {
+				
+				// TMP: don't buy last column
+				if ((ind % 4) >= 3) return undefined;
+				
 			const c = this.tableCards.spread[ind]!;
 			const newPlayerCardsArr = [...this.mpc.arr];
 			const newPlayerCards = newPlayerCardsArr[player]!.buyUniversal(c);
@@ -322,7 +326,11 @@ export namespace GameStates {
 		next?: StateId[]; //
 		
 		rated: boolean = false;
-		rating: GameRating = 'U';
+			rating: GameRating = 'U';
+		
+		isFinal: boolean = false; // This state ends the game
+		isDone: boolean = false;  // This state has been fully analyzed
+			TMP_rating: GameRating = 'U';
 		
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
@@ -347,6 +355,36 @@ export namespace GameStates {
 			}
 			
 			
+		}
+		
+		verifyFinal(): void {
+			if (this.isDone) return;
+			
+			if (this.state.moves != 0) return;
+			
+			const TMP_TH = 10;
+			
+			const pts0 = this.state.mpc.ofPlayer(0).points;
+			const pts1 = this.state.mpc.ofPlayer(1).points;
+			
+			if (pts0 >= TMP_TH || pts1 >= TMP_TH) {
+				this.isFinal = true;
+			}
+		}
+
+		rateFinal(): void {
+			if (!this.isFinal) return;
+			
+			const TMP_TH = 10;
+			
+			const pts0 = this.state.mpc.ofPlayer(0).points;
+			const pts1 = this.state.mpc.ofPlayer(1).points;
+			
+			if (pts0 > pts1) this.TMP_rating = '0';
+			else if (pts0 < pts1) this.TMP_rating = '1';
+			else this.TMP_rating = 'D';
+			
+			this.isDone = true;
 		}
 
 	}
@@ -473,6 +511,13 @@ export namespace GameStates {
 		}
 		
 		
+		markAndRateFinals(): number {
+			this.descriptors.forEach(x => x.verifyFinal());
+			this.descriptors.forEach(x => x.rateFinal());
+			
+			return this.descriptors.filter(x => x.isFinal).length;
+		}
+		
 	}
 
 
@@ -496,16 +541,46 @@ export namespace GameStates {
 						
 			console.timeEnd('move');			
 
-				console.log(` setsize ${this.latest.length}, all: ${this.stateBase.descriptors.length}`);
-				
 				const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
 				const mp = pts.reduce((a,b) => Math.max(a,b), 0);
-				console.log(mp);
-				
+				console.log(` setsize ${this.latest.length}, all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
 
 		}
 		
-		
+			bt_v2(): void
+			{
+				let moveIndex = this.record.length-1;
+				
+					while (moveIndex > 0) {
+						moveIndex--;
+						this.record[moveIndex]!.forEach(x => this.stateBase.TMP_isPreFinal(x));
+						
+						const resultsN = this.stateBase.descriptors.map(x => x.rating);
+						const hmapN = Map.groupBy(resultsN, x => x);
+						const resultHistN = hmapN.values().toArray().map(x => x.length);
+						console.log(hmapN.keys().toArray());
+						console.log(resultHistN.toString());
+					}
+			}
+
+			bt_v1(): void {
+				while (true) {
+					// Check which states lead to final
+					const preFinal = this.stateBase.descriptors.filter(x => this.stateBase.TMP_isPreFinal(x.id));
+					
+					 
+					const resultsN = this.stateBase.descriptors.map(x => x.rating);
+					const hmapN = Map.groupBy(resultsN, x => x);
+					const resultHistN = hmapN.values().toArray().map(x => x.length);
+					
+					console.log(`${preFinal.length}; ${hmapN.keys().toArray()}, ${resultHistN.toString()}`);
+					// console.log(hmapN.keys().toArray());
+					// console.log(resultHistN.toString());
+				
+					if (preFinal.length == 0) break;
+				}
+			}
+	
 		sumUp(): void {
 			const descs = this.stateBase.descriptors;
 			
@@ -522,34 +597,15 @@ export namespace GameStates {
 			console.log(hmap.keys().toArray());
 			console.log(resultHist.toString());
 			
-			let moveIndex = this.record.length;
+			//this.bt_v2();
 			
-				while (moveIndex > 0) {
-					moveIndex--;
-					this.record[moveIndex]!.forEach(x => this.stateBase.TMP_isPreFinal(x));
-					
-					const resultsN = this.stateBase.descriptors.map(x => x.rating);
-					const hmapN = Map.groupBy(resultsN, x => x);
-					const resultHistN = hmapN.values().toArray().map(x => x.length);
-					console.log(hmapN.keys().toArray());
-					console.log(resultHistN.toString());
-				}
+			//return;
 			
-			return;
-				while (true) {
-					// Check which states lead to final
-					const preFinal = descs.filter(x => this.stateBase.TMP_isPreFinal(x.id));
-					
-					console.log(preFinal.length);
-					 
-					const resultsN = this.stateBase.descriptors.map(x => x.rating);
-					const hmapN = Map.groupBy(resultsN, x => x);
-					const resultHistN = hmapN.values().toArray().map(x => x.length);
-					console.log(hmapN.keys().toArray());
-					console.log(resultHistN.toString());
-				
-					if (preFinal.length == 0) break;
-				}
+			const nFinal = this.stateBase.markAndRateFinals();
+			console.log(`nFinal: ${nFinal}`);
+			
+			
+			this.bt_v1();
 		}
 		
 	}
