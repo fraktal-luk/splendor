@@ -23,4 +23,11 @@ console.log(process.memoryUsage());
 
 waveC.sumUp();
 
-waveC.moveTimes(2);
+// waveC.moveTimes(2);
+
+// waveC.sumUp();
+
+// Here, moves after 20 would crash
+// waveC.moveTimes(2);
+// waveC.sumUp();
+

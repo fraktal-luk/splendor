@@ -276,7 +276,7 @@ export namespace GameStates {
 		buyUniversal(player: number, ind: number): CardState | undefined {
 				
 				// TMP: don't buy last column
-				if ((ind % 4) >= 3) return undefined;
+				if ((ind % 4) >= 4) return undefined;
 				
 			const c = this.tableCards.spread[ind]!;
 			const newPlayerCardsArr = [...this.mpc.arr];
@@ -568,7 +568,7 @@ export namespace GameStates {
 					else rating = '0';
 				}
 				
-				desc.rating = rating;
+				desc.TMP_rating = rating;
 				if (rating != 'U') desc.isDone = true;
 			}
 			
@@ -664,8 +664,20 @@ export namespace GameStates {
 			const nFinal = this.stateBase.markAndRateFinals();
 			console.log(`nFinal: ${nFinal}`);
 			
-			const nDone = this.stateBase.rateNonfinals();
-			console.log(`nDone: ${nDone}`);
+			let nDone = 0;
+			let len = this.record.length;
+			
+			while (len-- > 0) {
+				nDone = this.stateBase.rateNonfinals();
+				const n0 = this.stateBase.descriptors.filter(x => x.TMP_rating == '0').length;
+				const n1 = this.stateBase.descriptors.filter(x => x.TMP_rating == '1').length;
+				const nD = this.stateBase.descriptors.filter(x => x.TMP_rating == 'D').length;
+				const nU = this.stateBase.descriptors.filter(x => x.TMP_rating == 'U').length;
+				console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
+		 	}
+				
+			// nDone = this.stateBase.rateNonfinals();
+			// console.log(`nDone: ${nDone}`);
 			
 			this.bt_v1();
 		}
