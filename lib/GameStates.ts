@@ -271,9 +271,15 @@ export namespace GameStates {
 
 		ofPlayer(player: number): PlayerCards { return this.mpc.ofPlayer(player); }
 
-		takeUniversal(player: number): CardState { return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS); }			
+		takeUniversal(): CardState {
+				const player = this.moves;
+						//if (player != this.moves) throw new Error(`Move err ${player}/${this.moves}`);
+			return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS); 
+		}
 		
-		buyUniversal(player: number, ind: number): CardState | undefined {
+		buyUniversal(ind: number): CardState | undefined {
+				const player = this.moves;
+				//if (player != this.moves) throw new Error("Move err ${player}/${this.moves}");
 				
 				// TMP: don't buy last column
 				if ((ind % 4) >= 4) return undefined;
@@ -288,10 +294,13 @@ export namespace GameStates {
 			return new CardState(this.tableCards.grabAt(ind), newPlayerCardsArr, (player+1) % N_PLAYERS);
 		}
 
-		genNextBU(player: number): (CardState|undefined)[] {
-			let res: (CardState|undefined)[] = [this.takeUniversal(player)];
+		genNextBU(): (CardState|undefined)[] {
+				const player = this.moves;
+				//if (player != this.moves) throw new Error("Move err ${player}/${this.moves}");
 			
-			res = res.concat( this.tableCards.spread.keys().toArray().map(i => this.buyUniversal(player, i)));
+			let res: (CardState|undefined)[] = [this.takeUniversal()];
+			
+			res = res.concat( this.tableCards.spread.keys().toArray().map(i => this.buyUniversal(i)));
 			return res;
 		}
 
@@ -412,17 +421,20 @@ export namespace GameStates {
 			return newId;
 		}
 		
-		getFollowers(player: number, state: StateId): StateId[] {
+		// Trace mode: don't calculate if not already known and don't skip when isDone 
+		getFollowers(state: StateId, trace: boolean = false): StateId[] {
 			const desc = this.descriptors[state];
 			
 			if (desc == undefined) throw new Error("State not existing");
 			
-			if (desc.isDone) return [];
+			if (!trace && desc.isDone) return [];
 			
 			const storedFollowers = desc!.next;
 			
 			if (storedFollowers == undefined) {
-				const nextStates = desc.state.genNextBU(player);
+				if (trace) return [];
+				
+				const nextStates = desc.state.genNextBU();
 				desc!.next = []; // Create list
 				
 				// Find the states, if not existent then add
@@ -511,8 +523,8 @@ export namespace GameStates {
 		}
 		
 		
-		genBatchFollowers(player: number, input: StateId[]): StateId[] {
-			const flatArr = input.map(x => this.getFollowers(player, x)).flat();
+		genBatchFollowers(input: StateId[], trace: boolean = false): StateId[] {
+			const flatArr = input.map(x => this.getFollowers(x, trace)).flat();
 			return Array.from(new Set<StateId>(flatArr));
 		}
 		
@@ -594,7 +606,7 @@ export namespace GameStates {
 			console.time('move');
 
 			
-			const newFront = this.stateBase.genBatchFollowers(this.playerTurn, this.latest);			
+			const newFront = this.stateBase.genBatchFollowers(this.latest);			
 			
 			this.latest = newFront;
 			this.record.push(newFront);
@@ -675,11 +687,18 @@ export namespace GameStates {
 				const nU = this.stateBase.descriptors.filter(x => x.TMP_rating == 'U').length;
 				console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 		 	}
-				
+			
+			
+			const doneIds = this.stateBase.descriptors.filter(x => x.isDone).map(x => x.id);
+			const doneFollowers1 = this.stateBase.genBatchFollowers(doneIds, true);	
+			const doneFollowers2 = this.stateBase.genBatchFollowers(doneFollowers1, true);
+
+			console.log(`${doneIds.length} -> ${doneFollowers1.length} -> ${doneFollowers2.length}`);
+			
 			// nDone = this.stateBase.rateNonfinals();
 			// console.log(`nDone: ${nDone}`);
 			
-			this.bt_v1();
+			//this.bt_v1();
 		}
 		
 	}
