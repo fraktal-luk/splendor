@@ -216,7 +216,6 @@ export namespace GameStates {
 			return new TableCards(nums, spread);
 		}
 
-
 		grabAt(index: number): TableCards {
 			if (index < 0 || index > 11) throw new Error("Wrong index");
 			
@@ -272,16 +271,14 @@ export namespace GameStates {
 		ofPlayer(player: number): PlayerCards { return this.mpc.ofPlayer(player); }
 
 		takeUniversal(): CardState {
-				const player = this.moves;
-						//if (player != this.moves) throw new Error(`Move err ${player}/${this.moves}`);
+			const player = this.moves;
 			return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS); 
 		}
 		
 		buyUniversal(ind: number): CardState | undefined {
-				const player = this.moves;
-				//if (player != this.moves) throw new Error("Move err ${player}/${this.moves}");
+			const player = this.moves;
 				
-				// TMP: don't buy last column
+				// TMP: limit columns to buy (performance "hack")
 				if ((ind % 4) >= 4) return undefined;
 				
 			const c = this.tableCards.spread[ind]!;
@@ -294,12 +291,8 @@ export namespace GameStates {
 			return new CardState(this.tableCards.grabAt(ind), newPlayerCardsArr, (player+1) % N_PLAYERS);
 		}
 
-		genNextBU(): (CardState|undefined)[] {
-				const player = this.moves;
-				//if (player != this.moves) throw new Error("Move err ${player}/${this.moves}");
-			
+		genNextBU(): (CardState|undefined)[] {			
 			let res: (CardState|undefined)[] = [this.takeUniversal()];
-			
 			res = res.concat( this.tableCards.spread.keys().toArray().map(i => this.buyUniversal(i)));
 			return res;
 		}
@@ -320,12 +313,13 @@ export namespace GameStates {
 
 
 	//////////////////////////////////////////////////////////
-		
-
 
 	type StateId = number;
 
 	type GameRating = 'U' | '0' | '1' | 'D';
+
+
+	const TMP_TH = 10;
 
 
 	class StateDesc {
@@ -334,12 +328,9 @@ export namespace GameStates {
 		state: CardState;// = DEFAULT_CARDS;
 		next?: StateId[]; //
 		
-		rated: boolean = false;
-			rating: GameRating = 'U';
-		
 		isFinal: boolean = false; // This state ends the game
 		isDone: boolean = false;  // This state has been fully analyzed
-			TMP_rating: GameRating = 'U';
+		rating: GameRating = 'U';
 		isTraced: boolean = false;
 		
 		constructor(id: StateId, state: CardState) {
@@ -348,32 +339,9 @@ export namespace GameStates {
 		}
 		
 		
-		setResult(): void {
-			// Only states after whole round
-			if (this.state.moves != 0) return;
-			
-			const TMP_TH = 10;
-			
-			const pts0 = this.state.mpc.ofPlayer(0).points;
-			const pts1 = this.state.mpc.ofPlayer(1).points;
-			
-			if (pts0 >= TMP_TH || pts1 >= TMP_TH) {
-				if (pts0 > pts1) this.rating = '0';
-				else if (pts0 < pts1) this.rating = '1';
-				else this.rating = 'D';
-				this.rated = true;
-			}
-			
-			
-		}
-		
 		verifyFinal(): void {
-			if (this.isDone) return;
-			
-			if (this.state.moves != 0) return;
-			
-			const TMP_TH = 10;
-			
+			if (this.isDone || this.state.moves != 0) return;
+
 			const pts0 = this.state.mpc.ofPlayer(0).points;
 			const pts1 = this.state.mpc.ofPlayer(1).points;
 			
@@ -386,14 +354,12 @@ export namespace GameStates {
 		rateFinal(): void {
 			if (this.isDone || !this.isFinal) return;
 			
-			const TMP_TH = 10;
-			
 			const pts0 = this.state.mpc.ofPlayer(0).points;
 			const pts1 = this.state.mpc.ofPlayer(1).points;
 			
-			if (pts0 > pts1) this.TMP_rating = '0';
-			else if (pts0 < pts1) this.TMP_rating = '1';
-			else this.TMP_rating = 'D';
+			if (pts0 > pts1) this.rating = '0';
+			else if (pts0 < pts1) this.rating = '1';
+			else this.rating = 'D';
 			
 			this.isDone = true;
 		}
@@ -408,37 +374,29 @@ export namespace GameStates {
 		addDescriptor(cs: CardState, ks: string): StateId {
 			const newId = this.descriptors.length;
 			this.descriptors.push(new StateDesc(newId, cs));
-			
 			this.idMap.set(ks, newId);
-			
 			return newId;
 		}
 		
 		// Trace mode: don't calculate if not already known and don't skip when isDone 
 		getFollowers(state: StateId, trace: boolean = false): StateId[] {
 			const desc = this.descriptors[state];
-			
 			if (desc == undefined) throw new Error("State not existing");
 			
 			if (!trace && desc.isDone) return [];
-			
-			const storedFollowers = desc!.next;
-			
+
 			if (trace) desc!.isTraced = true;
 			
-			if (storedFollowers == undefined) {
+			if (desc!.next == undefined) {
 				if (trace) return [];
 				
 				const nextStates = desc.state.genNextBU();
 				desc!.next = []; // Create list
 				
 				// Find the states, if not existent then add
-				for (const [i, s] of nextStates.entries()) {
-						//console.log(`> ${i}: ${s}`);
-					
+				for (const [i, s] of nextStates.entries()) {					
 					if (s == undefined) continue;
 					
-					// Have we seen s somewhere?
 					// Find s in base...
 					const keyStr = s.keyString();
 					const theId = this.idMap.get(keyStr);
@@ -455,69 +413,16 @@ export namespace GameStates {
 
 			return [...desc!.next!];
 		}
-		
-		
+
 		getFollowerDescs(state: StateId): StateDesc[] {
 			const nextIds = this.descriptors[state]!.next!;
 			return nextIds.map(x => this.descriptors[x]!);
 		}
-		
+
 		followersRatings(state: StateId): GameRating[] {
 			return this.getFollowerDescs(state).map(x => x.rating);
 		}
 
-		followersTMP_Ratings(state: StateId): GameRating[] {
-			return this.getFollowerDescs(state).map(x => x.TMP_rating);
-		}
-
-		followersRated(state: StateId): boolean {
-			return this.getFollowerDescs(state).some(x => x.rated);
-		}
-		
-		// Careful: temporarily use it to set rating
-		TMP_isPreFinal(state: StateId): boolean {
-			if (this.descriptors[state]!.rated) return false;
-			
-			const next = this.descriptors[state]!.next;
-			const mover = this.descriptors[state]!.state.moves;
-			if (next == undefined) return false;
-			
-			if (!this.followersRated(state)) return false;
-			
-			const ratings = this.followersRatings(state);
-
-				const has0 = ratings.includes('0');
-				const has1 = ratings.includes('1');
-				const hasU = ratings.includes('U');
-				const hasD = ratings.includes('D');
-				
-			if (has0 || has1 || hasD) {
-				let rating = 'U' as GameRating;
-				
-				if (mover == 0) {
-					if (has0) rating = '0';
-					else if (hasU) rating = 'U'; // CAREFUL: here we discard possibility of draw if not certain
-					else if (hasD) rating = 'D';
-					else rating = '1';
-				}
-				else if (mover == 1) {
-					if (has1) rating = '1';
-					else if (hasU) rating = 'U'; // CAREFUL: here we discard possibility of draw if not certain
-					else if (hasD) rating = 'D';
-					else rating = '0';
-				}
-				
-				this.descriptors[state]!.rating = rating;
-				//return true;
-			}
-
-			this.descriptors[state]!.rated = true;
-
-			return true;
-			//return false;
-		}
-		
-		
 		genBatchFollowers(input: StateId[], trace: boolean = false): StateId[] {
 			const flatArr = input.map(x => this.getFollowers(x, trace)).flat();
 			return Array.from(new Set<StateId>(flatArr));
@@ -532,31 +437,25 @@ export namespace GameStates {
 			return input.map(x => this.descriptors[x]!.state.keyString());
 		}
 		
-		
 		markAndRateFinals(): number {
 			this.descriptors.forEach(x => x.verifyFinal());
 			this.descriptors.forEach(x => x.rateFinal());
-			
 			return this.descriptors.filter(x => x.isFinal).length;
 		}
 
 		rateNonfinals(): number {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
-			
 			return this.descriptors.filter(x => x.isDone).length;
 		}
 		
 		processNonfinal(desc: StateDesc): void {
-			if (desc.isDone || desc.isFinal) return;
-			
-			if (desc.next == undefined) return;
-			
-			const ratings = this.followersTMP_Ratings(desc.id);
-
-				const has0 = ratings.includes('0');
-				const has1 = ratings.includes('1');
-				const hasU = ratings.includes('U');
-				const hasD = ratings.includes('D');
+			if (desc.isDone || desc.isFinal || desc.next == undefined) return;
+				
+			const ratings = this.followersRatings(desc.id);
+			const has0 = ratings.includes('0');
+			const has1 = ratings.includes('1');
+			const hasU = ratings.includes('U');
+			const hasD = ratings.includes('D');
 
 			if (has0 || has1 || hasD) {
 				let rating = 'U' as GameRating;
@@ -575,14 +474,13 @@ export namespace GameStates {
 					else rating = '0';
 				}
 				
-				desc.TMP_rating = rating;
+				desc.rating = rating;
 				if (rating != 'U') desc.isDone = true;
 			}
-			
+
 		}
 
 	}
-
 
 
 	export class WavefrontC extends Wavefront {
@@ -610,43 +508,8 @@ export namespace GameStates {
 				const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
 				const mp = pts.reduce((a,b) => Math.max(a,b), 0);
 				console.log(` setsize ${this.latest.length}, all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
-
 		}
-		
-			// bt_v2(): void
-			// {
-				// let moveIndex = this.record.length-1;
-				
-					// while (moveIndex > 0) {
-						// moveIndex--;
-						// this.record[moveIndex]!.forEach(x => this.stateBase.TMP_isPreFinal(x));
-						
-						// const resultsN = this.stateBase.descriptors.map(x => x.rating);
-						// const hmapN = Map.groupBy(resultsN, x => x);
-						// const resultHistN = hmapN.values().toArray().map(x => x.length);
-						// console.log(hmapN.keys().toArray());
-						// console.log(resultHistN.toString());
-					// }
-			// }
 
-			// bt_v1(): void {
-				// while (true) {
-					// // Check which states lead to final
-					// const preFinal = this.stateBase.descriptors.filter(x => this.stateBase.TMP_isPreFinal(x.id));
-					
-					 
-					// const resultsN = this.stateBase.descriptors.map(x => x.rating);
-					// const hmapN = Map.groupBy(resultsN, x => x);
-					// const resultHistN = hmapN.values().toArray().map(x => x.length);
-					
-					// console.log(`${preFinal.length}; ${hmapN.keys().toArray()}, ${resultHistN.toString()}`);
-					// // console.log(hmapN.keys().toArray());
-					// // console.log(resultHistN.toString());
-				
-					// if (preFinal.length == 0) break;
-				// }
-			// }
-	
 		sumUp(): void {
 			console.time('sum up');
 			
@@ -655,10 +518,7 @@ export namespace GameStates {
 			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
 			const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
 			console.log(pointHist.toString());
-			
-			// Get ratings for final states
-			this.stateBase.descriptors.forEach(x => x.setResult());
-			
+
 			const results = this.stateBase.descriptors.map(x => x.rating);
 			const hmap = Map.groupBy(results, x => x);
 			const resultHist = hmap.values().toArray().map(x => x.length);
@@ -673,10 +533,10 @@ export namespace GameStates {
 			
 			while (len-- > 0) {
 				nDone = this.stateBase.rateNonfinals();
-				const n0 = this.stateBase.descriptors.filter(x => x.TMP_rating == '0').length;
-				const n1 = this.stateBase.descriptors.filter(x => x.TMP_rating == '1').length;
-				const nD = this.stateBase.descriptors.filter(x => x.TMP_rating == 'D').length;
-				const nU = this.stateBase.descriptors.filter(x => x.TMP_rating == 'U').length;
+				const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
+				const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
+				const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
+				const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
 				console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 		 	}
 			
