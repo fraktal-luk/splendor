@@ -8,26 +8,36 @@ import {GameStates} from './lib/GameStates.ts'
 
 
 let waveC = new GameStates.WavefrontC();
+
 console.time('1');
-// for (let loopInd = 0; loopInd < 12 + 6 ; loopInd++) {
-	// waveC.move();
-// }
 
 waveC.moveTimes(18);
 
 console.log();
-
 console.timeEnd('1');
+
 
 console.log(process.memoryUsage());
 
 waveC.sumUp();
 
-// waveC.moveTimes(2);
+waveC.clearSoft();
 
-// waveC.sumUp();
+console.time('warm');
+
+waveC.moveTimes(18);
+
+console.log();
+console.timeEnd('warm');
+
+
+	// waveC.moveTimes(2);
+	// waveC.sumUp();
+
 
 // Here, moves after 20 would crash
-// waveC.moveTimes(2);
-// waveC.sumUp();
+ // waveC.moveTimes(2);
+ // waveC.sumUp();
 
+ // waveC.moveTimes(2);
+ // waveC.sumUp();

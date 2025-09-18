@@ -48,7 +48,7 @@ const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
 const N_PLAYERS = 2;
-
+const COLUMN_WALL = 4;
 
 	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
 	function decodeNum2(s: string): number { return s.charCodeAt(0); }
@@ -71,6 +71,11 @@ const N_PLAYERS = 2;
 		readonly nPlayers = N_PLAYERS;
 		round = 0;     // Round that lasts until all players make move 
 		playerTurn = 0; // Player to move next
+		
+		resetTurns(): void {
+			this.round = 0;
+			this.playerTurn = 0;
+		}
 		
 		move(): void {
 			this.moveImpl();
@@ -279,7 +284,7 @@ export namespace GameStates {
 			const player = this.moves;
 				
 				// TMP: limit columns to buy (performance "hack")
-				if ((ind % 4) >= 4) return undefined;
+				if ((ind % 4) >= COLUMN_WALL) return undefined;
 				
 			const c = this.tableCards.spread[ind]!;
 			const newPlayerCardsArr = [...this.mpc.arr];
@@ -324,7 +329,7 @@ export namespace GameStates {
 
 	class StateDesc {
 		id: StateId;
-		seq: string = "";
+		//seq: string = "";
 		state: CardState;// = DEFAULT_CARDS;
 		next?: StateId[]; //
 		
@@ -382,36 +387,44 @@ export namespace GameStates {
 		getFollowers(state: StateId, trace: boolean = false): StateId[] {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
-			
-			if (!trace && desc.isDone) return [];
 
-			if (trace) desc!.isTraced = true;
-			
-			if (desc!.next == undefined) {
-				if (trace) return [];
-				
-				const nextStates = desc.state.genNextBU();
-				desc!.next = []; // Create list
-				
-				// Find the states, if not existent then add
-				for (const [i, s] of nextStates.entries()) {					
-					if (s == undefined) continue;
-					
-					// Find s in base...
-					const keyStr = s.keyString();
-					const theId = this.idMap.get(keyStr);
-					
-					if (theId != undefined) {
-						desc!.next.push(theId);
-					}
-					else {
-						const newId = this.addDescriptor(s, keyStr);
-						desc!.next.push(newId)	
-					}
-				}	
+			if (trace) {
+				desc!.isTraced = true;		
+				if (desc!.next == undefined) {
+					return [];				
+				}
 			}
 
+			if (!trace) {				
+				if (desc!.next == undefined) {
+					desc!.next = this.makeIds(desc.state.genNextBU());
+				}
+			}
+			
 			return [...desc!.next!];
+		}
+
+		makeIds(states: (CardState|undefined)[]): StateId[] {
+			const nextIds: StateId[] = [];
+			
+			// Find the states, if not existent then add
+			for (const [i, s] of states.entries()) {					
+				if (s == undefined) continue;
+				
+				// Find s in base...
+				const keyStr = s.keyString();
+				const theId = this.idMap.get(keyStr);
+				
+				if (theId != undefined) {
+					nextIds.push(theId);
+				}
+				else {
+					const newId = this.addDescriptor(s, keyStr);
+					nextIds.push(newId)	
+				}
+			}
+			
+			return nextIds;
 		}
 
 		getFollowerDescs(state: StateId): StateDesc[] {
@@ -448,6 +461,7 @@ export namespace GameStates {
 			return this.descriptors.filter(x => x.isDone).length;
 		}
 		
+		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
 			if (desc.isDone || desc.isFinal || desc.next == undefined) return;
 				
@@ -475,9 +489,15 @@ export namespace GameStates {
 				}
 				
 				desc.rating = rating;
-				if (rating != 'U') desc.isDone = true;
+				if (rating != 'U') {
+					desc.isDone = true;
+				}
 			}
 
+		}
+		
+		terminateDoneNodes(): void {
+			this.descriptors.forEach(x => { if (x.isDone) x.next = []; });
 		}
 
 	}
@@ -488,6 +508,15 @@ export namespace GameStates {
 
 		latest: StateId[] = [0];
 		record: StateId[][] = [[0]];
+		
+		// Leave base, delete current state
+		clearSoft(): void {
+			this.resetTurns();
+			
+			this.latest = [0];
+			this.record = [[0]];
+		}
+		
 
 		moveTimes(n: number): void {
 			for (let i = 0; i < n; i++) this.move();
@@ -519,14 +548,15 @@ export namespace GameStates {
 			const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
 			console.log(pointHist.toString());
 
+			const nFinal = this.stateBase.markAndRateFinals();
+			console.log(`nFinal: ${nFinal}`);
+
 			const results = this.stateBase.descriptors.map(x => x.rating);
 			const hmap = Map.groupBy(results, x => x);
 			const resultHist = hmap.values().toArray().map(x => x.length);
 			console.log(hmap.keys().toArray());
 			console.log(resultHist.toString());
 			
-			const nFinal = this.stateBase.markAndRateFinals();
-			console.log(`nFinal: ${nFinal}`);
 			
 			let nDone = 0;
 			let len = this.record.length;
@@ -554,6 +584,9 @@ export namespace GameStates {
 			
 			const tracedIds = this.stateBase.descriptors.filter(x => x.isTraced).map(x => x.id);
 			console.log(`traced: ${tracedIds.length}`);
+
+
+				this.stateBase.terminateDoneNodes();
 		}
 		
 	}
