@@ -48,7 +48,10 @@ const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
 const N_PLAYERS = 2;
-const COLUMN_WALL = 4;
+const COLUMN_WALL = 2;
+
+const TMP_TH = 10;
+
 
 	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
 	function decodeNum2(s: string): number { return s.charCodeAt(0); }
@@ -321,10 +324,12 @@ export namespace GameStates {
 
 	type StateId = number;
 
+	type NodeCategory = 'unknown'
+				   | 'final'  // end the game
+				   | 'falls'; // leads to known final state (result determined)
 	type GameRating = 'U' | '0' | '1' | 'D';
 
 
-	const TMP_TH = 10;
 
 
 	class StateDesc {
@@ -333,10 +338,19 @@ export namespace GameStates {
 		state: CardState;// = DEFAULT_CARDS;
 		next?: StateId[]; //
 		
-		isFinal: boolean = false; // This state ends the game
-		isDone: boolean = false;  // This state has been fully analyzed
+		category: NodeCategory = 'unknown';
+			//isFinal: boolean = false; // This state ends the game
+			//isDone: boolean = false;  // This state has been fully analyzed
 		rating: GameRating = 'U';
-		isTraced: boolean = false;
+		//isTraced: boolean = false;
+		
+		TMP_isDone(): boolean {
+			return this.category == 'falls' || this.category == 'final';
+		}
+		
+		TMP_isFinal(): boolean {
+			return this.category == 'final';
+		}
 		
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
@@ -345,19 +359,22 @@ export namespace GameStates {
 		
 		
 		verifyFinal(): void {
-			if (this.isDone || this.state.moves != 0) return;
+			if (//this.isDone || 
+				this.state.moves != 0) return;
 
 			const pts0 = this.state.mpc.ofPlayer(0).points;
 			const pts1 = this.state.mpc.ofPlayer(1).points;
 			
 			if (pts0 >= TMP_TH || pts1 >= TMP_TH) {
 				this.next = [];
-				this.isFinal = true;
+				//this.isFinal = true;
+				this.category = 'final';
 			}
 		}
 
 		rateFinal(): void {
-			if (this.isDone || !this.isFinal) return;
+			if (//this.isDone || 
+				!this.TMP_isFinal()) return;
 			
 			const pts0 = this.state.mpc.ofPlayer(0).points;
 			const pts1 = this.state.mpc.ofPlayer(1).points;
@@ -366,7 +383,7 @@ export namespace GameStates {
 			else if (pts0 < pts1) this.rating = '1';
 			else this.rating = 'D';
 			
-			this.isDone = true;
+			//this.isDone = true;
 		}
 
 	}
@@ -389,7 +406,7 @@ export namespace GameStates {
 			if (desc == undefined) throw new Error("State not existing");
 
 			if (trace) {
-				desc!.isTraced = true;		
+				//desc!.isTraced = true;		
 				if (desc!.next == undefined) {
 					return [];				
 				}
@@ -453,17 +470,18 @@ export namespace GameStates {
 		markAndRateFinals(): number {
 			this.descriptors.forEach(x => x.verifyFinal());
 			this.descriptors.forEach(x => x.rateFinal());
-			return this.descriptors.filter(x => x.isFinal).length;
+			return this.descriptors.filter(x => x.TMP_isFinal()).length;
 		}
 
 		rateNonfinals(): number {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
-			return this.descriptors.filter(x => x.isDone).length;
+			return this.descriptors.filter(x => x.TMP_isDone()).length;
 		}
 		
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
-			if (desc.isDone || desc.isFinal || desc.next == undefined) return;
+			if (desc.TMP_isDone() || 
+				desc.TMP_isFinal() || desc.next == undefined) return;
 				
 			const ratings = this.followersRatings(desc.id);
 			const has0 = ratings.includes('0');
@@ -490,14 +508,15 @@ export namespace GameStates {
 				
 				desc.rating = rating;
 				if (rating != 'U') {
-					desc.isDone = true;
+					//desc.isDone = true;
+					desc.category = 'falls';
 				}
 			}
 
 		}
 		
 		terminateDoneNodes(): void {
-			this.descriptors.forEach(x => { if (x.isDone) x.next = []; });
+			this.descriptors.forEach(x => { if (x.TMP_isDone()) x.next = []; });
 		}
 
 	}
@@ -509,34 +528,76 @@ export namespace GameStates {
 		latest: StateId[] = [0];
 		record: StateId[][] = [[0]];
 		
+		lastPts = -1;
+		
 		// Leave base, delete current state
 		clearSoft(): void {
 			this.resetTurns();
 			
 			this.latest = [0];
 			this.record = [[0]];
+			
+			this.lastPts = -1;
 		}
-		
+
+
+		runStep(): void {
+			
+			console.time('step');
+			
+			const movesBefore = this.record.length-1;
+			
+			this.move();
+			this.move();
+			
+			const movesNow = this.record.length-1; // +2
+			
+			if (this.lastPts >= TMP_TH) console.log(`  Reached ${this.lastPts} points`);
+			else {
+				console.log("  Not reached points");
+				return;
+			}
+			
+			// If points reached
+			
+			this.sumUp();
+			this.clearSoft();
+			console.log('Rerun');
+			this.moveTimes(movesNow);
+			console.log('Rerun done\n');
+			
+			console.timeEnd('step');
+		}
+
 
 		moveTimes(n: number): void {
+			console.time('moves');
+
 			for (let i = 0; i < n; i++) this.move();
+
+			console.timeEnd('moves');
 		}
 
 		moveImpl(): void {
-			console.log(`\n{${this.round},${this.playerTurn}}`);
-			
-			console.time('move');
-
 			const newFront = this.stateBase.genBatchFollowers(this.latest);			
 			
 			this.latest = newFront;
 			this.record.push(newFront);
 						
-			console.timeEnd('move');			
+			
+			const latestDescs = this.latest.map(x => this.stateBase.descriptors[x]!);
 
-				const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
+				const pts = latestDescs.map(x => x.state.maxPoints());
 				const mp = pts.reduce((a,b) => Math.max(a,b), 0);
-				console.log(` setsize ${this.latest.length}, all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
+				
+			this.lastPts = mp;
+			
+				const nFinal = latestDescs.filter(x => x.category == 'final').length;
+				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
+				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
+				
+				console.log(`{${this.round},${this.playerTurn}}` +
+						` setsize ${this.latest.length} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
 		}
 
 		sumUp(): void {
@@ -561,32 +622,36 @@ export namespace GameStates {
 			let nDone = 0;
 			let len = this.record.length;
 			
-			while (len-- > 0) {
+			while (len-- > 0)
 				nDone = this.stateBase.rateNonfinals();
-				const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
-				const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
-				const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
-				const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
-				console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
-		 	}
 			
-			const doneIds = this.stateBase.descriptors.filter(x => x.isDone).map(x => x.id);
+			const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
+			const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
+			const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
+			const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
+			console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
+		
+			
+			const doneIds = this.stateBase.descriptors.filter(x => x.TMP_isDone()).map(x => x.id);
 			let doneFollowers = doneIds;
 			
 			let cnt = 0;
 			
 			while (doneFollowers.length > 0 && cnt++ < 30) {
-				console.log(`follows ${doneFollowers.length}`);
 				doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
 			}
+			console.log(`follows ${doneFollowers.length}`);
+
+			this.stateBase.terminateDoneNodes();
 			
 			console.timeEnd('sum up');
 			
-			const tracedIds = this.stateBase.descriptors.filter(x => x.isTraced).map(x => x.id);
-			console.log(`traced: ${tracedIds.length}`);
-
-
-				this.stateBase.terminateDoneNodes();
+			console.log('\n');
+			
+				if (this.stateBase.descriptors[0]!.category == 'falls') {
+					console.log("Discovered solution!");
+					console.log(this.stateBase.descriptors[0]!);
+				}
 		}
 		
 	}
