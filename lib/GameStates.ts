@@ -47,109 +47,63 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
+const N_PLAYERS = 2;
+const COLUMN_WALL = 2;
 
-export namespace GameStates {
-	// For now we assume 2 players, so 44444 token stacks
-	export const MAX_TOKEN_STACKS = "444440";
-									"555550";
-									"777770";
-	const N_PLAYERS = 2;
+const TMP_TH = 10;
 
+
+	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
+	function decodeNum2(s: string): number { return s.charCodeAt(0); }
+
+	function sortSpread(copied: number[], index: number, card: Card): void {
+		while (index < 11 && copied[index+1]! < card) {
+			copied[index] = copied[index+1]!;
+			index++;
+		}
+		
+		while (index > 0 && copied[index-1]! > card) {
+			copied[index] = copied[index-1]!;
+			index--;
+		}
+		
+		copied[index] = card;
+	}
+
+	abstract class Wavefront {
+		readonly nPlayers = N_PLAYERS;
+		round = 0;     // Round that lasts until all players make move 
+		playerTurn = 0; // Player to move next
+		
+		resetTurns(): void {
+			this.round = 0;
+			this.playerTurn = 0;
+		}
+		
+		move(): void {
+			this.moveImpl();
+
+			this.playerTurn++;
+			if (this.playerTurn == this.nPlayers) {
+				this.playerTurn = 0;
+				this.round++;
+			}
+		}
+		
+		abstract moveImpl(): void;
+	}
+	
 	interface StateValue<T> {
 		keyString(): string;
 		niceString(): string;
 		isSame(other: T): boolean;
 	}
 
-	export class TokenState implements StateValue<TokenState> {
-		readonly tableToks: TokenVec;
-		readonly playerToks: TokenVec[];
-		
-		constructor(t: TokenVec, p: TokenVec[]) {
-			this.tableToks = t;
-			this.playerToks = p;	
-		}
-
-		keyString(): string { return this.tableToks.str + this.playerToks.map(x => x.str).join(''); }	// TODO: remember to change later to prepend tok sum	
-		niceString(): string { return this.tableToks.toLongString() + "|" + this.playerToks.map(x => x.toLongString()).join(','); }
-
-		isSame(other: TokenState): boolean { throw new Error("not implemented"); }
-
-		compare(other: TokenState): number {
-			const cmpT = this.tableToks.compare(other.tableToks);
-			if (cmpT != 0) return cmpT;
-			
-			for (let i = 0; i < this.playerToks.length; i++) {
-				const cmpP = this.playerToks[i]!.compare(other.playerToks[i]!);
-				if (cmpP != 0) return cmpP;
-			}
-			return 0;
-		}
-
-		playerString(): string { return this.playerToks.map(x => x.toLongString()).join('|'); }
-			playerKString(): string { return this.playerToks.map(x => x.str).join(); }
-		ofPlayer(player: number): TokenVec { return this.playerToks[player]!; }
-
-		static fromKeyString(s: string): TokenState {
-			const sixes = s.match(/....../g)!;
-			const tv = sixes.map(x => new TokenVec(x));
-			return new TokenState(tv[0]!, tv.slice(1));
-		}
-		
-		findPossibleTakes(): string[] {
-			const tableToks = this.tableToks;
-			const takes23 = STR_3x1.concat(STR_1x2).map(s => s + "0");
-			let goodTakes = takes23.filter(s => tableToks.enoughForTake(new TokenVec(s)));
-
-			if (goodTakes.length == 0) goodTakes = STR_2x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
-			if (goodTakes.length == 0) goodTakes = STR_1x1.map(s => s + "0").filter(s => tableToks.enoughForTake(new TokenVec(s)));
-			if (goodTakes.length == 0) goodTakes = ["000000"];
-			
-			return goodTakes;
-		}
-
-		findReductions(player: number): string[] {
-			const playerToks = this.ofPlayer(player);
-			const surplus = playerToks.sum() - MAX_PLAYER_TOKS;
-			if (surplus > 3 || surplus < 1) throw new Error("Wrong, over 3 too much or not too much");
-			
-			const giveString = (surplus == 3) ? STR_RET3 : (surplus == 2) ? STR_RET2 : STR_RET1;
-			const gives = giveString.map(s => s + "0");
-			return gives.filter(s => playerToks.atLeast(new TokenVec(s)));
-		}
-		
-		applyTake(player: number, move: TokenVec): TokenState {
-			const playerToks = this.ofPlayer(player);			
-			const newPT = playerToks.add(move);
-			const newTT = this.tableToks.sub(move);
-			return new TokenState(newTT, this.playerToks.with(player, newPT));
-		}
-
-		applyTakes(player: number, moves: string[]): TokenState[] { return moves.map(s => this.applyTake(player, new TokenVec(s)));		}
-
-		// Only changes the player toks, not affecting table
-		applyDelta(player: number, move: TokenVec): TokenState {
-			const playerToks = this.ofPlayer(player);
-			const newPT = playerToks.add(move);
-			return new TokenState(this.tableToks, this.playerToks.with(player, newPT));
-		}
-
-		applyDeltas(player: number, moves: string[]): TokenState[] { return moves.map(s => this.applyDelta(player, new TokenVec(s))); }
-
-		applyGive(player: number, move: TokenVec): TokenState {
-			const playerToks = this.ofPlayer(player);			
-			const newPT = playerToks.sub(move);
-			const newTT = this.tableToks.add(move);
-			return new TokenState(newTT, this.playerToks.with(player, newPT));
-		}
-
-		applyGives(player: number, moves: string[]): TokenState[] { return moves.map(s => this.applyGive(player, new TokenVec(s))); }
-
-	};
-
-
-	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
-	function decodeNum2(s: string): number { return s.charCodeAt(0); }
+export namespace GameStates {
+	// For now we assume 2 players, so 44444 token stacks
+	export const MAX_TOKEN_STACKS = "444440";
+									"555550";
+									"777770";
 
 
 	export class PlayerCards implements StateValue<PlayerCards> {
@@ -170,19 +124,7 @@ export namespace GameStates {
 		isSame(other: PlayerCards): boolean { return this.bonuses.str == other.bonuses.str && this.points == other.points; /* TODO: reserved cards when become relevant*/ }
 
 		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s), []); }
-		
-		covers(other: PlayerCards): boolean {
-			return false//(this.points >= other.points && this.bonuses.covers(other.bonuses))
-				|| (this.points > other.points && this.bonuses.str == (other.bonuses.str));
-		}
 
-		acquire(c: Card): PlayerCards {
-			const ind = (c-1) % 5;
-			const newBonuses = this.bonuses.incAt(ind);
-			const newPoints = this.points + POINT_TABLE[c]!;//getCardPoints(c);
-			return new PlayerCards(newBonuses, newPoints, this.reserved);
-		}
-			
 		// If if can afford, otherwise undef
 		buyUniversal(c: Card): PlayerCards | undefined {
 			const ind = (c-1) % 5;
@@ -242,12 +184,6 @@ export namespace GameStates {
 		playerKString(): string { return this.arr.map(x => x.keyString()).join(''); }
 
 		ofPlayer(player: number): PlayerCards { return this.arr[player]!; }
-
-		acquire(player: number, c: Card): ManyPlayerCards {
-			const thisPlayer = this.ofPlayer(player);
-			const thisPlayerNew = thisPlayer.acquire(c);
-			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew));
-		}
 		
 		buyUniversal(player: number, c: Card): ManyPlayerCards | undefined {
 			const thisPlayer = this.ofPlayer(player);
@@ -257,26 +193,10 @@ export namespace GameStates {
 		}
 		
 		takeUniversal(player: number): ManyPlayerCards { return new ManyPlayerCards(this.arr.with(player, this.ofPlayer(player).takeUniversal())); }
+		
 		maxPoints(): number { return this.arr.map(x => x.points).reduce((a,b) => Math.max(a,b), 0); }
-		minPoints(): number { return this.arr.map(x => x.points).reduce((a,b) => Math.min(a,b), 0); }
-		absDiffPoints(): number { return Math.abs(this.ofPlayer(0).points - this.ofPlayer(1).points); }
 	}
 
-	
-	function sortSpread(copied: number[], index: number, card: Card): void {
-		while (index < 11 && copied[index+1]! < card) {
-			copied[index] = copied[index+1]!;
-			index++;
-		}
-		
-		while (index > 0 && copied[index-1]! > card) {
-			copied[index] = copied[index-1]!;
-			index--;
-		}
-		
-		copied[index] = card;
-	}
-	
 
 
 	export class TableCards implements StateValue<TableCards> {
@@ -289,7 +209,7 @@ export namespace GameStates {
 		}
 		
 		keyString(): string {			
-			return String.fromCharCode(...this.stackNums, ...this.spread, 0); // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
+			return String.fromCharCode(...this.stackNums, ...this.spread); // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
 		}
 
 		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
@@ -300,13 +220,8 @@ export namespace GameStates {
 
 		static fromKeyString(s: string): TableCards {
 			const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));
-			const spread = Array.from(s.substring(3,16), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));		
+			const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));		
 			return new TableCards(nums, spread);
-		}
-
-		cardAt(index: number): Card {
-			if (index < 0 || index > 11) throw new Error("Wrong index");
-			return this.spread[index]!;
 		}
 
 		grabAt(index: number): TableCards {
@@ -325,10 +240,10 @@ export namespace GameStates {
 			return new TableCards(newStackNums, newSpread);
 		}
 
-		grab(c: Card): TableCards {
-			const index = this.spread.indexOf(c);
-			return this.grabAt(index);		
-		}
+			grab(c: Card): TableCards {
+				const index = this.spread.indexOf(c);
+				return this.grabAt(index);		
+			}
 		
 	}
 	
@@ -337,13 +252,15 @@ export namespace GameStates {
 	export class CardState implements StateValue<CardState> {
 		readonly tableCards: TableCards;
 		readonly mpc: ManyPlayerCards;
+		readonly moves: number; 
 		
-		constructor(t: TableCards, p: PlayerCards[]) {
+		constructor(t: TableCards, p: PlayerCards[], moves: number) {
 			this.tableCards = t;
 			this.mpc = new ManyPlayerCards(p);
+			this.moves = moves;
 		}
 		
-		keyString(): string { return this.tableCards.keyString() + this.mpc.keyString(); }
+		keyString(): string { return this.tableCards.keyString() + String.fromCharCode(this.moves) + this.mpc.keyString(); }
 		niceString(): string { return this.tableCards.niceString() + '    ' + this.mpc.niceString(); }
 
 		isSame(other: CardState): boolean {			
@@ -354,712 +271,389 @@ export namespace GameStates {
 		static fromKeyString(s: string): CardState {
 			const tableCards = TableCards.fromKeyString(s.slice(0,16)); // TODO: verify size
 			const playerCards = ManyPlayerCards.fromKeyString(s.substring(16)).arr;
-			return new CardState(tableCards, playerCards);
+			return new CardState(tableCards, playerCards, s.charCodeAt(15));
 		}
 
 		playerKString(): string { return this.mpc.playerKString(); }
 
 		ofPlayer(player: number): PlayerCards { return this.mpc.ofPlayer(player); }
 
-		takeUniversal(player: number): CardState { return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr); }			
-
-			steal(player: number, c: Card): CardState {
-				const newPlayerCards = [...this.mpc.arr];
-				newPlayerCards[player]! = newPlayerCards[player]!.acquire(c);
-				return new CardState(this.tableCards.grab(c), newPlayerCards);
-			}
+		takeUniversal(): CardState {
+			const player = this.moves;
+			return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS); 
+		}
 		
-		buyUniversal(player: number, c: Card): CardState | undefined {
+		buyUniversal(ind: number): CardState | undefined {
+			const player = this.moves;
+				
+				// TMP: limit columns to buy (performance "hack")
+				if ((ind % 4) >= COLUMN_WALL) return undefined;
+				
+			const c = this.tableCards.spread[ind]!;
 			const newPlayerCardsArr = [...this.mpc.arr];
 			const newPlayerCards = newPlayerCardsArr[player]!.buyUniversal(c);
 			
 			if (newPlayerCards == undefined) return undefined;
 			
 			newPlayerCardsArr[player]! = newPlayerCards!;
-			return new CardState(this.tableCards.grab(c), newPlayerCardsArr);
-		}
-		
-			genNextStolen(player: number): CardState[] { return this.tableCards.spread.map(c => this.steal(player, c)); }
-
-			addNextStolen(player: number): CardState[] {
-				const thisArr: CardState[] = [this.takeUniversal(player)];
-				return thisArr.concat(this.genNextStolen(player));
-			}
-
-		getPotentialPrevStates(): CardState[] {
-			const res: CardState[] = [];
-			
-			
-			return res;
-		}			
-
-	}
-
-
-	function handleExcessive(states: TokenState[], player: number): TokenState[] {
-		let arrArr: TokenState[][] = [];
-		
-		states.forEach(x => {
-			if (x.ofPlayer(player).excessive()) {					
-				const gives = x.findReductions(player);
-				const y = x.applyGives(player, gives);
-				arrArr.push(y);
-			}
-			else {
-				arrArr.push([x]);
-			}
-		});
-		
-		return arrArr.flat();
-	}
-
-
-		class PruningResult {
-			res: TokenState[] = [];
-			copied: TokenState[] = [];
-			counts: number[] = [];
-			totalCount = 0;
-		};
-
-		// Naive implementation - compare each state to previous states (assumes sorted by falling sum!)
-		function pruneInternal_Default(statesCopy: TokenState[], player: number): PruningResult {
-			let pruningResult = new PruningResult();
-			
-			while (statesCopy.length > 0) {
-				const last = statesCopy.pop()!;
-				let found = false;
-				let thisCount = 0;
-				
-				// WARNING: This algorithm only looks at given player's tokens. Opponent having more or less is not checked
-				for (const st of statesCopy) {
-					if (st.ofPlayer(player).sum() <= last.ofPlayer(player).sum()) break;
-					
-					thisCount++;
-					
-					if (st.ofPlayer(player).covers(last.ofPlayer(player))) {
-						found = true;
-						break;
-					}
-				}
-				
-				pruningResult.totalCount += thisCount;
-				
-				if (!found) {
-					pruningResult.res.push(last);
-					thisCount = -1;
-				}
-				pruningResult.copied.push(last);
-				pruningResult.counts.push(thisCount);
-			}
-			return pruningResult;
-		}
-		
-		type PruningFunction = typeof pruneInternal_Default;
-
-		// For each state, generates states that are "bigger" by 1 or 2 and checks whether they are present
-		function pruneInternal_Ex0(statesCopy: TokenState[], player: number): PruningResult {
-			const MAX_SUM = statesCopy[0]!.ofPlayer(player).sum();
-			const MIN_SUM = statesCopy[0]!.ofPlayer(player).sum();
-			
-			if (MAX_SUM - MIN_SUM > 2) throw new Error("Sum span for player is over 2!");
-			
-			let pruningResult = new PruningResult();
-			
-			const grouped = Map.groupBy(statesCopy, x => x.ofPlayer(player).str);
-
-			while (statesCopy.length > 0) {
-				const last = statesCopy.pop()!;
-				let found = false;
-				let foundUp1 = false;
-				let foundUp2 = false;
-				let thisCount = 0;
-				let thisCountUp1 = 0;
-				let thisCountUp2 = 0;
-				
-				const thisSum = last.ofPlayer(player).sum();
-				
-				if (thisSum < MAX_PLAYER_TOKS)
-				{
-					// Generate all possible player token vecs larger by 1 or 2 than current one 
-					const add1 = getVectorsSum1();
-					const add2 = getVectorsSum2();
-					
-					const up1 = last.applyDeltas(player, add1);
-					const up2 = last.applyDeltas(player, add2);
-
-					for (const s of up1) {
-						thisCountUp1++;
-						if (grouped.has(s.ofPlayer(player).str)) {
-							const arr = grouped.get(s.ofPlayer(player).str)!;
-							
-							if (arr.some(x => x.playerKString() == s.playerKString())) foundUp1 = true;
-							
-							//	foundUp1 = true;
-							break;
-						}
-					}
-					
-					//if (thisSum < MAX_PLAYER_TOKS - 1)					
-						for (const s of up2) {
-							thisCountUp2++;
-							if (grouped.has(s.ofPlayer(player).str)) {
-								const arr = grouped.get(s.ofPlayer(player).str)!;
-
-								if (arr.some(x => x.playerKString() == s.playerKString())) foundUp2 = true;
-
-								//	foundUp2 = true;
-								break;
-							}
-						}
-				}
-				
-				found = foundUp1 || foundUp2;
-				thisCount = thisCountUp1 + thisCountUp2;
-
-				pruningResult.totalCount += thisCount;
-				
-				if (found && !foundUp1 && !foundUp2) throw new Error("Wrong finings");
-				
-				if (!found) {
-					if (foundUp1 || foundUp2) throw new Error("Other wrong finings");
-					
-					pruningResult.res.push(last);
-					thisCount = -1;
-				}
-				pruningResult.copied.push(last);
-				pruningResult.counts.push(thisCount);
-			}
-			return pruningResult;
+			return new CardState(this.tableCards.grabAt(ind), newPlayerCardsArr, (player+1) % N_PLAYERS);
 		}
 
-	
-	function uniqueTokStates(states: TokenState[]): TokenState[] {
-		const uniqueSet = new Set<string>(states.map(x => x.keyString()));
-		return uniqueSet.values() .toArray() .map(TokenState.fromKeyString);
-	}
-
-	function fixExcessiveStates(inputStates: TokenState[][], player: number): TokenState[][] {
-		let res: TokenState[][] = [];
-		
-		inputStates.forEach(x => {
-			const y = handleExcessive(x, player);
-			res.push(y);
-		});
-		
-		return res;
-	}
-
-
-	export class TokenStateSet {
-		private states: TokenState[] = [];
-		
-		size(): number { return this.states.length; }
-		
-		static fromArray(sa: TokenState[]) {
-			let res = new TokenStateSet();
-			res.states = [...sa];
-			res.makeUnique();
-			return res;
-		}
-		
-		makeUnique(): void { this.states = uniqueTokStates(this.states); }
-
-		showSplit(player: number): void {
-			const grouped = Map.groupBy(this.states, x => x.ofPlayer(player).sum());
-			let str = "";
-			for (const [num, list] of grouped) str += `${num} => ${list.length}, `;
-			console.log(str);
-		}
-
-		
-		// Apply takes to each state
-		generateNewStates(player: number): TokenState[][] {
-			let res: TokenState[][] = [];
-
-			this.states.forEach(x => {
-				const moves = x.findPossibleTakes();
-				const y = x.applyTakes(player, moves);				
-				res.push(y);
-			});
-			
+		genNextBU(): (CardState|undefined)[] {			
+			let res: (CardState|undefined)[] = [this.takeUniversal()];
+			res = res.concat( this.tableCards.spread.keys().toArray().map(i => this.buyUniversal(i)));
 			return res;
 		}
 
-		
-		// For every state in set, make all possible takes
-		applyNewTakes(player: number): TokenStateSet {
-			console.time('takes A_1');
-			
-			const fwStates = this.generateNewStates(player);
-			const fwFlat = fwStates.flat();
-			const sizeGenerated = fwFlat.length;
-			const fwUnique = [uniqueTokStates(fwFlat)];
-
-			console.timeEnd('takes A_1');
-
-
-			console.time('takes A_2');
-			const newStates = fixExcessiveStates(fwUnique, player);
-			console.timeEnd('takes A_2');
-
-			console.time('takes B');
-			
-			const newStatesFlat = newStates[0]!
-			let newStatesAdjustedUnique = uniqueTokStates(newStatesFlat);							
-			newStatesAdjustedUnique.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
-			const res = TokenStateSet.fromArray(newStatesAdjustedUnique);
-
-			console.timeEnd('takes B');
-			
-			console.log(`New states: ${this.size()} -> (${sizeGenerated}) -> (${newStatesFlat.length}) -> ${newStatesAdjustedUnique.length} ` +
-						`// avg (${sizeGenerated/this.size()}) -> (${newStatesFlat.length/this.size()}) -> ${newStatesAdjustedUnique.length/this.size()}`);
-
-			return res;
+		maxPoints(): number {
+			return this.mpc.maxPoints();
 		}
-		
-		
-		// Remove non-optimal states for given player
-		__prune(player: number, func: PruningFunction, write: boolean, fname: string): void {		
-			console.log('prune for player ' + player);
-			
-			console.time('prune');
-			const statesCopy = [...this.states];
-			
-			// Don't sort, must be already sorted!
-			//statesCopy.sort((a, b) => b.playerToks[player]!.sum() - a.playerToks[player]!.sum());
-			
-			let pruningResult = func(statesCopy, player);
-			
-			console.timeEnd('prune');
-			console.log(`Pruned: ${this.size()} -> ` + pruningResult.res.length + 
-							` // all ${pruningResult.totalCount}, avg ${pruningResult.totalCount / (this.size())}`);
 
-			pruningResult.res.sort((a, b) => b.ofPlayer(player).sum() - a.ofPlayer(player).sum());
-
-			this.showSplit(player);
-			this.states = pruningResult.res;
-			this.showSplit(player);
-
-			if (write) writePruning(fname, pruningResult.copied, player, pruningResult.counts);	
-		}
-		
 	}
 
-		// TODO: must reorganize into short strings
-		export class TableCardsConcise {
-			stackImg: string = ""; // Begins with sum of stacks so that sorting is done first with regard to total cards remaining
-			rowImg0: string = "";
-			rowImg1: string = "";
-			rowImg2: string = "";
-			
-			toString(): string { return [this.stackImg, this.rowImg0, this.rowImg1, this.rowImg2, ].join(' '); }
-			
-			static fromCardState(st: CardState): TableCardsConcise {
-				let cc = new TableCardsConcise();
-				cc.stackImg = [st.tableCards.stackNums[0]! + st.tableCards.stackNums[1]! + st.tableCards.stackNums[2]!,
-								st.tableCards.stackNums[0]!, st.tableCards.stackNums[1]!, st.tableCards.stackNums[2]!].map(numStringH).join('');
-				cc.rowImg0 = st.tableCards.spread.slice(0, 4).map(cardStringH).join('');
-				cc.rowImg1 = st.tableCards.spread.slice(4, 8).map(cardStringH).join('');
-				cc.rowImg2 = st.tableCards.spread.slice(8, 12).map(cardStringH).join('');
-				return cc;
-			}
-		}
 
 
 	export const DEFAULT_CARDS = new CardState(
 										DEFAULT_TABLE_CARDS, 
-										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS)
+										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS),
+										0
 										);
-
-		// Not used; replaced by CardStateBundledSet
-		class CardStateSet {
-			content = new Set<string>();
-			
-			size(): number {
-				return this.content.size;
-			}
-			
-			
-			static init(cs: CardState[]): CardStateSet {
-				const res = new CardStateSet();
-				res.addStates(cs);
-				return res;
-			}
-			
-			clear(): void { 
-				this.content.clear();
-			}
-			
-			addStates(states: CardState[]): void {
-				for (const st of states) this.content.add(st.keyString());
-			}
-			
-			move(player: number): CardStateSet {
-				const res = new CardStateSet();
-
-				for (const s of this.content) {
-					const sFull = CardState.fromKeyString(s);
-					// TODO: implement buyUniversal for full CardState
-					const next = sFull.addNextStolen(player);
-					res.addStates(next);
-				}
-
-				return res;
-			}
-
-		}
-
-
-	export class State {
-		readonly cardState: CardState;
-		readonly tokenState: TokenState;
-		
-		constructor(c: CardState, t: TokenState) {
-			this.cardState = c;
-			this.tokenState = t;
-		}
-		
-		tokenStr(): string { return this.tokenState.toString(); }
-	}
-
-	
-	abstract class Wavefront {
-		readonly nPlayers = N_PLAYERS;
-		round = 0;     // Round that lasts until all players make move 
-		playerTurn = 0; // Player to move next
-		
-		move(): void {
-			this.moveImpl();
-
-			this.playerTurn++;
-			if (this.playerTurn == this.nPlayers) {
-				this.playerTurn = 0;
-				this.round++;
-			}
-		}
-		
-		abstract moveImpl(): void;
-	}
-	
-	
-	// Experimental, for tokens only
-	export class WavefrontT extends Wavefront {
-		states: State[] = [INITIAL_STATE];
-		__tokStates = TokenStateSet.fromArray([INITIAL_STATE.tokenState]);
-
-		moveImpl(): void {
-			console.log(`{${this.round},${this.playerTurn}}`);
-
-			this.__tokStates = this.__tokStates.applyNewTakes(this.playerTurn);
-			this.__tokStates.__prune(this.playerTurn, pruneInternal_Ex0, false, "");
-
-		}
-
-	}
 
 
 	//////////////////////////////////////////////////////////
-	
-	// Represents a set of states with shared TableCards
-	class CardStateBundle {
-		tableCards: TableCards = DEFAULT_TABLE_CARDS;
-		pcSet = new Set<string>();
+
+	type StateId = number;
+
+	type NodeCategory = 'unknown'
+				   | 'final'  // end the game
+				   | 'falls'; // leads to known final state (result determined)
+	type GameRating = 'U' | '0' | '1' | 'D';
+
+
+
+
+	class StateDesc {
+		id: StateId;
+		//seq: string = "";
+		state: CardState;// = DEFAULT_CARDS;
+		next?: StateId[]; //
 		
-		size(): number {
-			return this.pcSet.size;
+		category: NodeCategory = 'unknown';
+			//isFinal: boolean = false; // This state ends the game
+			//isDone: boolean = false;  // This state has been fully analyzed
+		rating: GameRating = 'U';
+		//isTraced: boolean = false;
+		
+		TMP_isDone(): boolean {
+			return this.category == 'falls' || this.category == 'final';
 		}
 		
-		toFullArray(): CardState[] {
-			return this.pcSet.values().map(x => new CardState(this.tableCards, ManyPlayerCards.fromKeyString(x).arr)).toArray();
+		TMP_isFinal(): boolean {
+			return this.category == 'final';
 		}
 		
-		detailedString(): string {
-			let res = `detailed(${this.tableCards.niceString()}) {\n`;
-			
-			for (const p of this.pcSet)
-				res += "    " + ManyPlayerCards.fromKeyString(p).niceString() + "\n";
-			
-			res += "}\n;"
-			
-			return res;
+		constructor(id: StateId, state: CardState) {
+			this.id = id;
+			this.state = state;
 		}
 		
-		static init(cs: CardState): CardStateBundle {
-			const res = new CardStateBundle();
-			res.tableCards = cs.tableCards;
-			res.pcSet.add(cs.mpc.keyString());
-
-			return res;			
-		}
-
-		addStates(states: ManyPlayerCards[]): void {
-			for (const st of states) this.pcSet.add(st.keyString());
-		}
-
-		absorb(otherSet: Set<string>): void {
-			for (const elem of otherSet)
-				this.pcSet.add(elem);
-		}
-
-		merged(otherSet: Set<string>): CardStateBundle {
-			const res = new CardStateBundle();
-			res.tableCards = this.tableCards;
-			res.pcSet = new Set<string>(this.pcSet);
-			
-			for (const elem of otherSet)
-				res.pcSet.add(elem);
-			
-			return res;
-		}
-
 		
-		takeUniversal(player: number): CardStateBundle {
-			const res = new CardStateBundle();
-			res.tableCards = this.tableCards;
-			res.pcSet = new Set<string>(this.pcSet.values().map(ManyPlayerCards.fromKeyString).map(x => x.takeUniversal(player).keyString())/*.toArray()*/);
-			return res;
-		}
+		verifyFinal(): void {
+			if (//this.isDone || 
+				this.state.moves != 0) return;
 
-
-		moveStolen(player: number): CardStateBundle[] {
-			const res: CardStateBundle[] = [this.takeUniversal(player)];
+			const pts0 = this.state.mpc.ofPlayer(0).points;
+			const pts1 = this.state.mpc.ofPlayer(1).points;
 			
-			for (const [ind, c] of this.tableCards.spread.entries()) {
-				const nextTc = this.tableCards.grabAt(ind);
-				const nextPcSet = this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).acquire(player, c).keyString());
-				
-				const nextBundle = new CardStateBundle();
-				nextBundle.tableCards = nextTc;
-				nextBundle.pcSet = new Set<string>(nextPcSet);
-				
-				res.push(nextBundle);
+			if (pts0 >= TMP_TH || pts1 >= TMP_TH) {
+				this.next = [];
+				//this.isFinal = true;
+				this.category = 'final';
 			}
+		}
+
+		rateFinal(): void {
+			if (//this.isDone || 
+				!this.TMP_isFinal()) return;
 			
-			return res;
-		}
-
-
-		moveBU(player: number): CardStateBundle[] {
-			const res: CardStateBundle[] = [this.takeUniversal(player)];
+			const pts0 = this.state.mpc.ofPlayer(0).points;
+			const pts1 = this.state.mpc.ofPlayer(1).points;
 			
-			// 
-			for (const [ind, c] of this.tableCards.spread.entries()) {	
-					// !! Here we can exclude columns from buying
-					if ((ind % 4) >= 4) continue;
-				
-				const nextTc = this.tableCards.grabAt(ind);
-				const nextPcSet = this.pcSet.values().toArray().map(x => ManyPlayerCards.fromKeyString(x).buyUniversal(player, c)).filter(x => x != undefined).map(x => x.keyString());
-				
-				if (nextPcSet.length > 0)
-				{
-					const newSet = new Set<string>(nextPcSet);
-					const nextBundle = new CardStateBundle();
-					nextBundle.tableCards = nextTc;
-					nextBundle.pcSet = newSet
-					res.push(nextBundle);
-				}
-			}
+			if (pts0 > pts1) this.rating = '0';
+			else if (pts0 < pts1) this.rating = '1';
+			else this.rating = 'D';
 			
-			return res;
+			//this.isDone = true;
 		}
 
-
-		shortInfo(): string {
-			return this.tableCards.niceString() + `, set(${this.pcSet.size})`;
-		}
-		
-		maxPoints(): number {
-			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).maxPoints()).reduce((a,b) => Math.max(a,b), 0);
-		}
-
-		minPoints(): number {
-			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).minPoints()).reduce((a,b) => Math.min(a,b), 0);
-		}
-
-		// TODO: extend to >2 players?
-		absDiffPoints(): number {
-			return this.pcSet.values().map(x => ManyPlayerCards.fromKeyString(x).absDiffPoints()).reduce((a,b) => Math.max(a,b), 0);
-		}
-		
 	}
 
 
-	class CardStateBundledSet {
-		content = new Map<string, CardStateBundle>();
+	class StateBase {
+		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
+		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
 		
-		numBundles(): number {
-			return this.content.size;
+		addDescriptor(cs: CardState, ks: string): StateId {
+			const newId = this.descriptors.length;
+			this.descriptors.push(new StateDesc(newId, cs));
+			this.idMap.set(ks, newId);
+			return newId;
 		}
 		
-		size(): number {
-			return this.content.values().map(x => x.size()).reduce((a,b)=>a+b, 0);
-		}
-		
-		toFullArray(): CardState[] {
-			return this.content.values().map(x => x.toFullArray()).toArray().flat();
-		}
-		
-			pointHistogram(): number[] {
-				let res: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ];
-				const fullArr = this.toFullArray();
-				
-				fullArr.forEach(x => {
-					const mp = x.mpc.maxPoints();
-					res[mp]++;
-				});
-				
-				return res;
-			}
-			
-			diffHistogram(): number[] {
-				let res: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ];
-				const fullArr = this.toFullArray();
-				
-				fullArr.forEach(x => {
-					const mp = x.mpc.absDiffPoints();
-					res[mp]++;
-				});
-				
-				return res;
-			}
-		
-		
-		static init(cs: CardState[]): CardStateBundledSet {
-			if (cs.length > 1) throw new Error("Must be one cardstate");
-			const initialCs = cs[0]!;
-			
-			const res = new CardStateBundledSet();
-			res.content.set(initialCs.tableCards.keyString(), CardStateBundle.init(initialCs));
-			return res;
-		}
+		// Trace mode: don't calculate if not already known and don't skip when isDone 
+		getFollowers(state: StateId, trace: boolean = false): StateId[] {
+			const desc = this.descriptors[state];
+			if (desc == undefined) throw new Error("State not existing");
 
-
-		moveBU(player: number): CardStateBundledSet {
-			const res = new CardStateBundledSet();
-			res.content = new Map<string, CardStateBundle>();//this.content);
-			
-			for (const [s, bundle] of this.content) {
-				const nextBundles = bundle.moveBU(player);
-				
-				for (const nb of nextBundles) {
-					const ks = nb.tableCards.keyString();
-					if (res.content.has(ks)) { res.content.get(ks)!.absorb(nb.pcSet); }
-					else res.content.set(ks, nb);
+			if (trace) {
+				//desc!.isTraced = true;		
+				if (desc!.next == undefined) {
+					return [];				
 				}
 			}
 
-			return res;
+			if (!trace) {				
+				if (desc!.next == undefined) {
+					desc!.next = this.makeIds(desc.state.genNextBU());
+				}
+			}
+			
+			return [...desc!.next!];
 		}
 
-		moveBU_save(player: number): CardStateBundledSet {
-			const fs = require("fs");
-			const writer = fs.createWriteStream("saved_move.txt");
-							
-			const res = new CardStateBundledSet();
-			res.content = new Map<string, CardStateBundle>();
+		makeIds(states: (CardState|undefined)[]): StateId[] {
+			const nextIds: StateId[] = [];
 			
-			for (const [s, bundle] of this.content) {
-				const nextBundles = bundle.moveBU(player);
+			// Find the states, if not existent then add
+			for (const [i, s] of states.entries()) {					
+				if (s == undefined) continue;
 				
-				writer.write(">\n");
+				// Find s in base...
+				const keyStr = s.keyString();
+				const theId = this.idMap.get(keyStr);
 				
-				for (const nb of nextBundles) {
-					writer.write(nb.shortInfo() );
-					
-					const ks = nb.tableCards.keyString();
-					if (res.content.has(ks)) {
-						const prevS = res.content.get(ks)!.size()
-						res.content.get(ks)!.absorb(nb.pcSet);
-						const nextS = res.content.get(ks)!.size();
-						writer.write(`  update ${prevS}->${nextS}, (+${nextS - prevS})\n`);
-						
-						if (nextS >= 100) writer.write(res.content.get(ks)!.detailedString());
-					}
-					else {
-						writer.write("  new entry\n");
-						res.content.set(ks, nb);
-					}
+				if (theId != undefined) {
+					nextIds.push(theId);
+				}
+				else {
+					const newId = this.addDescriptor(s, keyStr);
+					nextIds.push(newId)	
+				}
+			}
+			
+			return nextIds;
+		}
 
+		getFollowerDescs(state: StateId): StateDesc[] {
+			const nextIds = this.descriptors[state]!.next!;
+			return nextIds.map(x => this.descriptors[x]!);
+		}
+
+		followersRatings(state: StateId): GameRating[] {
+			return this.getFollowerDescs(state).map(x => x.rating);
+		}
+
+		genBatchFollowers(input: StateId[], trace: boolean = false): StateId[] {
+			const flatArr = input.map(x => this.getFollowers(x, trace)).flat();
+			return Array.from(new Set<StateId>(flatArr));
+		}
+		
+		showTable(): void {
+			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n')
+			console.log(str);
+		}
+		
+		getKeyStrings(input: StateId[]): string[] {
+			return input.map(x => this.descriptors[x]!.state.keyString());
+		}
+		
+		markAndRateFinals(): number {
+			this.descriptors.forEach(x => x.verifyFinal());
+			this.descriptors.forEach(x => x.rateFinal());
+			return this.descriptors.filter(x => x.TMP_isFinal()).length;
+		}
+
+		rateNonfinals(): number {			
+			this.descriptors.forEach(x => this.processNonfinal(x));
+			return this.descriptors.filter(x => x.TMP_isDone()).length;
+		}
+		
+		// backtrack from definite states
+		processNonfinal(desc: StateDesc): void {
+			if (desc.TMP_isDone() || 
+				desc.TMP_isFinal() || desc.next == undefined) return;
+				
+			const ratings = this.followersRatings(desc.id);
+			const has0 = ratings.includes('0');
+			const has1 = ratings.includes('1');
+			const hasU = ratings.includes('U');
+			const hasD = ratings.includes('D');
+
+			if (has0 || has1 || hasD) {
+				let rating = 'U' as GameRating;
+				const mover = desc.state.moves;
+
+				if (mover == 0) {
+					if (has0) rating = '0';
+					else if (hasU) rating = 'U'; // CAREFUL: here we discard possibility of draw if not certain
+					else if (hasD) rating = 'D';
+					else rating = '1';
+				}
+				else if (mover == 1) {
+					if (has1) rating = '1';
+					else if (hasU) rating = 'U'; // CAREFUL: here we discard possibility of draw if not certain
+					else if (hasD) rating = 'D';
+					else rating = '0';
+				}
+				
+				desc.rating = rating;
+				if (rating != 'U') {
+					//desc.isDone = true;
+					desc.category = 'falls';
 				}
 			}
 
-			writer.end();
-
-			return res;
 		}
-
-
-		maxPoints(): number {
-			return this.content.values().map(x => x.maxPoints()).reduce((a,b) => Math.max(a,b), 0);
+		
+		terminateDoneNodes(): void {
+			this.descriptors.forEach(x => { if (x.TMP_isDone()) x.next = []; });
 		}
 
 	}
 
 
 	export class WavefrontC extends Wavefront {
-		stateSet = CardStateBundledSet.init([DEFAULT_CARDS]);
+		stateBase = new StateBase();
+
+		latest: StateId[] = [0];
+		record: StateId[][] = [[0]];
+		
+		lastPts = -1;
+		
+		// Leave base, delete current state
+		clearSoft(): void {
+			this.resetTurns();
+			
+			this.latest = [0];
+			this.record = [[0]];
+			
+			this.lastPts = -1;
+		}
+
+
+		runStep(): void {
+			
+			console.time('step');
+			
+			const movesBefore = this.record.length-1;
+			
+			this.move();
+			this.move();
+			
+			const movesNow = this.record.length-1; // +2
+			
+			if (this.lastPts >= TMP_TH) console.log(`  Reached ${this.lastPts} points`);
+			else {
+				console.log("  Not reached points");
+				return;
+			}
+			
+			// If points reached
+			
+			this.sumUp();
+			this.clearSoft();
+			console.log('Rerun');
+			this.moveTimes(movesNow);
+			console.log('Rerun done\n');
+			
+			console.timeEnd('step');
+		}
+
+
+		moveTimes(n: number): void {
+			console.time('moves');
+
+			for (let i = 0; i < n; i++) this.move();
+
+			console.timeEnd('moves');
+		}
 
 		moveImpl(): void {
-			console.log(`{${this.round},${this.playerTurn}}`);
+			const newFront = this.stateBase.genBatchFollowers(this.latest);			
 			
-			console.time('move');
+			this.latest = newFront;
+			this.record.push(newFront);
+						
 			
-			
-			if (this.round == 8 && this.playerTurn == 1)
-				this.stateSet = this.stateSet.moveBU_save(this.playerTurn);
-			else
-				this.stateSet = this.stateSet.moveBU(this.playerTurn);
-			
-			console.timeEnd('move');			
+			const latestDescs = this.latest.map(x => this.stateBase.descriptors[x]!);
 
-			const maxElem = this.stateSet.maxPoints();
+				const pts = latestDescs.map(x => x.state.maxPoints());
+				const mp = pts.reduce((a,b) => Math.max(a,b), 0);
+				
+			this.lastPts = mp;
 			
-			console.log(`set size ${this.stateSet.size()} (${this.stateSet.numBundles()}) up to ${maxElem}`);
-			console.log(this.stateSet.pointHistogram().toString());
-			console.log(this.stateSet.diffHistogram().toString());
+				const nFinal = latestDescs.filter(x => x.category == 'final').length;
+				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
+				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
+				
+				console.log(`{${this.round},${this.playerTurn}}` +
+						` setsize ${this.latest.length} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
+		}
+
+		sumUp(): void {
+			console.time('sum up');
+			
+			const descs = this.stateBase.descriptors;
+			
+			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
+			const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
+			console.log(pointHist.toString());
+
+			const nFinal = this.stateBase.markAndRateFinals();
+			console.log(`nFinal: ${nFinal}`);
+
+			const results = this.stateBase.descriptors.map(x => x.rating);
+			const hmap = Map.groupBy(results, x => x);
+			const resultHist = hmap.values().toArray().map(x => x.length);
+			console.log(hmap.keys().toArray());
+			console.log(resultHist.toString());
+			
+			
+			let nDone = 0;
+			let len = this.record.length;
+			
+			while (len-- > 0)
+				nDone = this.stateBase.rateNonfinals();
+			
+			const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
+			const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
+			const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
+			const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
+			console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
+		
+			
+			const doneIds = this.stateBase.descriptors.filter(x => x.TMP_isDone()).map(x => x.id);
+			let doneFollowers = doneIds;
+			
+			let cnt = 0;
+			
+			while (doneFollowers.length > 0 && cnt++ < 30) {
+				doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
+			}
+			console.log(`follows ${doneFollowers.length}`);
+
+			this.stateBase.terminateDoneNodes();
+			
+			console.timeEnd('sum up');
+			
+			console.log('\n');
+			
+				if (this.stateBase.descriptors[0]!.category == 'falls') {
+					console.log("Discovered solution!");
+					console.log(this.stateBase.descriptors[0]!);
+				}
 		}
 		
 	}
-
-
-	export const INITIAL_STATE = new State(
-		DEFAULT_CARDS,
-		new TokenState(
-			new TokenVec(MAX_TOKEN_STACKS),
-			[new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000"), new TokenVec("000000")].slice(0, N_PLAYERS)
-		)
-	);
-
-
-
-	function writePruning(fname: string, states: TokenState[], player: number, counts: number[]): void { 
-		const fs = require("fs");
-		const writer = fs.createWriteStream(fname);
-		const LEN = states.length;
-		for (let i = 0; i < states.length; i++) {
-			const thisCount = counts[i]!;
-			const killer = thisCount == -1 ? "" : states[LEN-thisCount]!.niceString();
-			writer.write(`${i}: ${states[i]!.niceString()}, ${thisCount}: ${killer}\n`);
-		}
-		
-		writer.end();
-	}
-	
-
-	// function TMP_logCardStates(states: CardState[], fname: string): void {
-		// const fs = require("fs");
-		// const writer = fs.createWriteStream(fname);
-		// const LEN = states.length;
-		// for (let i = 0; i < states.length; i++) {
-			// const state = states[i]!;
-			
-			// const desc = `M=${Math.max(state.ofPlayer(0).points,state.ofPlayer(1).points)}, D=${state.ofPlayer(0).points - state.ofPlayer(1).points}`;
-			
-			// writer.write(`${i}: ${state.niceString()}   |  ${TableCardsConcise.fromCardState(state).toString()} || ${desc}\n`);
-		// }
-		
-		// writer.end();
-	// }
-	
 
 }

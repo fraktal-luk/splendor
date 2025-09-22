@@ -8,8 +8,7 @@ import {GameStates} from './lib/GameStates.ts'
 
 
 let waveC = new GameStates.WavefrontC();
-console.time('1');
-for (let loopInd = 0; loopInd < 6 + 10; loopInd++) {
-	waveC.move();
-}
-console.timeEnd('1');
+
+
+for (let i = 0; i < 11; i++)
+	waveC.runStep();
