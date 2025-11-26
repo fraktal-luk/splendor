@@ -11,17 +11,20 @@ import {GameStates} from './lib/GameStates.ts'
 
 
 
-let waveN = new GameStates.WavefrontT();
+let waveN = new GameStates.WavefrontC();
 
 
-console.log("Run for initial state: " + GameStates.INITIAL_STATE.tokenState.niceString() + '\n');
+//console.log("Run for initial state: " + GameStates.INITIAL_STATE.tokenState.niceString() + '\n');
 // off to check state sorting
 if (true) {
 	console.time('1');
-	for (let i = 0; i < 11 ; i++) {
-		waveN.move();
+	for (let i = 0; i < 10 ; i++) {
+		waveN.runStep();
 		console.log('\n');
 	}
 
 	console.timeEnd('1');
 }
+
+//waveN.runStep();
+
