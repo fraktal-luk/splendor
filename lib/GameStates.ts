@@ -555,6 +555,7 @@ export namespace GameStates {
 			if (this.lastPts >= TMP_TH) console.log(`  Reached ${this.lastPts} points`);
 			else {
 				console.log("  Not reached points");
+				console.timeEnd('step');
 				return;
 			}
 			
@@ -637,7 +638,7 @@ export namespace GameStates {
 			
 			let cnt = 0;
 			
-			while (doneFollowers.length > 0 && cnt++ < 30) {
+			while (doneFollowers.length > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation
 				doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
 			}
 			console.log(`follows ${doneFollowers.length}`);
