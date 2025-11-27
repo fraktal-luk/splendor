@@ -118,24 +118,21 @@ export namespace GameStates {
 		}
 		
 		keyString(): string { return encodeNum2(this.points) + this.bonuses.str; }
-		
 		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
-
 		isSame(other: PlayerCards): boolean { return this.bonuses.str == other.bonuses.str && this.points == other.points; /* TODO: reserved cards when become relevant*/ }
 
 		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s), []); }
 
-		// If if can afford, otherwise undef
+		// If can afford, otherwise undef
 		buyUniversal(c: Card): PlayerCards | undefined {
 			const ind = (c-1) % 5;
 			const deficit = this.bonuses.TMP_effPrice(c).sum();
 			const gold = parseInt(this.bonuses.str[5]!, 16);				
 			
-			if (deficit > gold) 
-				return undefined;
+			if (deficit > gold) return undefined;
 
 			const newBonuses = this.bonuses.incAt(ind).payGold(deficit);
-			const newPoints = this.points + POINT_TABLE[c]!;//getCardPoints(c);
+			const newPoints = this.points + POINT_TABLE[c]!;
 			return new PlayerCards(newBonuses, newPoints, this.reserved);
 		}
 		
@@ -146,7 +143,6 @@ export namespace GameStates {
 	}
 	
 	const DEFAULT_PLAYER_CARDS = new PlayerCards(new TokenVec("000000"), 0, []);
-
 
 	export class ManyPlayerCards implements StateValue<ManyPlayerCards> {
 		readonly arr: PlayerCards[];
@@ -182,9 +178,8 @@ export namespace GameStates {
 		}
 
 		playerKString(): string { return this.arr.map(x => x.keyString()).join(''); }
-
 		ofPlayer(player: number): PlayerCards { return this.arr[player]!; }
-		
+
 		buyUniversal(player: number, c: Card): ManyPlayerCards | undefined {
 			const thisPlayer = this.ofPlayer(player);
 			const thisPlayerNew = thisPlayer.buyUniversal(c);
@@ -240,10 +235,10 @@ export namespace GameStates {
 			return new TableCards(newStackNums, newSpread);
 		}
 
-			grab(c: Card): TableCards {
-				const index = this.spread.indexOf(c);
-				return this.grabAt(index);		
-			}
+			// grab(c: Card): TableCards {
+			// 	const index = this.spread.indexOf(c);
+			// 	return this.grabAt(index);		
+			// }
 		
 	}
 	
@@ -312,7 +307,6 @@ export namespace GameStates {
 	}
 
 
-
 	export const DEFAULT_CARDS = new CardState(
 										DEFAULT_TABLE_CARDS, 
 										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS),
@@ -374,8 +368,6 @@ export namespace GameStates {
 			if (pts0 > pts1) this.rating = '0';
 			else if (pts0 < pts1) this.rating = '1';
 			else this.rating = 'D';
-			
-			//this.isDone = true;
 		}
 
 	}
@@ -398,13 +390,11 @@ export namespace GameStates {
 			if (desc == undefined) throw new Error("State not existing");
 
 			if (trace) {
-				//desc!.isTraced = true;		
 				if (desc!.next == undefined) {
 					return [];				
 				}
 			}
-
-			if (!trace) {				
+			else {
 				if (desc!.next == undefined) {
 					desc!.next = this.makeIds(desc.state.genNextBU());
 				}
@@ -498,10 +488,7 @@ export namespace GameStates {
 				}
 				
 				desc.rating = rating;
-				if (rating != 'U') {
-					//desc.isDone = true;
-					desc.category = 'falls';
-				}
+				if (rating != 'U') desc.category = 'falls';
 			}
 
 		}
@@ -518,16 +505,13 @@ export namespace GameStates {
 
 		latest: StateId[] = [0];
 		record: StateId[][] = [[0]];
-		
 		lastPts = -1;
 		
 		// Leave base, delete current state
 		clearSoft(): void {
 			this.resetTurns();
-			
 			this.latest = [0];
 			this.record = [[0]];
-			
 			this.lastPts = -1;
 		}
 
@@ -538,6 +522,7 @@ export namespace GameStates {
 			
 			const movesBefore = this.record.length-1;
 			
+			// 2 moves
 			this.move();
 			this.move();
 			
@@ -551,7 +536,6 @@ export namespace GameStates {
 			}
 			
 			// If points reached
-			
 			this.sumUp();
 			this.clearSoft();
 			console.log('Rerun');
@@ -591,21 +575,20 @@ export namespace GameStates {
 		sumUp(): void {
 			console.time('sum up');
 			
-			const descs = this.stateBase.descriptors;
-			
+			//const descs = this.stateBase.descriptors;
 			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
 			const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
-			console.log(pointHist.toString());
 
 			const nFinal = this.stateBase.markAndRateFinals();
-			console.log(`nFinal: ${nFinal}`);
-
 			const results = this.stateBase.descriptors.map(x => x.rating);
+
 			const hmap = Map.groupBy(results, x => x);
 			const resultHist = hmap.values().toArray().map(x => x.length);
+
+			console.log(pointHist.toString());
+			console.log(`nFinal: ${nFinal}`);			
 			console.log(hmap.keys().toArray());
 			console.log(resultHist.toString());
-			
 			
 			let nDone = 0;
 			let len = this.record.length;
@@ -618,16 +601,14 @@ export namespace GameStates {
 			const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
 			const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
 			console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
-		
-			
-			const doneIds = this.stateBase.descriptors.filter(x => x.TMP_isDone()).map(x => x.id);
-			let doneFollowers = doneIds;
-			
+
 			let cnt = 0;
+			let doneFollowers = this.stateBase.descriptors.filter(x => x.TMP_isDone()).map(x => x.id);
 			
 			while (doneFollowers.length > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation
 				doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
 			}
+
 			console.log(`follows ${doneFollowers.length}`);
 
 			this.stateBase.terminateDoneNodes();
