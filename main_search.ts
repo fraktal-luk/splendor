@@ -13,11 +13,11 @@ import {GameStates} from './lib/GameStates.ts'
 let waveN = new GameStates.WavefrontC();
 
 
-console.time('1');
+console.time('total');
 for (let i = 0; i < 11 ; i++) {
 	waveN.runStep();
 	console.log('\n');
 }
 
-console.timeEnd('1');
+console.timeEnd('total');
 

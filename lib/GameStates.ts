@@ -53,51 +53,51 @@ const COLUMN_WALL = 2;
 const TMP_TH = 10;
 
 
-	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
-	function decodeNum2(s: string): number { return s.charCodeAt(0); }
+function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
+function decodeNum2(s: string): number { return s.charCodeAt(0); }
 
-	function sortSpread(copied: number[], index: number, card: Card): void {
-		while (index < 11 && copied[index+1]! < card) {
-			copied[index] = copied[index+1]!;
-			index++;
-		}
-		
-		while (index > 0 && copied[index-1]! > card) {
-			copied[index] = copied[index-1]!;
-			index--;
-		}
-		
-		copied[index] = card;
+function sortSpread(copied: number[], index: number, card: Card): void {
+	while (index < 11 && copied[index+1]! < card) {
+		copied[index] = copied[index+1]!;
+		index++;
 	}
 
-	abstract class Wavefront {
-		readonly nPlayers = N_PLAYERS;
-		round = 0;     // Round that lasts until all players make move 
-		playerTurn = 0; // Player to move next
-		
-		resetTurns(): void {
-			this.round = 0;
+	while (index > 0 && copied[index-1]! > card) {
+		copied[index] = copied[index-1]!;
+		index--;
+	}
+
+	copied[index] = card;
+}
+
+abstract class Wavefront {
+	readonly nPlayers = N_PLAYERS;
+	round = 0;     // Round that lasts until all players make move 
+	playerTurn = 0; // Player to move next
+
+	resetTurns(): void {
+		this.round = 0;
+		this.playerTurn = 0;
+	}
+
+	move(): void {
+		this.moveImpl();
+		this.playerTurn++;
+		if (this.playerTurn == this.nPlayers) {
 			this.playerTurn = 0;
+			this.round++;
 		}
-		
-		move(): void {
-			this.moveImpl();
+	}
 
-			this.playerTurn++;
-			if (this.playerTurn == this.nPlayers) {
-				this.playerTurn = 0;
-				this.round++;
-			}
-		}
-		
-		abstract moveImpl(): void;
-	}
-	
-	interface StateValue<T> {
-		keyString(): string;
-		niceString(): string;
-		isSame(other: T): boolean;
-	}
+	abstract moveImpl(): void;
+}
+
+interface StateValue<T> {
+	keyString(): string;
+	niceString(): string;
+	isSame(other: T): boolean;
+}
+
 
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
@@ -325,24 +325,19 @@ export namespace GameStates {
 	type StateId = number;
 
 	type NodeCategory = 'unknown'
-				   | 'final'  // end the game
-				   | 'falls'; // leads to known final state (result determined)
+				   	  | 'final'  // end the game
+				   	  | 'falls'; // leads to known final state (result determined)
 	type GameRating = 'U' | '0' | '1' | 'D';
-
 
 
 
 	class StateDesc {
 		id: StateId;
-		//seq: string = "";
-		state: CardState;// = DEFAULT_CARDS;
-		next?: StateId[]; //
+		state: CardState;
+		next?: StateId[];
 		
 		category: NodeCategory = 'unknown';
-			//isFinal: boolean = false; // This state ends the game
-			//isDone: boolean = false;  // This state has been fully analyzed
 		rating: GameRating = 'U';
-		//isTraced: boolean = false;
 		
 		TMP_isDone(): boolean {
 			return this.category == 'falls' || this.category == 'final';
@@ -359,22 +354,19 @@ export namespace GameStates {
 		
 		
 		verifyFinal(): void {
-			if (//this.isDone || 
-				this.state.moves != 0) return;
+			if (this.state.moves != 0) return;
 
 			const pts0 = this.state.mpc.ofPlayer(0).points;
 			const pts1 = this.state.mpc.ofPlayer(1).points;
 			
 			if (pts0 >= TMP_TH || pts1 >= TMP_TH) {
 				this.next = [];
-				//this.isFinal = true;
 				this.category = 'final';
 			}
 		}
 
 		rateFinal(): void {
-			if (//this.isDone || 
-				!this.TMP_isFinal()) return;
+			if (!this.TMP_isFinal()) return;
 			
 			const pts0 = this.state.mpc.ofPlayer(0).points;
 			const pts1 = this.state.mpc.ofPlayer(1).points;
@@ -459,7 +451,7 @@ export namespace GameStates {
 		}
 		
 		showTable(): void {
-			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n')
+			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n');
 			console.log(str);
 		}
 		
@@ -480,8 +472,7 @@ export namespace GameStates {
 		
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
-			if (desc.TMP_isDone() || 
-				desc.TMP_isFinal() || desc.next == undefined) return;
+			if (desc.TMP_isDone() || desc.TMP_isFinal() || desc.next == undefined) return;
 				
 			const ratings = this.followersRatings(desc.id);
 			const has0 = ratings.includes('0');
@@ -573,9 +564,7 @@ export namespace GameStates {
 
 		moveTimes(n: number): void {
 			console.time('moves');
-
 			for (let i = 0; i < n; i++) this.move();
-
 			console.timeEnd('moves');
 		}
 
@@ -585,20 +574,18 @@ export namespace GameStates {
 			this.latest = newFront;
 			this.record.push(newFront);
 						
-			
 			const latestDescs = this.latest.map(x => this.stateBase.descriptors[x]!);
+			const pts = latestDescs.map(x => x.state.maxPoints());
+			const mp = pts.reduce((a,b) => Math.max(a,b), 0);
 
-				const pts = latestDescs.map(x => x.state.maxPoints());
-				const mp = pts.reduce((a,b) => Math.max(a,b), 0);
-				
 			this.lastPts = mp;
 			
-				const nFinal = latestDescs.filter(x => x.category == 'final').length;
-				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
-				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
-				
-				console.log(`{${this.round},${this.playerTurn}}` +
-						` setsize ${this.latest.length} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
+			const nFinal = latestDescs.filter(x => x.category == 'final').length;
+			const nFalls = latestDescs.filter(x => x.category == 'falls').length;
+			const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
+
+			console.log(`{${this.round},${this.playerTurn}}` +
+					` setsize ${this.latest.length} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
 		}
 
 		sumUp(): void {
@@ -649,10 +636,10 @@ export namespace GameStates {
 			
 			console.log('\n');
 			
-				if (this.stateBase.descriptors[0]!.category == 'falls') {
-					console.log("Discovered solution!");
-					console.log(this.stateBase.descriptors[0]!);
-				}
+			if (this.stateBase.descriptors[0]!.category == 'falls') {
+				console.log("Discovered solution!");
+				console.log(this.stateBase.descriptors[0]!);
+			}
 		}
 		
 	}
