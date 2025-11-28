@@ -241,13 +241,98 @@ export namespace GameStates {
 
 			return new Row(this.stackSize-1, newCards);
 		}
+
+		getNext(thisRow: number): Row[] {
+			const res = [0,1,2,3].map(i => this.takeCol(thisRow, i));
+			return res;
+		}
 	}
 
+	const DUMMY_ROW = new Row(0, [0, 0, 0, 0]);
+	const INITIAL_ROW0 = new Row(INITIAL_STACK_SIZES[0], INITIAL_TABLE_NUMS[0]);
+	const INITIAL_ROW1 = new Row(INITIAL_STACK_SIZES[0], INITIAL_TABLE_NUMS[0]);
+	const INITIAL_ROW2 = new Row(INITIAL_STACK_SIZES[0], INITIAL_TABLE_NUMS[0]);
 
 
 
 	type RowId = number;
 
+
+	class RowDesc {
+		id: RowId;
+		state: Row;
+		next?: RowId[];
+
+		constructor(id: RowId, state: Row) {
+			this.id = id;
+			this.state = state;
+		}
+
+	}
+
+
+
+	class RowBase {
+		descriptors: RowDesc[] =  [new RowDesc(0, DUMMY_ROW), new RowDesc(1, INITIAL_ROW0), new RowDesc(2,INITIAL_ROW1), new RowDesc(2, INITIAL_ROW2)];
+		idMap: Map<string, RowId> = new Map<string, RowId>([[DUMMY_ROW.keyString(), 0],
+																												[INITIAL_ROW0.keyString(), 1],
+																												[INITIAL_ROW1.keyString(), 2],
+																												[INITIAL_ROW2.keyString(), 3],
+																											]);
+		
+		addDescriptor(rs: Row, ks: string): StateId {
+			const newId = this.descriptors.length;
+			this.descriptors.push(new RowDesc(newId, rs));
+			this.idMap.set(ks, newId);
+			return newId;
+		}
+		
+		// Trace mode: don't calculate if not already known 
+		getFollowers(thisRow: number, state: RowId): RowId[] {
+			const desc = this.descriptors[state];
+			if (desc == undefined) throw new Error("State not existing");
+
+			// if (trace) {
+			// 	if (desc!.next == undefined) {
+			// 		return [];				
+			// 	}
+			// }
+			// else {
+				if (desc!.next == undefined) {
+					desc!.next = this.makeIds(desc.state.getNext(thisRow));
+				}
+			// }
+			
+			return [...desc!.next!];
+		}
+
+		makeIds(states: (Row|undefined)[]): RowId[] {
+			const nextIds: RowId[] = [];
+			
+			// Find the states, if not existent then add
+			for (const [i, s] of states.entries()) {					
+				if (s == undefined) continue;
+				
+				// Find s in base...
+				const keyStr = s.keyString();
+				const theId = this.idMap.get(keyStr);
+				
+				if (theId != undefined) {
+					nextIds.push(theId);
+				}
+				else {
+					const newId = this.addDescriptor(s, keyStr);
+					nextIds.push(newId)	
+				}
+			}
+			
+			return nextIds;
+		}
+
+	}
+
+
+	const rowBase = new RowBase();
 
 
 	export class TableCardsShort implements StateValue<TableCardsShort> {
@@ -284,32 +369,25 @@ export namespace GameStates {
 					const row = index >> 2;
 					const col = index & 3;
 
-					let newR0 = this.row0;
-					let newR1 = this.row1;
-					let newR2 = this.row2;
+					// let newR0 = this.row0;
+					// let newR1 = this.row1;
+					// let newR2 = this.row2;
 
-					// const stackSize = this.stackNums[row]!;
+					const newRows = [this.row0, this.row1, this.row2];
 
-					return new TableCardsShort(newR0, newR1, newR2);
+					const resultRows = rowBase.getFollowers(row, newRows[row]);
+					newRows[row] = resultRows[col];
+
+					return new TableCardsShort(newRows[0], newRows[1], newRows[2]);
 				}
 
 	} 
 
 
-	//const DEFAULT_TABLE_CARDS_SHORT = new TableCardsShort(INITIAL_STACK_SIZES, INITIAL_TABLE_NUMS.flat());
+	const DEFAULT_TABLE_CARDS_SHORT = new TableCardsShort(1, 2, 3);
 
 
-	class RowDesc {
-		id: RowId;
-		state: Row;
-		next?: RowId[];
 
-		constructor(id: RowId, state: Row) {
-			this.id = id;
-			this.state = state;
-		}
-
-	}
 
 
 
