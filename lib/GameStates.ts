@@ -194,6 +194,127 @@ export namespace GameStates {
 
 
 
+	class Row implements StateValue<Row> {
+		readonly stackSize: number;
+		readonly cards: number[];
+
+		constructor(ss: number, cards: number[]) {
+			this.stackSize = ss;
+			this.cards = cards;
+		}
+
+		keyString(): string { 
+			return String.fromCharCode(this.stackSize, ...this.cards); // 5 chars
+		}
+		
+		niceString(): string { return `[#{this.stackSize} #{this.cards}]`; }
+
+		isSame(other: Row): boolean {
+			if (other.stackSize != this.stackSize) return false;
+
+			for (let i = 0; i < 4; i++) {
+				if (other.cards[i] != this.cards[i]) return false;
+			}
+			return true;
+		}
+
+		static fromKeyString(s: string): Row {			
+			const ss = s.charCodeAt(0);
+			const cards = Array.from(s.substring(1), c => c.charCodeAt(0));
+			return new Row(ss, cards);
+		}
+
+
+		takeCol(thisRow: number, index: number): Row {
+
+			const newCards = [...this.cards];
+
+			// // Need to find which row it is!
+			// let rowInd = 0;
+			// if (this.cards[3] > 70) rowInd = 2;
+			// else if (this.cards[3] > 40) rowInd = 1;
+
+			const rowInd = thisRow;
+
+			newCards[index] = TABLE_STACKS[rowInd]![this.stackSize-1]!;
+			newCards.sort((a,b) => a-b);
+
+			return new Row(this.stackSize-1, newCards);
+		}
+	}
+
+
+
+
+	type RowId = number;
+
+
+
+	export class TableCardsShort implements StateValue<TableCardsShort> {
+			row0: RowId;
+			row1: RowId;
+			row2: RowId;
+
+			constructor(r0: number, r1: number, r2: number) {
+				this.row0 = r0;
+				this.row1 = r1;
+				this.row2 = r2;
+			}
+
+			keyString(): string {
+				return String.fromCharCode(this.row0, this.row1, this.row2) + "............"; // pad to 15
+			}
+
+
+			niceString(): string { return `(#{this.row0},#{this.row1},#{this.row2})`; }
+
+			isSame(other: TableCardsShort): boolean {			
+				return this.row0 == other.row0 && this.row1 == other.row1 && this.row2 == other.row2;
+			}
+
+			static fromKeyString(s: string): TableCardsShort {
+				const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));
+				return new TableCardsShort(nums[0], nums[1], nums[2]);
+			}
+
+
+				grabAt(index: number): TableCardsShort {
+					if (index < 0 || index > 11) throw new Error("Wrong index");
+					
+					const row = index >> 2;
+					const col = index & 3;
+
+					let newR0 = this.row0;
+					let newR1 = this.row1;
+					let newR2 = this.row2;
+
+					// const stackSize = this.stackNums[row]!;
+
+					return new TableCardsShort(newR0, newR1, newR2);
+				}
+
+	} 
+
+
+	//const DEFAULT_TABLE_CARDS_SHORT = new TableCardsShort(INITIAL_STACK_SIZES, INITIAL_TABLE_NUMS.flat());
+
+
+	class RowDesc {
+		id: RowId;
+		state: Row;
+		next?: RowId[];
+
+		constructor(id: RowId, state: Row) {
+			this.id = id;
+			this.state = state;
+		}
+
+	}
+
+
+
+
+
 	export class TableCards implements StateValue<TableCards> {
 		readonly stackNums: number[];
 		readonly spread: Card[]; // Cards seen on table
@@ -204,7 +325,7 @@ export namespace GameStates {
 		}
 		
 		keyString(): string {			
-			return String.fromCharCode(...this.stackNums, ...this.spread); // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
+			return String.fromCharCode(...this.stackNums, ...this.spread); // 3 (nums) + 12 (cards) = 15
 		}
 
 		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
@@ -235,14 +356,11 @@ export namespace GameStates {
 			return new TableCards(newStackNums, newSpread);
 		}
 
-			// grab(c: Card): TableCards {
-			// 	const index = this.spread.indexOf(c);
-			// 	return this.grabAt(index);		
-			// }
-		
 	}
 	
 	const DEFAULT_TABLE_CARDS = new TableCards(INITIAL_STACK_SIZES, INITIAL_TABLE_NUMS.flat());
+
+
 
 	export class CardState implements StateValue<CardState> {
 		readonly tableCards: TableCards;
@@ -384,7 +502,7 @@ export namespace GameStates {
 			return newId;
 		}
 		
-		// Trace mode: don't calculate if not already known and don't skip when isDone 
+		// Trace mode: don't calculate if not already known 
 		getFollowers(state: StateId, trace: boolean = false): StateId[] {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
@@ -517,7 +635,6 @@ export namespace GameStates {
 
 
 		runStep(): void {
-			
 			console.time('step');
 			
 			const movesBefore = this.record.length-1;
@@ -575,7 +692,6 @@ export namespace GameStates {
 		sumUp(): void {
 			console.time('sum up');
 			
-			//const descs = this.stateBase.descriptors;
 			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
 			const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
 
