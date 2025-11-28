@@ -250,8 +250,8 @@ export namespace GameStates {
 
 	const DUMMY_ROW = new Row(0, [0, 0, 0, 0]);
 	const INITIAL_ROW0 = new Row(INITIAL_STACK_SIZES[0], INITIAL_TABLE_NUMS[0]);
-	const INITIAL_ROW1 = new Row(INITIAL_STACK_SIZES[0], INITIAL_TABLE_NUMS[0]);
-	const INITIAL_ROW2 = new Row(INITIAL_STACK_SIZES[0], INITIAL_TABLE_NUMS[0]);
+	const INITIAL_ROW1 = new Row(INITIAL_STACK_SIZES[1], INITIAL_TABLE_NUMS[1]);
+	const INITIAL_ROW2 = new Row(INITIAL_STACK_SIZES[2], INITIAL_TABLE_NUMS[2]);
 
 
 
@@ -376,7 +376,18 @@ export namespace GameStates {
 					const newRows = [this.row0, this.row1, this.row2];
 
 					const resultRows = rowBase.getFollowers(row, newRows[row]);
+
+							// console.log();
+							// console.log(rowBase.descriptors[newRows[row]].state);
+							// console.log(rowBase.descriptors[resultRows[0]].state);
+							// console.log(rowBase.descriptors[resultRows[1]].state);
+							// console.log(rowBase.descriptors[resultRows[2]].state);
+							// console.log(rowBase.descriptors[resultRows[3]].state);
+
+
 					newRows[row] = resultRows[col];
+
+
 
 					return new TableCardsShort(newRows[0], newRows[1], newRows[2]);
 				}
@@ -439,6 +450,14 @@ export namespace GameStates {
 	const DEFAULT_TABLE_CARDS = new TableCards(INITIAL_STACK_SIZES, INITIAL_TABLE_NUMS.flat());
 
 
+		function CONV_TC(tcs: TableCardsShort): TableCards {
+			const ss = [rowBase.descriptors[tcs.row0].state.stackSize, rowBase.descriptors[tcs.row1].state.stackSize, rowBase.descriptors[tcs.row2].state.stackSize,];
+			const sp = [...rowBase.descriptors[tcs.row0].state.cards, ...rowBase.descriptors[tcs.row1].state.cards, ...rowBase.descriptors[tcs.row2].state.cards,];
+
+			return new TableCards(ss, sp);
+		}
+
+
 
 	export class CardState implements StateValue<CardState> {
 		readonly tableCards: TableCards;
@@ -489,6 +508,16 @@ export namespace GameStates {
 			if (newPlayerCards == undefined) return undefined;
 			
 			newPlayerCardsArr[player]! = newPlayerCards!;
+
+						const newTc = this.tableCards.grabAt(ind);
+						const newTcs = this.tableCards_S.grabAt(ind);
+						if (!newTc.isSame(CONV_TC(newTcs))) {
+							console.log('Fck');
+							console.log(newTc);
+							console.log(CONV_TC(newTcs));
+							throw new Error();
+						}
+
 			return new CardState(this.tableCards.grabAt(ind), newPlayerCardsArr, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
 
