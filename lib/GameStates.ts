@@ -442,11 +442,13 @@ export namespace GameStates {
 
 	export class CardState implements StateValue<CardState> {
 		readonly tableCards: TableCards;
+			readonly tableCards_S: TableCardsShort;
 		readonly mpc: ManyPlayerCards;
 		readonly moves: number; 
 		
-		constructor(t: TableCards, p: PlayerCards[], moves: number) {
+		constructor(t: TableCards, p: PlayerCards[], moves: number, ts: TableCardsShort) {
 			this.tableCards = t;
+				this.tableCards_S = ts;
 			this.mpc = new ManyPlayerCards(p);
 			this.moves = moves;
 		}
@@ -462,7 +464,7 @@ export namespace GameStates {
 		static fromKeyString(s: string): CardState {
 			const tableCards = TableCards.fromKeyString(s.slice(0,16)); // TODO: verify size
 			const playerCards = ManyPlayerCards.fromKeyString(s.substring(16)).arr;
-			return new CardState(tableCards, playerCards, s.charCodeAt(15));
+			return new CardState(tableCards, playerCards, s.charCodeAt(15), DEFAULT_TABLE_CARDS_SHORT);
 		}
 
 		playerKString(): string { return this.mpc.playerKString(); }
@@ -471,7 +473,7 @@ export namespace GameStates {
 
 		takeUniversal(): CardState {
 			const player = this.moves;
-			return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS); 
+			return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS, this.tableCards_S); 
 		}
 		
 		buyUniversal(ind: number): CardState | undefined {
@@ -487,7 +489,7 @@ export namespace GameStates {
 			if (newPlayerCards == undefined) return undefined;
 			
 			newPlayerCardsArr[player]! = newPlayerCards!;
-			return new CardState(this.tableCards.grabAt(ind), newPlayerCardsArr, (player+1) % N_PLAYERS);
+			return new CardState(this.tableCards.grabAt(ind), newPlayerCardsArr, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
 
 		genNextBU(): (CardState|undefined)[] {			
@@ -506,7 +508,8 @@ export namespace GameStates {
 	export const DEFAULT_CARDS = new CardState(
 										DEFAULT_TABLE_CARDS, 
 										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS),
-										0
+										0,
+											DEFAULT_TABLE_CARDS_SHORT
 										);
 
 
