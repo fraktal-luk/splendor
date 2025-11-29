@@ -362,35 +362,46 @@ export namespace GameStates {
 				return new TableCardsShort(nums[0], nums[1], nums[2]);
 			}
 
+			cardAt(index: number): number {
+				if (index < 0 || index > 11) throw new Error("Wrong index");
+				
+				const row = index >> 2;
+				const col = index & 3;
+				
+				const rows = [this.row0, this.row1, this.row2];
+				return rowBase.descriptors[rows[row]].state.cards[col];
+			}
 
-				grabAt(index: number): TableCardsShort {
-					if (index < 0 || index > 11) throw new Error("Wrong index");
-					
-					const row = index >> 2;
-					const col = index & 3;
+			grabAt(index: number): TableCardsShort {
+				if (index < 0 || index > 11) throw new Error("Wrong index");
+				
+				const row = index >> 2;
+				const col = index & 3;
 
-					// let newR0 = this.row0;
-					// let newR1 = this.row1;
-					// let newR2 = this.row2;
+				// let newR0 = this.row0;
+				// let newR1 = this.row1;
+				// let newR2 = this.row2;
 
-					const newRows = [this.row0, this.row1, this.row2];
+				const newRows = [this.row0, this.row1, this.row2];
 
-					const resultRows = rowBase.getFollowers(row, newRows[row]);
+				const resultRows = rowBase.getFollowers(row, newRows[row]);
 
-							// console.log();
-							// console.log(rowBase.descriptors[newRows[row]].state);
-							// console.log(rowBase.descriptors[resultRows[0]].state);
-							// console.log(rowBase.descriptors[resultRows[1]].state);
-							// console.log(rowBase.descriptors[resultRows[2]].state);
-							// console.log(rowBase.descriptors[resultRows[3]].state);
-
-
-					newRows[row] = resultRows[col];
+						// console.log();
+						// console.log(rowBase.descriptors[newRows[row]].state);
+						// console.log(rowBase.descriptors[resultRows[0]].state);
+						// console.log(rowBase.descriptors[resultRows[1]].state);
+						// console.log(rowBase.descriptors[resultRows[2]].state);
+						// console.log(rowBase.descriptors[resultRows[3]].state);
 
 
+				newRows[row] = resultRows[col];
 
-					return new TableCardsShort(newRows[0], newRows[1], newRows[2]);
-				}
+						// console.log(">>>");
+						// if (row < 2) console.log(newRows);
+
+
+				return new TableCardsShort(newRows[0], newRows[1], newRows[2]);
+			}
 
 	} 
 
@@ -427,6 +438,10 @@ export namespace GameStates {
 			const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));
 			const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));		
 			return new TableCards(nums, spread);
+		}
+
+		cardAt(index: number): number {
+				return this.spread[index];
 		}
 
 		grabAt(index: number): TableCards {
@@ -472,11 +487,13 @@ export namespace GameStates {
 			this.moves = moves;
 		}
 		
-		keyString(): string { return this.tableCards.keyString() + String.fromCharCode(this.moves) + this.mpc.keyString(); }
-		niceString(): string { return this.tableCards.niceString() + '    ' + this.mpc.niceString(); }
+		keyString(): string { return this.tableCards_S.keyString() + String.fromCharCode(this.moves) + this.mpc.keyString(); }
+		niceString(): string { return CONV_TC(this.tableCards_S).niceString() + '    ' + this.mpc.niceString(); }
 
-		isSame(other: CardState): boolean {			
-			if (!this.tableCards.isSame(other.tableCards)) return false;
+		isSame(other: CardState): boolean {
+			//if (!this.tableCards.isSame(other.tableCards)) return false;
+			if (!this.tableCards_S.isSame(other.tableCards_S)) return false;
+
 			return this.mpc.isSame(other.mpc);
 		}
 
@@ -501,7 +518,11 @@ export namespace GameStates {
 				// TMP: limit columns to buy (performance "hack")
 				if ((ind % 4) >= COLUMN_WALL) return undefined;
 				
-			const c = this.tableCards.spread[ind]!;
+			const c_O = this.tableCards.cardAt(ind);
+				const c = this.tableCards_S.cardAt(ind);
+
+				if (c_O != c) throw new Error("wrong cards");
+
 			const newPlayerCardsArr = [...this.mpc.arr];
 			const newPlayerCards = newPlayerCardsArr[player]!.buyUniversal(c);
 			
@@ -523,7 +544,7 @@ export namespace GameStates {
 
 		genNextBU(): (CardState|undefined)[] {			
 			let res: (CardState|undefined)[] = [this.takeUniversal()];
-			res = res.concat( this.tableCards.spread.keys().toArray().map(i => this.buyUniversal(i)));
+			res = res.concat([0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i)));
 			return res;
 		}
 
@@ -847,6 +868,8 @@ export namespace GameStates {
 				console.log("Discovered solution!");
 				console.log(this.stateBase.descriptors[0]!);
 			}
+
+
 		}
 		
 	}
