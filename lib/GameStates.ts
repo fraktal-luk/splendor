@@ -224,10 +224,9 @@ export namespace GameStates {
 
 
 		takeCol(thisRow: number, index: number): Row {
-			const newCards = [...this.cards];
-			const rowInd = thisRow;
+			const c = TABLE_STACKS[thisRow]![this.stackSize-1]!;
 
-			newCards[index] = TABLE_STACKS[rowInd]![this.stackSize-1]!;
+			const newCards = this.cards.with(index, c);
 			newCards.sort((a,b) => a-b);
 
 			return new Row(this.stackSize-1, newCards);
@@ -287,7 +286,7 @@ export namespace GameStates {
 				desc!.next = this.makeIds(desc.state.getNext(thisRow));
 			}
 			
-			return [...desc!.next!];
+			return desc!.next!;// [...desc!.next!];
 		}
 
 		makeIds(states: (Row|undefined)[]): RowId[] {
@@ -320,31 +319,27 @@ export namespace GameStates {
 
 
 	export class TableCardsShort implements StateValue<TableCardsShort> {
-			row0: RowId;
-			row1: RowId;
-			row2: RowId;
+			rows: RowId[];
 
-			constructor(r0: number, r1: number, r2: number) {
-				this.row0 = r0;
-				this.row1 = r1;
-				this.row2 = r2;
+			constructor(r: number[]) {
+				this.rows = r;
 			}
 
 			// TODO: should be shortened (remove padding) but fromKeyString in dependents must be modified accordingly
 			keyString(): string {
-				return String.fromCharCode(this.row0, this.row1, this.row2) + "............"; // pad to 15
+				return String.fromCharCode(...this.rows) + "............"; // pad to 15
 			}
 
 
-			niceString(): string { return `(${this.row0},${this.row1},${this.row2})`; }
+			niceString(): string { return `${this.rows}`; }
 
 			isSame(other: TableCardsShort): boolean {			
-				return this.row0 == other.row0 && this.row1 == other.row1 && this.row2 == other.row2;
+				return this.rows[0] == other.rows[0] && this.rows[1] == other.rows[1] && this.rows[2] == other.rows[2];
 			}
 
 			static fromKeyString(s: string): TableCardsShort {
 				const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));
-				return new TableCardsShort(nums[0], nums[1], nums[2]);
+				return new TableCardsShort(nums);
 			}
 
 			cardAt(index: number): number {
@@ -353,7 +348,7 @@ export namespace GameStates {
 				const row = index >> 2;
 				const col = index & 3;
 				
-				const rows = [this.row0, this.row1, this.row2];
+				const rows = this.rows;
 				return rowBase.descriptors[rows[row]].state.cards[col];
 			}
 
@@ -363,18 +358,16 @@ export namespace GameStates {
 				const row = index >> 2;
 				const col = index & 3;
 
-				const newRows = [this.row0, this.row1, this.row2];
-				const resultRows = rowBase.getFollowers(row, newRows[row]);
+				const resultRows = rowBase.getFollowers(row, this.rows[row]);
+				const newRows = this.rows.with(row, resultRows[col]);
 
-				newRows[row] = resultRows[col];
-
-				return new TableCardsShort(newRows[0], newRows[1], newRows[2]);
+				return new TableCardsShort(newRows);
 			}
 
-	} 
+	}
 
 
-	const DEFAULT_TABLE_CARDS_SHORT = new TableCardsShort(1, 2, 3);
+	const DEFAULT_TABLE_CARDS_SHORT = new TableCardsShort([1, 2, 3]);
 
 
 
@@ -398,8 +391,8 @@ export namespace GameStates {
 		}
 
 		static fromKeyString(s: string): TableCards {
-			const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));
-			const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));		
+			const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));
+			const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));
 			return new TableCards(nums, spread);
 		}
 
@@ -429,8 +422,8 @@ export namespace GameStates {
 
 
 		function CONV_TC(tcs: TableCardsShort): TableCards {
-			const ss = [rowBase.descriptors[tcs.row0].state.stackSize, rowBase.descriptors[tcs.row1].state.stackSize, rowBase.descriptors[tcs.row2].state.stackSize,];
-			const sp = [...rowBase.descriptors[tcs.row0].state.cards, ...rowBase.descriptors[tcs.row1].state.cards, ...rowBase.descriptors[tcs.row2].state.cards,];
+			const ss = [rowBase.descriptors[tcs.rows[0]].state.stackSize, rowBase.descriptors[tcs.rows[1]].state.stackSize, rowBase.descriptors[tcs.rows[2]].state.stackSize,];
+			const sp = [...rowBase.descriptors[tcs.rows[0]].state.cards, ...rowBase.descriptors[tcs.rows[1]].state.cards, ...rowBase.descriptors[tcs.rows[2]].state.cards,];
 
 			return new TableCards(ss, sp);
 		}
@@ -476,16 +469,13 @@ export namespace GameStates {
 				
 				  // TMP: limit columns to buy (performance "hack")
 				  if ((ind % 4) >= COLUMN_WALL) return undefined;
-				
-			const c = this.tableCards_S.cardAt(ind);
 
-			const newPlayerCardsArr = [...this.mpc.arr];
-			const newPlayerCards = newPlayerCardsArr[player]!.buyUniversal(c);
+			const c = this.tableCards_S.cardAt(ind);
+			const newPlayerCards = this.mpc.arr[player]!.buyUniversal(c);
 			
 			if (newPlayerCards == undefined) return undefined;
 			
-			newPlayerCardsArr[player]! = newPlayerCards!;
-
+			const newPlayerCardsArr = this.mpc.arr.with(player, newPlayerCards);
 			return new CardState(newPlayerCardsArr, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
 
@@ -594,7 +584,7 @@ export namespace GameStates {
 				}
 			}
 			
-			return desc!.next!; //[...desc!.next!];			
+			return desc!.next!; //[...desc!.next!];
 		}
 
 		makeIds(states: (CardState|undefined)[]): StateId[] {
@@ -711,20 +701,22 @@ export namespace GameStates {
 
 
 		runStep(): void {
-			console.time('step');
+			console.time('search');
 			
 			const movesBefore = this.record.length-1;
 			
 			// 2 moves
 			this.move();
 			this.move();
+
+
+			console.timeEnd('search');
 			
 			const movesNow = this.record.length-1; // +2
-			
+
 			if (this.lastPts >= TMP_TH) console.log(`  Reached ${this.lastPts} points`);
 			else {
-				console.log("  Not reached points");
-				console.timeEnd('step');
+				//console.log("  Not reached points");
 				return;
 			}
 			
@@ -733,9 +725,8 @@ export namespace GameStates {
 			this.clearSoft();
 			console.log('Rerun');
 			this.moveTimes(movesNow);
-			console.log('Rerun done\n');
+			//console.log('Rerun done\n');
 			
-			console.timeEnd('step');
 		}
 
 
@@ -776,11 +767,6 @@ export namespace GameStates {
 
 			const hmap = Map.groupBy(results, x => x);
 			const resultHist = hmap.values().toArray().map(x => x.length);
-
-			console.log(pointHist.toString());
-			console.log(`nFinal: ${nFinal}`);			
-			console.log(hmap.keys().toArray());
-			console.log(resultHist.toString());
 			
 			let nDone = 0;
 			let len = this.record.length;
@@ -792,6 +778,13 @@ export namespace GameStates {
 			const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
 			const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
 			const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
+
+			console.log(pointHist.toString());
+			//console.log(`nFinal: ${nFinal}`);			
+			//console.log(hmap.keys().toArray());
+			//console.log(resultHist.toString());
+
+			console.log(`nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
 			console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 
 			let cnt = 0;
@@ -810,8 +803,7 @@ export namespace GameStates {
 			console.log('\n');
 			
 			if (this.stateBase.descriptors[0]!.category == 'falls') {
-				console.log("Discovered solution!");
-				console.log(this.stateBase.descriptors[0]!);
+				console.log(`Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
 			}
 
 
