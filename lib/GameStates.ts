@@ -102,9 +102,8 @@ interface StateValue<T> {
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
 	export const MAX_TOKEN_STACKS = "444440";
-									"555550";
-									"777770";
-
+																	"555550";
+																	"777770";
 
 	export class PlayerCards implements StateValue<PlayerCards> {
 		readonly bonuses: TokenVec;
@@ -172,8 +171,7 @@ export namespace GameStates {
 			const parts: string[] = [];
 			for (let i = 0; i < N_PLAYERS; i++) parts.push(s.substring(i*PLEN, i*PLEN + PLEN));
 			
-			const eights = parts;
-			const playerCards = eights.map(PlayerCards.fromKeyString);
+			const playerCards = parts.map(PlayerCards.fromKeyString);
 			return new ManyPlayerCards(playerCards);
 		}
 
@@ -207,7 +205,7 @@ export namespace GameStates {
 			return String.fromCharCode(this.stackSize, ...this.cards); // 5 chars
 		}
 		
-		niceString(): string { return `[#{this.stackSize} #{this.cards}]`; }
+		niceString(): string { return `[${this.stackSize} ${this.cards}]`; }
 
 		isSame(other: Row): boolean {
 			if (other.stackSize != this.stackSize) return false;
@@ -226,14 +224,7 @@ export namespace GameStates {
 
 
 		takeCol(thisRow: number, index: number): Row {
-
 			const newCards = [...this.cards];
-
-			// // Need to find which row it is!
-			// let rowInd = 0;
-			// if (this.cards[3] > 70) rowInd = 2;
-			// else if (this.cards[3] > 40) rowInd = 1;
-
 			const rowInd = thisRow;
 
 			newCards[index] = TABLE_STACKS[rowInd]![this.stackSize-1]!;
@@ -292,16 +283,9 @@ export namespace GameStates {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
 
-			// if (trace) {
-			// 	if (desc!.next == undefined) {
-			// 		return [];				
-			// 	}
-			// }
-			// else {
-				if (desc!.next == undefined) {
-					desc!.next = this.makeIds(desc.state.getNext(thisRow));
-				}
-			// }
+			if (desc!.next == undefined) {
+				desc!.next = this.makeIds(desc.state.getNext(thisRow));
+			}
 			
 			return [...desc!.next!];
 		}
@@ -346,12 +330,13 @@ export namespace GameStates {
 				this.row2 = r2;
 			}
 
+			// TODO: should be shortened (remove padding) but fromKeyString in dependents must be modified accordingly
 			keyString(): string {
 				return String.fromCharCode(this.row0, this.row1, this.row2) + "............"; // pad to 15
 			}
 
 
-			niceString(): string { return `(#{this.row0},#{this.row1},#{this.row2})`; }
+			niceString(): string { return `(${this.row0},${this.row1},${this.row2})`; }
 
 			isSame(other: TableCardsShort): boolean {			
 				return this.row0 == other.row0 && this.row1 == other.row1 && this.row2 == other.row2;
@@ -378,27 +363,10 @@ export namespace GameStates {
 				const row = index >> 2;
 				const col = index & 3;
 
-				// let newR0 = this.row0;
-				// let newR1 = this.row1;
-				// let newR2 = this.row2;
-
 				const newRows = [this.row0, this.row1, this.row2];
-
 				const resultRows = rowBase.getFollowers(row, newRows[row]);
 
-						// console.log();
-						// console.log(rowBase.descriptors[newRows[row]].state);
-						// console.log(rowBase.descriptors[resultRows[0]].state);
-						// console.log(rowBase.descriptors[resultRows[1]].state);
-						// console.log(rowBase.descriptors[resultRows[2]].state);
-						// console.log(rowBase.descriptors[resultRows[3]].state);
-
-
 				newRows[row] = resultRows[col];
-
-						// console.log(">>>");
-						// if (row < 2) console.log(newRows);
-
 
 				return new TableCardsShort(newRows[0], newRows[1], newRows[2]);
 			}
@@ -407,11 +375,6 @@ export namespace GameStates {
 
 
 	const DEFAULT_TABLE_CARDS_SHORT = new TableCardsShort(1, 2, 3);
-
-
-
-
-
 
 
 
@@ -475,14 +438,12 @@ export namespace GameStates {
 
 
 	export class CardState implements StateValue<CardState> {
-		//readonly tableCards: TableCards;
-			readonly tableCards_S: TableCardsShort;
+		readonly tableCards_S: TableCardsShort;
 		readonly mpc: ManyPlayerCards;
 		readonly moves: number; 
 		
 		constructor(p: PlayerCards[], moves: number, ts: TableCardsShort) {
-			//this.tableCards = t;
-				this.tableCards_S = ts;
+			this.tableCards_S = ts;
 			this.mpc = new ManyPlayerCards(p);
 			this.moves = moves;
 		}
@@ -491,14 +452,11 @@ export namespace GameStates {
 		niceString(): string { return CONV_TC(this.tableCards_S).niceString() + '    ' + this.mpc.niceString(); }
 
 		isSame(other: CardState): boolean {
-			//if (!this.tableCards.isSame(other.tableCards)) return false;
 			if (!this.tableCards_S.isSame(other.tableCards_S)) return false;
-
 			return this.mpc.isSame(other.mpc);
 		}
 
 		static fromKeyString(s: string): CardState {
-			//const tableCards = TableCards.fromKeyString(s.slice(0,16)); // TODO: verify size
 			const tableCards_S = TableCardsShort.fromKeyString(s.slice(0,16)); // TODO: verify size
 			const playerCards = ManyPlayerCards.fromKeyString(s.substring(16)).arr;
 			return new CardState(playerCards, s.charCodeAt(15), tableCards_S);
@@ -516,13 +474,10 @@ export namespace GameStates {
 		buyUniversal(ind: number): CardState | undefined {
 			const player = this.moves;
 				
-				// TMP: limit columns to buy (performance "hack")
-				if ((ind % 4) >= COLUMN_WALL) return undefined;
+				  // TMP: limit columns to buy (performance "hack")
+				  if ((ind % 4) >= COLUMN_WALL) return undefined;
 				
-			//const c_O = this.tableCards.cardAt(ind);
-				const c = this.tableCards_S.cardAt(ind);
-
-				//if (c_O != c) throw new Error("wrong cards");
+			const c = this.tableCards_S.cardAt(ind);
 
 			const newPlayerCardsArr = [...this.mpc.arr];
 			const newPlayerCards = newPlayerCardsArr[player]!.buyUniversal(c);
@@ -530,15 +485,6 @@ export namespace GameStates {
 			if (newPlayerCards == undefined) return undefined;
 			
 			newPlayerCardsArr[player]! = newPlayerCards!;
-
-						// const newTc = this.tableCards.grabAt(ind);
-						// const newTcs = this.tableCards_S.grabAt(ind);
-						// if (!newTc.isSame(CONV_TC(newTcs))) {
-						// 	console.log('Fck');
-						// 	console.log(newTc);
-						// 	console.log(CONV_TC(newTcs));
-						// 	throw new Error();
-						// }
 
 			return new CardState(newPlayerCardsArr, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
@@ -594,7 +540,6 @@ export namespace GameStates {
 			this.id = id;
 			this.state = state;
 		}
-		
 		
 		verifyFinal(): void {
 			if (this.state.moves != 0) return;
