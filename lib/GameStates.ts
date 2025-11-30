@@ -594,7 +594,7 @@ export namespace GameStates {
 				}
 			}
 			
-			return [...desc!.next!];
+			return desc!.next!; //[...desc!.next!];			
 		}
 
 		makeIds(states: (CardState|undefined)[]): StateId[] {
@@ -750,7 +750,7 @@ export namespace GameStates {
 			
 			this.latest = newFront;
 			this.record.push(newFront);
-						
+
 			const latestDescs = this.latest.map(x => this.stateBase.descriptors[x]!);
 			const pts = latestDescs.map(x => x.state.maxPoints());
 			const mp = pts.reduce((a,b) => Math.max(a,b), 0);
