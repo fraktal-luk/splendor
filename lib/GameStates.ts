@@ -476,7 +476,7 @@ export namespace GameStates {
 			return new CardState(this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS, this.tableCards_S); 
 		}
 		
-		buyUniversal(ind: number): CardState | undefined {
+		buyUniversal(ind: number): CardState|undefined {
 			const player = this.moves;
 				
 				  // TMP: limit columns to buy (performance "hack")
@@ -487,29 +487,61 @@ export namespace GameStates {
 			
 			if (newPlayerCards == undefined) return undefined;
 			
-			const newPlayerCardsArr = this.mpc.arr.with(player, newPlayerCards);
-			return new CardState(newPlayerCardsArr, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
+			const mpa = this.mpc.arr.with(player, newPlayerCards);
+			return new CardState(mpa, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
 
 
 			buyUniversal_ByRow(rowInd: number): (CardState|undefined)[] {
 				const player = this.moves;
 				
-				return [0,1,2,3].map(i => this.buyUniversal(4*rowInd + i));
+					// const res_N: (CardState|undefined)[] = [];
+
+					// const cards = this.tableCards_S.cards(rowInd);
+					// const tcs = this.tableCards_S.grabAt_ByRow(rowInd);
+
+				const res = [0,1,2,3].map(i => this.buyUniversal(4*rowInd + i));
+
+
+				// for (let colInd = 0; colInd < 4; colInd++) {
+				// 	const pc = this.mpc.arr[player]!.buyUniversal(cards[colInd]);
+
+				// 	if (pc == undefined) {
+				// 		res_N.push(undefined);
+				// 		continue;
+				// 	}
+
+				// 	const mpa = this.mpc.arr.with(player, pc!);
+				// 	const tc = tcs[colInd];
+				// 	res_N.push(new CardState(mpa, (player+1) % N_PLAYERS, tc!));
+
+				// 		if (res_N[colInd] == undefined && res[colInd] != undefined) throw new Error('blele');
+				// 		if (res_N[colInd] != undefined && res[colInd] == undefined) throw new Error('rlele');
+
+				// 		if (!(res_N[colInd]!.isSame(res[colInd]!))) throw new Error("heh");
+				// }
+
+
+
+				return res;
 			}
 
 
 
 		genNextBU(): (CardState|undefined)[] {			
-			let res0: (CardState|undefined)[] = [this.takeUniversal()];
 
-			const buys =	[0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i));
+			const buys = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i));
+
+			let res0: (CardState|undefined)[] = [this.takeUniversal()];
+			//	buys.push(this.takeUniversal());
+
 			const res = res0.concat(buys);
 
-			//const buys_N = [0,1,2].map(r => this.buyUniversal_ByRow(r)).flat();
-			//const res_N = res0.concat(buys_N);
 
-					//	if (buys_N.toString() != buys.toString()) throw new Error("differes");
+			// const buys_N = [0,1,2].map(r => this.buyUniversal_ByRow(r)).flat();
+			// const res_N = res0.concat(buys_N);
+
+			// 		//	if (buys_N.toString() != buys.toString()) throw new Error("differes");
 
 			return res;
 		}
@@ -655,7 +687,6 @@ export namespace GameStates {
 		}
 
 		genBatchFollowers(input: StateId[], trace: boolean = false): StateId[] {
-			//const arrArr = ;
 			const flatArr = input.map(x => this.getFollowers(x, trace)).flat();
 			const result = Array.from(new Set<StateId>(flatArr));
 			//if (true) result.sort((a,b) => this.getDesc(b).state.maxPoints() - this.getDesc(a).state.maxPoints());
