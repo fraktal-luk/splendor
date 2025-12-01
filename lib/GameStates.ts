@@ -342,6 +342,10 @@ export namespace GameStates {
 				return new TableCardsShort(nums);
 			}
 
+					cards(rowInd: number): Card[] {
+						return rowBase.descriptors[this.rows[rowInd]].state.cards;
+					}
+
 			cardAt(index: number): number {
 				if (index < 0 || index > 11) throw new Error("Wrong index");
 				
@@ -364,6 +368,14 @@ export namespace GameStates {
 				return new TableCardsShort(newRows);
 			}
 
+				grabAt_ByRow(rowInd: number): TableCardsShort[] {
+					//if (index < 0 || index > 11) throw new Error("Wrong index");
+
+					const resultRows = rowBase.getFollowers(rowInd, this.rows[rowInd]);
+					const newRowsA = resultRows.map(ri => this.rows.with(rowInd, ri));
+					return newRowsA.map(rr => new TableCardsShort(rr));
+				}
+
 	}
 
 
@@ -371,53 +383,53 @@ export namespace GameStates {
 
 
 
-	export class TableCards implements StateValue<TableCards> {
-		readonly stackNums: number[];
-		readonly spread: Card[]; // Cards seen on table
-		
-		constructor(sn: number[], sp: Card[]) {
-			this.stackNums = sn;
-			this.spread = sp;
-		}
-		
-		keyString(): string {			
-			return String.fromCharCode(...this.stackNums, ...this.spread); // 3 (nums) + 12 (cards) = 15
-		}
-
-		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
-
-		isSame(other: TableCards): boolean {			
-			return this.stackNums.toString() == other.stackNums.toString() && this.spread.toString() == other.spread.toString();
-		}
-
-		static fromKeyString(s: string): TableCards {
-			const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));
-			const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));
-			return new TableCards(nums, spread);
-		}
-
-		cardAt(index: number): number {
-				return this.spread[index];
-		}
-
-		grabAt(index: number): TableCards {
-			if (index < 0 || index > 11) throw new Error("Wrong index");
+		export class TableCards implements StateValue<TableCards> {
+			readonly stackNums: number[];
+			readonly spread: Card[]; // Cards seen on table
 			
-			const row = index >> 2;
-			const col = index & 3;
-			const stackSize = this.stackNums[row]!;
+			constructor(sn: number[], sp: Card[]) {
+				this.stackNums = sn;
+				this.spread = sp;
+			}
 			
-			const newCard = TABLE_STACKS[row]![stackSize-1]!;
-			const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
+			keyString(): string {			
+				return String.fromCharCode(...this.stackNums, ...this.spread); // 3 (nums) + 12 (cards) = 15
+			}
 
-			const newSpread = [...this.spread];
-			sortSpread(newSpread, index, newCard);
+			niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
 
-			return new TableCards(newStackNums, newSpread);
+			isSame(other: TableCards): boolean {			
+				return this.stackNums.toString() == other.stackNums.toString() && this.spread.toString() == other.spread.toString();
+			}
+
+			static fromKeyString(s: string): TableCards {
+				const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));
+				const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));
+				return new TableCards(nums, spread);
+			}
+
+			cardAt(index: number): number {
+					return this.spread[index];
+			}
+
+			grabAt(index: number): TableCards {
+				if (index < 0 || index > 11) throw new Error("Wrong index");
+				
+				const row = index >> 2;
+				const col = index & 3;
+				const stackSize = this.stackNums[row]!;
+				
+				const newCard = TABLE_STACKS[row]![stackSize-1]!;
+				const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
+
+				const newSpread = [...this.spread];
+				sortSpread(newSpread, index, newCard);
+
+				return new TableCards(newStackNums, newSpread);
+			}
+
 		}
-
-	}
-	
+		
 	const DEFAULT_TABLE_CARDS = new TableCards(INITIAL_STACK_SIZES, INITIAL_TABLE_NUMS.flat());
 
 
@@ -479,9 +491,26 @@ export namespace GameStates {
 			return new CardState(newPlayerCardsArr, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
 
+
+			buyUniversal_ByRow(rowInd: number): (CardState|undefined)[] {
+				const player = this.moves;
+				
+				return [0,1,2,3].map(i => this.buyUniversal(4*rowInd + i));
+			}
+
+
+
 		genNextBU(): (CardState|undefined)[] {			
-			let res: (CardState|undefined)[] = [this.takeUniversal()];
-			res = res.concat([0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i)));
+			let res0: (CardState|undefined)[] = [this.takeUniversal()];
+
+			const buys =	[0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i));
+			const res = res0.concat(buys);
+
+			//const buys_N = [0,1,2].map(r => this.buyUniversal_ByRow(r)).flat();
+			//const res_N = res0.concat(buys_N);
+
+					//	if (buys_N.toString() != buys.toString()) throw new Error("differes");
+
 			return res;
 		}
 
@@ -561,6 +590,12 @@ export namespace GameStates {
 		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
 		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
 		
+
+		getDesc(s: StateId) {
+			if (s >= this.descriptors.length) throw new Error("non existing StateID"); 
+			return this.descriptors[s];
+		}
+
 		addDescriptor(cs: CardState, ks: string): StateId {
 			const newId = this.descriptors.length;
 			this.descriptors.push(new StateDesc(newId, cs));
@@ -620,8 +655,11 @@ export namespace GameStates {
 		}
 
 		genBatchFollowers(input: StateId[], trace: boolean = false): StateId[] {
+			//const arrArr = ;
 			const flatArr = input.map(x => this.getFollowers(x, trace)).flat();
-			return Array.from(new Set<StateId>(flatArr));
+			const result = Array.from(new Set<StateId>(flatArr));
+			//if (true) result.sort((a,b) => this.getDesc(b).state.maxPoints() - this.getDesc(a).state.maxPoints());
+			return result;
 		}
 
 			// Used more memory and is not faster:
