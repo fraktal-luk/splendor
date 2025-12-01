@@ -623,7 +623,14 @@ export namespace GameStates {
 			const flatArr = input.map(x => this.getFollowers(x, trace)).flat();
 			return Array.from(new Set<StateId>(flatArr));
 		}
-		
+
+			// Used more memory and is not faster:
+			genBatchFollowers_N(input: StateId[], trace: boolean = false): StateId[] {
+				const theSet = new Set<StateId>();
+				const flatArr = input.forEach(x => this.getFollowers(x, trace).forEach(s => theSet.add(s) ) );
+				return Array.from(theSet);
+			}
+
 		showTable(): void {
 			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n');
 			console.log(str);
@@ -737,8 +744,9 @@ export namespace GameStates {
 		}
 
 		moveImpl(): void {
-			const newFront = this.stateBase.genBatchFollowers(this.latest);			
-			
+			const newFront = this.stateBase.genBatchFollowers(this.latest);
+											 //this.stateBase.genBatchFollowers_N(this.latest);
+
 			this.latest = newFront;
 			this.record.push(newFront);
 
@@ -757,7 +765,7 @@ export namespace GameStates {
 		}
 
 		sumUp(): void {
-			console.time('sum up');
+				console.time('stat');
 			
 			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
 			const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
@@ -787,20 +795,26 @@ export namespace GameStates {
 			console.log(`nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
 			console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 
+				console.timeEnd('stat');
+
+
+				console.time('follow');
 			let cnt = 0;
 			let doneFollowers = this.stateBase.descriptors.filter(x => x.TMP_isDone()).map(x => x.id);
 			
 			while (doneFollowers.length > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation
 				doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
+											  //this.stateBase.genBatchFollowers_N(doneFollowers, true);
 			}
-
+				console.timeEnd('follow');
 			console.log(`follows ${doneFollowers.length}`);
 
+				console.time('terminate');
 			this.stateBase.terminateDoneNodes();
 			
-			console.timeEnd('sum up');
+				console.timeEnd('terminate');
 			
-			console.log('\n');
+			//console.log('\n');
 			
 			if (this.stateBase.descriptors[0]!.category == 'falls') {
 				console.log(`Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
