@@ -579,11 +579,11 @@ export namespace GameStates {
 		category: NodeCategory = 'unknown';
 		rating: GameRating = 'U';
 		
-		TMP_isDone(): boolean {
+		isDone(): boolean {
 			return this.category == 'falls' || this.category == 'final';
 		}
 		
-		TMP_isFinal(): boolean {
+		isFinal(): boolean {
 			return this.category == 'final';
 		}
 		
@@ -605,7 +605,7 @@ export namespace GameStates {
 		}
 
 		rateFinal(): void {
-			if (!this.TMP_isFinal()) return;
+			if (!this.isFinal()) return;
 			
 			const pts0 = this.state.mpc.ofPlayer(0).points;
 			const pts1 = this.state.mpc.ofPlayer(1).points;
@@ -712,17 +712,17 @@ export namespace GameStates {
 		markAndRateFinals(): number {
 			this.descriptors.forEach(x => x.verifyFinal());
 			this.descriptors.forEach(x => x.rateFinal());
-			return this.descriptors.filter(x => x.TMP_isFinal()).length;
+			return this.descriptors.filter(x => x.isFinal()).length;
 		}
 
 		rateNonfinals(): number {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
-			return this.descriptors.filter(x => x.TMP_isDone()).length;
+			return this.descriptors.filter(x => x.isDone()).length;
 		}
 		
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
-			if (desc.TMP_isDone() || desc.TMP_isFinal() || desc.next == undefined) return;
+			if (desc.isDone() || desc.isFinal() || desc.next == undefined) return;
 				
 			const ratings = this.followersRatings(desc.id);
 			const has0 = ratings.includes('0');
@@ -754,7 +754,7 @@ export namespace GameStates {
 		}
 		
 		terminateDoneNodes(): void {
-			this.descriptors.forEach(x => { if (x.TMP_isDone()) x.next = []; });
+			this.descriptors.forEach(x => { if (x.isDone()) x.next = []; });
 		}
 
 	}
@@ -834,46 +834,60 @@ export namespace GameStates {
 		}
 
 		sumUp(): void {
-				console.time('stat');
-			
-			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
-			const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
+				console.time('stat0');
 
-			const nFinal = this.stateBase.markAndRateFinals();
-			const results = this.stateBase.descriptors.map(x => x.rating);
+					const nFinal = this.stateBase.markAndRateFinals();
 
-			const hmap = Map.groupBy(results, x => x);
-			const resultHist = hmap.values().toArray().map(x => x.length);
-			
+				if (false && true) {
+					const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
+					const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
+
+					const results = this.stateBase.descriptors.map(x => x.rating);
+
+					const hmap = Map.groupBy(results, x => x);
+					const resultHist = hmap.values().toArray().map(x => x.length);
+					
+					console.log(pointHist.toString());
+
+					console.log(`nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
+				}
+
+				console.timeEnd('stat0');
+
+
 			let nDone = 0;
 			let len = this.record.length;
 			
-			while (len-- > 0)
-				nDone = this.stateBase.rateNonfinals();
-			
-			const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
-			const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
-			const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
-			const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
+				console.time('stat1');
 
-			console.log(pointHist.toString());
-			//console.log(`nFinal: ${nFinal}`);			
-			//console.log(hmap.keys().toArray());
-			//console.log(resultHist.toString());
+			while (len-- > 0) nDone = this.stateBase.rateNonfinals();
+	
 
-			console.log(`nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
-			console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
+				console.timeEnd('stat1');
 
-				console.timeEnd('stat');
+				console.time('stat2');
+
+				if (true)
+				{
+					const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
+					const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
+					const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
+					const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
+
+
+					console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
+				}
+
+
+				console.timeEnd('stat2');
 
 
 				console.time('follow');
 			let cnt = 0;
-			let doneFollowers = this.stateBase.descriptors.filter(x => x.TMP_isDone()).map(x => x.id);
+			let doneFollowers = this.stateBase.descriptors.filter(x => x.isDone()).map(x => x.id);
 			
 			while (doneFollowers.length > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation
 				doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
-											  //this.stateBase.genBatchFollowers_N(doneFollowers, true);
 			}
 				console.timeEnd('follow');
 			console.log(`follows ${doneFollowers.length}`);
@@ -882,8 +896,6 @@ export namespace GameStates {
 			this.stateBase.terminateDoneNodes();
 			
 				console.timeEnd('terminate');
-			
-			//console.log('\n');
 			
 			if (this.stateBase.descriptors[0]!.category == 'falls') {
 				console.log(`Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
