@@ -13,6 +13,10 @@ import {cardStringList, CARD_SPECS, getCardPrice, getCardPoints, TokenVec, MAX_P
 from './searching_base.ts';
 
 
+				const fs = require('fs');
+
+
+
 // CAREFUL: inverted wrt tables in basic definitions
 const TABLE_STACKS: number[][] =
 [
@@ -225,7 +229,6 @@ export namespace GameStates {
 
 		takeCol(thisRow: number, index: number): Row {
 			const c = TABLE_STACKS[thisRow]![this.stackSize-1]!;
-
 			const newCards = this.cards.with(index, c);
 			newCards.sort((a,b) => a-b);
 
@@ -286,7 +289,7 @@ export namespace GameStates {
 				desc!.next = this.makeIds(desc.state.getNext(thisRow));
 			}
 			
-			return desc!.next!;// [...desc!.next!];
+			return desc!.next!;
 		}
 
 		makeIds(states: (Row|undefined)[]): RowId[] {
@@ -520,29 +523,15 @@ export namespace GameStates {
 
 				// 		if (!(res_N[colInd]!.isSame(res[colInd]!))) throw new Error("heh");
 				// }
-
-
-
 				return res;
 			}
 
 
 
 		genNextBU(): (CardState|undefined)[] {			
-
 			const buys = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i));
-
 			let res0: (CardState|undefined)[] = [this.takeUniversal()];
-			//	buys.push(this.takeUniversal());
-
 			const res = res0.concat(buys);
-
-
-			// const buys_N = [0,1,2].map(r => this.buyUniversal_ByRow(r)).flat();
-			// const res_N = res0.concat(buys_N);
-
-			// 		//	if (buys_N.toString() != buys.toString()) throw new Error("differes");
-
 			return res;
 		}
 
@@ -651,7 +640,12 @@ export namespace GameStates {
 				}
 			}
 			
-			return desc!.next!; //[...desc!.next!];
+					// if (!trace) {
+					// 	if (desc!.next!.toSorted((a,b) => a-b).at(0)! < state)
+					// 		console.log(` -----> ${state} -> ${desc!.next!}`);
+					// }
+
+			return desc!.next!;
 		}
 
 		makeIds(states: (CardState|undefined)[]): StateId[] {
@@ -687,7 +681,7 @@ export namespace GameStates {
 		}
 
 		genBatchFollowers(input: StateId[], trace: boolean = false): StateId[] {
-			const flatArr = input.map(x => this.getFollowers(x, trace)).flat();
+			const flatArr = input.map(x => this.getFollowers(x, trace)).flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
 			const result = Array.from(new Set<StateId>(flatArr));
 			//if (true) result.sort((a,b) => this.getDesc(b).state.maxPoints() - this.getDesc(a).state.maxPoints());
 			return result;
@@ -760,11 +754,39 @@ export namespace GameStates {
 	}
 
 
+		// Layer is a cut in time: states after move X
+		class Layer {
+			constructor(e: StateId[], w: StateId[]) {
+				this.explored = e;
+				this.waiting = w;
+			}
+
+			canonize(): void {
+				const eS = new Set(this.explored);
+				const wS = new Set(this.waiting);
+				//const uS = eS.union(wS);
+				this.explored = Array.from(eS);
+				this.waiting = Array.from(wS.difference(eS));
+			}
+
+			checkDisjoint(): void {
+				if (new Set(this.explored).union(new Set(this.waiting)).size > 0) throw new Error('quququqq!'); 
+			}
+
+			explored: StateId[]; // states that have been searched further
+			waiting: StateId[]; // states that haven't been explored
+		}
+
+
 	export class WavefrontC extends Wavefront {
+
+
+
 		stateBase = new StateBase();
 
 		latest: StateId[] = [0];
 		record: StateId[][] = [[0]];
+		layers: Layer[] = [new Layer([], [0])];
 		lastPts = -1;
 		
 		// Leave base, delete current state
@@ -774,6 +796,18 @@ export namespace GameStates {
 			this.record = [[0]];
 			this.lastPts = -1;
 		}
+
+			moveLayer(layerFrom: Layer, layerTo: Layer): void {
+				const succ = this.stateBase.genBatchFollowers(layerFrom.waiting);
+
+				//const nextLayerExp = layerTo.explored;
+
+				layerFrom.explored = layerFrom.explored.concat(layerFrom.waiting);
+				layerTo.waiting = layerTo.waiting.concat(succ);
+
+				layerFrom.canonize();
+				layerTo.canonize();
+			}
 
 
 		runStep(): void {
@@ -785,23 +819,27 @@ export namespace GameStates {
 			this.move();
 			this.move();
 
-
 			console.timeEnd('search');
 			
 			const movesNow = this.record.length-1; // +2
 
+					{
+						if (movesNow == 20) {
+								this.analyzeLatest();	
+
+
+						}
+					}
+
+
 			if (this.lastPts >= TMP_TH) console.log(`  Reached ${this.lastPts} points`);
-			else {
-				//console.log("  Not reached points");
-				return;
-			}
+			else return;
 			
 			// If points reached
 			this.sumUp();
 			this.clearSoft();
 			console.log('Rerun');
 			this.moveTimes(movesNow);
-			//console.log('Rerun done\n');
 			
 		}
 
@@ -813,8 +851,18 @@ export namespace GameStates {
 		}
 
 		moveImpl(): void {
+
+				const oldLayer = this.layers.at(-1)!;
+				const newLayer = new Layer([], []);
+
 			const newFront = this.stateBase.genBatchFollowers(this.latest);
-											 //this.stateBase.genBatchFollowers_N(this.latest);
+
+				oldLayer.explored = oldLayer.explored.concat(oldLayer.waiting);
+				newLayer.waiting = newLayer.waiting.concat(newLayer.waiting);
+
+				oldLayer.canonize();
+				newLayer.canonize();
+
 
 			this.latest = newFront;
 			this.record.push(newFront);
@@ -828,6 +876,8 @@ export namespace GameStates {
 			const nFinal = latestDescs.filter(x => x.category == 'final').length;
 			const nFalls = latestDescs.filter(x => x.category == 'falls').length;
 			const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
+
+				this.layers.push(newLayer);
 
 			console.log(`{${this.round},${this.playerTurn}}` +
 					` setsize ${this.latest.length} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
@@ -860,6 +910,7 @@ export namespace GameStates {
 			
 				console.time('stat1');
 
+			// Backtrack from final states
 			while (len-- > 0) nDone = this.stateBase.rateNonfinals();
 	
 
@@ -886,9 +937,13 @@ export namespace GameStates {
 			let cnt = 0;
 			let doneFollowers = this.stateBase.descriptors.filter(x => x.isDone()).map(x => x.id);
 			
-			while (doneFollowers.length > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation
-				doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
+			// Track each stage into final states -> not needed for core functionality
+			if (false) {
+				while (doneFollowers.length > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation
+					doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
+				}
 			}
+
 				console.timeEnd('follow');
 			console.log(`follows ${doneFollowers.length}`);
 
@@ -903,7 +958,58 @@ export namespace GameStates {
 
 
 		}
-		
+	
+
+
+		analyzeLatest(): void {
+			const arrA = this.record.at(-2)!;			
+			const arrB = this.record.at(-1)!;
+
+			const statesB = arrB.map(s => this.stateBase.getDesc(s).state);
+
+			const someIndex = 213;
+
+		  const stateId = arrA[someIndex];
+		  const followerIds = this.stateBase.genBatchFollowers([stateId]);
+
+		  console.log(`${someIndex} => ${stateId}`);
+		  console.log(`${followerIds}`);
+
+		  	const preds = this.stateBase.descriptors.filter(x => x.next != undefined && x.next!.includes(stateId)).map(d => d.id);
+		  console.log(`${preds}`)
+
+
+		  console.log(this.stateBase.getDesc(stateId).state.niceString());
+		  console.log('Followers');
+		  followerIds.forEach(
+		  	x => console.log(this.stateBase.getDesc(x).state.niceString())
+		  );
+		  console.log('Preds');
+		  preds.forEach(
+		  	x => console.log(this.stateBase.getDesc(x).state.niceString())
+		  );
+
+
+		  const groupR0 = Map.groupBy(statesB, st => st.tableCards_S.rows[0]);
+		  const groupR1 = Map.groupBy(statesB, st => st.tableCards_S.rows[1]);
+		  const groupR2 = Map.groupBy(statesB, st => st.tableCards_S.rows[2]);
+
+		  const groupP0 = Map.groupBy(statesB, st => st.mpc.ofPlayer(0).keyString());
+		  const groupP1 = Map.groupBy(statesB, st => st.mpc.ofPlayer(1).keyString());
+
+		  console.log(` ${groupR0.size}, ${groupR1.size}, ${groupR2.size},     ${groupP0.size}, ${groupP1.size}`);
+
+
+		  	const pointDiffs = this.stateBase.descriptors.map(d => d.state.mpc).map(m => m.ofPlayer(0).points - m.ofPlayer(1).points);
+		  	console.log(pointDiffs.length);
+
+
+		  	fs.writeFileSync('showdiffs.txt', pointDiffs.join('\n'));
+
+		  process.exit();
+		}
+
+
 	}
 
 }
