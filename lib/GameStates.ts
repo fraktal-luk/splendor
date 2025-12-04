@@ -568,7 +568,8 @@ export namespace GameStates {
 		id: StateId;
 		state: CardState;
 		next?: StateId[];
-		
+		prev: StateId[] = [];
+
 		category: NodeCategory = 'unknown';
 		rating: GameRating = 'U';
 		
@@ -608,6 +609,10 @@ export namespace GameStates {
 			else this.rating = 'D';
 		}
 
+		addPrev(state: StateId): void {
+			this.prev.push(state);
+		}
+
 	}
 
 
@@ -632,7 +637,7 @@ export namespace GameStates {
 		
 
 		getDesc(s: StateId) {
-			if (s >= this.descriptors.length) throw new Error("non existing StateID"); 
+			if (s >= this.descriptors.length) throw new Error(`non existing StateID #${s}, of ${this.descriptors.length}`); 
 			return this.descriptors[s];
 		}
 
@@ -723,6 +728,16 @@ export namespace GameStates {
 			return input.map(x => this.descriptors[x]!.state.keyString());
 		}
 		
+		setPrevs(): void {
+			//const descFunc = this.getDesc;
+
+			this.descriptors.forEach(desc => {
+				if (desc.next != undefined) desc.next.forEach(s => this.getDesc(s).addPrev(desc.id));
+			});
+
+			this.descriptors.forEach(desc => {desc.prev = Array.from(new Set<StateId>(desc.prev))});
+		}
+
 		markAndRateFinals(): number {
 			this.descriptors.forEach(x => x.verifyFinal());
 			this.descriptors.forEach(x => x.rateFinal());
@@ -732,6 +747,10 @@ export namespace GameStates {
 		rateNonfinals(): number {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
 			return this.descriptors.filter(x => x.isDone()).length;
+		}
+
+		rateNonfinalsOfStates(sl: StateList): void {			
+			sl.values().forEach(s => this.processNonfinalOfState(s));
 		}
 		
 		// backtrack from definite states
@@ -767,6 +786,11 @@ export namespace GameStates {
 
 		}
 		
+		processNonfinalOfState(s: StateId): void {
+			this.processNonfinal(this.getDesc(s));
+		}
+
+
 		terminateDoneNodes(): void {
 			this.descriptors.forEach(x => { if (x.isDone()) x.next = []; });
 		}
@@ -907,7 +931,10 @@ export namespace GameStates {
 		sumUp(): void {
 				console.time('stat0');
 
-					const nFinal = this.stateBase.markAndRateFinals();
+				const nFinal = this.stateBase.markAndRateFinals();
+
+				// This adds quite a lot of mem
+				//	this.stateBase.setPrevs();
 
 				if (false && true) {
 					const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
@@ -931,9 +958,22 @@ export namespace GameStates {
 			
 				console.time('stat1');
 
-			// Backtrack from final states
-			while (len-- > 0) nDone = this.stateBase.rateNonfinals();
-	
+				if (true) {
+					// Backtrack from final states
+					while (len-- > 0) {
+						nDone = this.stateBase.rateNonfinals();
+						console.log(nDone);
+					}
+				}
+				else { // TODO: this isnt correct yet
+					let iter = this.record.length-1; // 
+					while(iter >= 0) {
+						this.stateBase.rateNonfinalsOfStates(this.record[iter--]);
+				  	nDone = this.stateBase.descriptors.filter(x => x.isDone()).length;
+				  
+				  	console.log(nDone);
+				  }
+				}
 
 				console.timeEnd('stat1');
 
@@ -977,6 +1017,8 @@ export namespace GameStates {
 				console.log(`Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
 			}
 
+
+						//	process.exit();
 
 		}
 	
