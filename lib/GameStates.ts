@@ -531,6 +531,10 @@ export namespace GameStates {
 		genNextBU(): (CardState|undefined)[] {			
 			const buys = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i));
 			let res0: (CardState|undefined)[] = [this.takeUniversal()];
+
+				// TODO: remove undefined?
+				//			 remove nonoptimal takes?  
+
 			const res = res0.concat(buys);
 			return res;
 		}
@@ -607,6 +611,18 @@ export namespace GameStates {
 	}
 
 
+	type StateList = StateId[];
+
+	function makeStateList(arr: StateId[]): StateList {
+		return arr;
+	}
+
+	function getStateListSize(sl: StateList): number {
+		return sl.length;
+	}
+
+
+
 	class StateBase {
 		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
 		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
@@ -680,9 +696,10 @@ export namespace GameStates {
 			return this.getFollowerDescs(state).map(x => x.rating);
 		}
 
-		genBatchFollowers(input: StateId[], trace: boolean = false): StateId[] {
-			const flatArr = input.map(x => this.getFollowers(x, trace)).flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
-			const result = Array.from(new Set<StateId>(flatArr));
+		genBatchFollowers(input: StateList, trace: boolean = false): StateList {
+			const flatArr = input.values().map(x => this.getFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
+			const stateSet = new Set<StateId>(flatArr); 
+			const result = Array.from(stateSet);
 			//if (true) result.sort((a,b) => this.getDesc(b).state.maxPoints() - this.getDesc(a).state.maxPoints());
 			return result;
 		}
@@ -784,8 +801,8 @@ export namespace GameStates {
 
 		stateBase = new StateBase();
 
-		latest: StateId[] = [0];
-		record: StateId[][] = [[0]];
+		latest: StateList = makeStateList([0]);
+		record: StateList[] = [makeStateList([0])];
 		layers: Layer[] = [new Layer([], [0])];
 		lastPts = -1;
 		
@@ -797,17 +814,17 @@ export namespace GameStates {
 			this.lastPts = -1;
 		}
 
-			moveLayer(layerFrom: Layer, layerTo: Layer): void {
-				const succ = this.stateBase.genBatchFollowers(layerFrom.waiting);
+			// moveLayer(layerFrom: Layer, layerTo: Layer): void {
+			// 	const succ = this.stateBase.genBatchFollowers(layerFrom.waiting);
 
-				//const nextLayerExp = layerTo.explored;
+			// 	//const nextLayerExp = layerTo.explored;
 
-				layerFrom.explored = layerFrom.explored.concat(layerFrom.waiting);
-				layerTo.waiting = layerTo.waiting.concat(succ);
+			// 	layerFrom.explored = layerFrom.explored.concat(layerFrom.waiting);
+			// 	layerTo.waiting = layerTo.waiting.concat(succ);
 
-				layerFrom.canonize();
-				layerTo.canonize();
-			}
+			// 	layerFrom.canonize();
+			// 	layerTo.canonize();
+			// }
 
 
 		runStep(): void {
@@ -825,7 +842,7 @@ export namespace GameStates {
 
 					{
 						if (movesNow == 20) {
-								this.analyzeLatest();	
+								//this.analyzeLatest();	
 
 
 						}
@@ -852,16 +869,16 @@ export namespace GameStates {
 
 		moveImpl(): void {
 
-				const oldLayer = this.layers.at(-1)!;
-				const newLayer = new Layer([], []);
+				// const oldLayer = this.layers.at(-1)!;
+				// const newLayer = new Layer([], []);
 
 			const newFront = this.stateBase.genBatchFollowers(this.latest);
 
-				oldLayer.explored = oldLayer.explored.concat(oldLayer.waiting);
-				newLayer.waiting = newLayer.waiting.concat(newLayer.waiting);
+				// oldLayer.explored = oldLayer.explored.concat(oldLayer.waiting);
+				// newLayer.waiting = newLayer.waiting.concat(newLayer.waiting);
 
-				oldLayer.canonize();
-				newLayer.canonize();
+				// oldLayer.canonize();
+				// newLayer.canonize();
 
 
 			this.latest = newFront;
@@ -877,10 +894,11 @@ export namespace GameStates {
 			const nFalls = latestDescs.filter(x => x.category == 'falls').length;
 			const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
 
-				this.layers.push(newLayer);
+				//this.layers.push(newLayer);
 
 			console.log(`{${this.round},${this.playerTurn}}` +
-					` setsize ${this.latest.length} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
+					` setsize ${getStateListSize(this.latest)} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
+		
 		}
 
 		sumUp(): void {
@@ -935,17 +953,17 @@ export namespace GameStates {
 
 				console.time('follow');
 			let cnt = 0;
-			let doneFollowers = this.stateBase.descriptors.filter(x => x.isDone()).map(x => x.id);
+			let doneFollowers = makeStateList(this.stateBase.descriptors.filter(x => x.isDone()).map(x => x.id));
 			
 			// Track each stage into final states -> not needed for core functionality
 			if (false) {
-				while (doneFollowers.length > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation
+				while (getStateListSize(doneFollowers) > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation,
 					doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
 				}
 			}
 
 				console.timeEnd('follow');
-			console.log(`follows ${doneFollowers.length}`);
+			console.log(`follows ${getStateListSize(doneFollowers)}`);
 
 				console.time('terminate');
 			this.stateBase.terminateDoneNodes();
@@ -962,51 +980,51 @@ export namespace GameStates {
 
 
 		analyzeLatest(): void {
-			const arrA = this.record.at(-2)!;			
-			const arrB = this.record.at(-1)!;
+			// const listA = this.record.at(-2)!;			
+			// const listB = this.record.at(-1)!;
 
-			const statesB = arrB.map(s => this.stateBase.getDesc(s).state);
+			// const statesB = listB.values().map(s => this.stateBase.getDesc(s).state).toArray();
 
-			const someIndex = 213;
+			// const someIndex = 213;
 
-		  const stateId = arrA[someIndex];
-		  const followerIds = this.stateBase.genBatchFollowers([stateId]);
+		  // const stateId = listA[someIndex];
+		  // const followerIds = this.stateBase.genBatchFollowers([stateId]);
 
-		  console.log(`${someIndex} => ${stateId}`);
-		  console.log(`${followerIds}`);
+		  // console.log(`${someIndex} => ${stateId}`);
+		  // console.log(`${followerIds}`);
 
-		  	const preds = this.stateBase.descriptors.filter(x => x.next != undefined && x.next!.includes(stateId)).map(d => d.id);
-		  console.log(`${preds}`)
-
-
-		  console.log(this.stateBase.getDesc(stateId).state.niceString());
-		  console.log('Followers');
-		  followerIds.forEach(
-		  	x => console.log(this.stateBase.getDesc(x).state.niceString())
-		  );
-		  console.log('Preds');
-		  preds.forEach(
-		  	x => console.log(this.stateBase.getDesc(x).state.niceString())
-		  );
+		  // 	const preds = this.stateBase.descriptors.filter(x => x.next != undefined && x.next!.includes(stateId)).map(d => d.id);
+		  // console.log(`${preds}`)
 
 
-		  const groupR0 = Map.groupBy(statesB, st => st.tableCards_S.rows[0]);
-		  const groupR1 = Map.groupBy(statesB, st => st.tableCards_S.rows[1]);
-		  const groupR2 = Map.groupBy(statesB, st => st.tableCards_S.rows[2]);
-
-		  const groupP0 = Map.groupBy(statesB, st => st.mpc.ofPlayer(0).keyString());
-		  const groupP1 = Map.groupBy(statesB, st => st.mpc.ofPlayer(1).keyString());
-
-		  console.log(` ${groupR0.size}, ${groupR1.size}, ${groupR2.size},     ${groupP0.size}, ${groupP1.size}`);
-
-
-		  	const pointDiffs = this.stateBase.descriptors.map(d => d.state.mpc).map(m => m.ofPlayer(0).points - m.ofPlayer(1).points);
-		  	console.log(pointDiffs.length);
+		  // console.log(this.stateBase.getDesc(stateId).state.niceString());
+		  // console.log('Followers');
+		  // followerIds.forEach(
+		  // 	x => console.log(this.stateBase.getDesc(x).state.niceString())
+		  // );
+		  // console.log('Preds');
+		  // preds.forEach(
+		  // 	x => console.log(this.stateBase.getDesc(x).state.niceString())
+		  // );
 
 
-		  	fs.writeFileSync('showdiffs.txt', pointDiffs.join('\n'));
+		  // const groupR0 = Map.groupBy(statesB, st => st.tableCards_S.rows[0]);
+		  // const groupR1 = Map.groupBy(statesB, st => st.tableCards_S.rows[1]);
+		  // const groupR2 = Map.groupBy(statesB, st => st.tableCards_S.rows[2]);
 
-		  process.exit();
+		  // const groupP0 = Map.groupBy(statesB, st => st.mpc.ofPlayer(0).keyString());
+		  // const groupP1 = Map.groupBy(statesB, st => st.mpc.ofPlayer(1).keyString());
+
+		  // console.log(` ${groupR0.size}, ${groupR1.size}, ${groupR2.size},     ${groupP0.size}, ${groupP1.size}`);
+
+
+		  // 	const pointDiffs = this.stateBase.descriptors.map(d => d.state.mpc).map(m => m.ofPlayer(0).points - m.ofPlayer(1).points);
+		  // 	console.log(pointDiffs.length);
+
+
+		  // 	fs.writeFileSync('showdiffs.txt', pointDiffs.join('\n'));
+
+		  // process.exit();
 		}
 
 
