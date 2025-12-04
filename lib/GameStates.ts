@@ -611,14 +611,17 @@ export namespace GameStates {
 	}
 
 
-	type StateList = StateId[];
+	//type StateList = StateId[];
+	type StateList = Set<StateId>;
 
 	function makeStateList(arr: StateId[]): StateList {
-		return arr;
+		//return arr;
+		return new Set(arr);
 	}
 
 	function getStateListSize(sl: StateList): number {
-		return sl.length;
+		//return sl.length;
+		return sl.size;
 	}
 
 
@@ -699,7 +702,7 @@ export namespace GameStates {
 		genBatchFollowers(input: StateList, trace: boolean = false): StateList {
 			const flatArr = input.values().map(x => this.getFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
 			const stateSet = new Set<StateId>(flatArr); 
-			const result = Array.from(stateSet);
+			const result = stateSet;//Array.from(stateSet);
 			//if (true) result.sort((a,b) => this.getDesc(b).state.maxPoints() - this.getDesc(a).state.maxPoints());
 			return result;
 		}
@@ -809,8 +812,8 @@ export namespace GameStates {
 		// Leave base, delete current state
 		clearSoft(): void {
 			this.resetTurns();
-			this.latest = [0];
-			this.record = [[0]];
+			this.latest = makeStateList([0]);
+			this.record = [makeStateList([0])];
 			this.lastPts = -1;
 		}
 
@@ -884,7 +887,7 @@ export namespace GameStates {
 			this.latest = newFront;
 			this.record.push(newFront);
 
-			const latestDescs = this.latest.map(x => this.stateBase.descriptors[x]!);
+			const latestDescs = this.latest.values().map(x => this.stateBase.descriptors[x]!).toArray();
 			const pts = latestDescs.map(x => x.state.maxPoints());
 			const mp = pts.reduce((a,b) => Math.max(a,b), 0);
 
