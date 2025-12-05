@@ -709,6 +709,13 @@ export namespace GameStates {
 			const stateSet = new Set<StateId>(flatArr); 
 			const result = stateSet;//Array.from(stateSet);
 			//if (true) result.sort((a,b) => this.getDesc(b).state.maxPoints() - this.getDesc(a).state.maxPoints());
+
+					if (getStateListSize(input) == 75) {
+						console.log(Array.from(input));
+						console.log(Array.from(result));
+
+					}
+
 			return result;
 		}
 
@@ -755,6 +762,17 @@ export namespace GameStates {
 		
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
+
+					//if ([224, 225, 226, 227, 228, 229, 230].includes(desc.)) console.log(`  procesing ${desc.id}`);
+
+					//if (desc.next != undefined && desc.next!.includes(224) ) 
+					
+					const watched = [92, 229, 583];
+
+					if (watched.includes(desc.id) ) 
+							console.log(`         processing ${desc.id}, [${desc.next}] ${desc.category}`);
+
+
 			if (desc.isDone() || desc.isFinal() || desc.next == undefined) return;
 				
 			const ratings = this.followersRatings(desc.id);
@@ -762,6 +780,11 @@ export namespace GameStates {
 			const has1 = ratings.includes('1');
 			const hasU = ratings.includes('U');
 			const hasD = ratings.includes('D');
+
+
+					if (watched.includes(desc.id)) console.log(`   followers: ${ratings}`);
+
+
 
 			if (has0 || has1 || hasD) {
 				let rating = 'U' as GameRating;
@@ -958,7 +981,7 @@ export namespace GameStates {
 			
 				console.time('stat1');
 
-				if (true) {
+				if (    false) {
 					// Backtrack from final states
 					while (len-- > 0) {
 						nDone = this.stateBase.rateNonfinals();
@@ -1018,7 +1041,7 @@ export namespace GameStates {
 			}
 
 
-						//	process.exit();
+							//process.exit();
 
 		}
 	
