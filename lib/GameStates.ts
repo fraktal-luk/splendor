@@ -710,11 +710,13 @@ export namespace GameStates {
 			const result = stateSet;//Array.from(stateSet);
 			//if (true) result.sort((a,b) => this.getDesc(b).state.maxPoints() - this.getDesc(a).state.maxPoints());
 
-					if (getStateListSize(input) == 75) {
-						console.log(Array.from(input));
-						console.log(Array.from(result));
+					// if (getStateListSize(input) == 75) {
+					// 			process.exit();
 
-					}
+					// 	console.log(Array.from(input));
+					// 	console.log(Array.from(result));
+
+					// }
 
 			return result;
 		}
@@ -767,10 +769,11 @@ export namespace GameStates {
 
 					//if (desc.next != undefined && desc.next!.includes(224) ) 
 					
-					const watched = [92, 229, 583];
+					// const watched = [/*92, 229, 583, 1340, 2985, 6357, 13358,*/ 27119, 48422,53843,  93807,104243,   177611,195491,  114690,151878,   212345,280461,
+					// 											386145, 508553];
 
-					if (watched.includes(desc.id) ) 
-							console.log(`         processing ${desc.id}, [${desc.next}] ${desc.category}`);
+					// if (watched.includes(desc.id) ) 
+					// 		console.log(`		processing ${desc.id}, m(${desc.state.moves})  [${desc.next}] ${desc.category}`);
 
 
 			if (desc.isDone() || desc.isFinal() || desc.next == undefined) return;
@@ -782,7 +785,7 @@ export namespace GameStates {
 			const hasD = ratings.includes('D');
 
 
-					if (watched.includes(desc.id)) console.log(`   followers: ${ratings}`);
+					//if (watched.includes(desc.id)) console.log(`			followers: ${ratings}`);
 
 
 
@@ -981,16 +984,20 @@ export namespace GameStates {
 			
 				console.time('stat1');
 
-				if (    false) {
+				if (true) {
 					// Backtrack from final states
-					while (len-- > 0) {
-						nDone = this.stateBase.rateNonfinals();
-						console.log(nDone);
+					while (true) {
+						const newDone = this.stateBase.rateNonfinals();
+						console.log(newDone);
+
+						if (newDone == nDone) break;
+						nDone = newDone;
 					}
 				}
-				else { // TODO: this isnt correct yet
+				else { // This doesn't work because chains of dependence needed to rate same states can be longer than number of layers (go back and forth through layers)
 					let iter = this.record.length-1; // 
 					while(iter >= 0) {
+						//this.stateBase.rateNonfinalsOfStates(this.record[iter]);
 						this.stateBase.rateNonfinalsOfStates(this.record[iter--]);
 				  	nDone = this.stateBase.descriptors.filter(x => x.isDone()).length;
 				  
