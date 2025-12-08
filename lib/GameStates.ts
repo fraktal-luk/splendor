@@ -633,8 +633,36 @@ export namespace GameStates {
 
 	class StateBase {
 		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
+		prevSize = 0;
+		expand = true;
 		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
 		
+
+		moveNew(tmpLatest: StateList): void {
+			if (!this.expand) return;
+
+
+			const prevSize = this.prevSize;
+			this.prevSize = this.descriptors.length;
+
+			// for (let i = prevSize; i < this.descriptors.length; i++) {
+
+			// }
+			const latestFront = makeStateList(this.descriptors.slice(prevSize).map(x => x.id));
+
+				const nominalLatestFront = tmpLatest;
+
+					// const diffset = latestFront.difference(nominalLatestFront);
+					// if (diffset.size > 0) {
+					// 	console.log(`!!! Diffset: ${diffset.size}`)
+					// 	console.log(diffset.values().next());
+					// }
+
+			this.genBatchFollowers(latestFront);
+
+			//console.log(`  explore  ${prevSize} -> ${this.descriptors.length} `);
+		}
+
 
 		getDesc(s: StateId) {
 			if (s >= this.descriptors.length) throw new Error(`non existing StateID #${s}, of ${this.descriptors.length}`); 
@@ -661,8 +689,12 @@ export namespace GameStates {
 			else {
 				if (desc!.next == undefined) {
 					desc!.next = this.makeIds(desc.state.genNextBU());
+						  // const watched = [0, 1, 2, 3, 4, 5, 9, 24, 50, 88, 197, 507, 1179, 2572, 5538, 11773, 24057, 47749, 92611, 175978, 325205];
+						  // for (const w of watched)
+							// 	if (desc!.next!.includes(w)) {
+							// 		console.log(` source ${state}->${w}`);
+							// 	}
 				}
-				//else return [];
 			}
 
 			return desc!.next!;
@@ -835,37 +867,27 @@ export namespace GameStates {
 		}
 
 		moveImpl(): void {
-	//				const prevNum = this.stateBase.descriptors.length;
+				// generate new states in base
+				//this.stateBase.moveNew(this.latest);
 
+
+				// 
 			const newFront = this.stateBase.genBatchFollowers(this.latest);
-
-					// const currentNum = this.stateBase.descriptors.length;
-
-
-					// if (this.record.length >= N_PLAYERS) { // Find which states have happened in previous move (of the same player)
-					// 	const prevIndex = this.record.length - N_PLAYERS;
-					// 	const newFront_F = newFront.difference(this.record[prevIndex]);
-					// 		console.log(`   Reduce ${newFront.size}->${newFront_F.size}`);
-					// }
-
-					// 	console.log(`  increase: ${currentNum - prevNum}`);
-
 
 			this.latest = newFront;
 			this.record.push(newFront);
 
 				const latestDescs = this.latest.values().map(x => this.stateBase.descriptors[x]!).toArray();
 				const pts = latestDescs.map(x => x.state.maxPoints());
-				const mp = pts.reduce((a,b) => Math.max(a,b), 0);
-
-				this.lastPts = mp;
+										//this.stateBase.descriptors.map(x => x.state.maxPoints());
+				this.lastPts = pts.reduce((a,b) => Math.max(a,b), 0);
 				
 				const nFinal = latestDescs.filter(x => x.category == 'final').length;
 				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
 				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
 
 			console.log(`{${this.round},${this.playerTurn}}` +
-					` setsize ${getStateListSize(this.latest)} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
+					` setsize ${getStateListSize(this.latest)} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${this.lastPts}`);
 		
 		}
 
@@ -888,10 +910,22 @@ export namespace GameStates {
 			
 			// If points reached
 			this.sumUp();
-			this.clearSoft();
-			console.log('Rerun');
-			this.moveTimes(movesNow);
 			
+
+			{ // Rerun flow: back up to initial state and run again to omit HiddenStates
+			this.clearSoft();
+				console.log('Rerun');
+
+						//	const watched = [0, 1, 2, 3, 4, 5, 9, 24, 50, 88, 197, 507, 1179, 2572, 5538, 11773, 24057, 47749, 92611, 175978, 325205];
+
+						//	console.log(watched.map(w => this.stateBase.descriptors[w]));
+
+				this.stateBase.expand = false;
+
+				this.moveTimes(movesNow);
+				
+				this.stateBase.expand = true;
+			}
 		}
 
 
