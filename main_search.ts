@@ -10,18 +10,15 @@ import {
 import {GameStates} from './lib/GameStates.ts'
 
 
+let waveN = new GameStates.WavefrontC();
 
-let waveN = new GameStates.WavefrontT();
 
-
-console.log("Run for initial state: " + GameStates.INITIAL_STATE.tokenState.niceString() + '\n');
-// off to check state sorting
-if (true) {
-	console.time('1');
-	for (let i = 0; i < 11 ; i++) {
-		waveN.move();
-		console.log('\n');
-	}
-
-	console.timeEnd('1');
+console.time('total');
+for (let i = 0; i < 11 ; i++) {
+	waveN.runStep();
+	console.log('\n');
 }
+
+console.timeEnd('total');
+
+console.log(process.memoryUsage());

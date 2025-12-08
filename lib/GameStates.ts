@@ -13,6 +13,10 @@ import {cardStringList, CARD_SPECS, getCardPrice, getCardPoints, TokenVec, MAX_P
 from './searching_base.ts';
 
 
+				const fs = require('fs');
+
+
+
 // CAREFUL: inverted wrt tables in basic definitions
 const TABLE_STACKS: number[][] =
 [
@@ -53,58 +57,57 @@ const COLUMN_WALL = 2;
 const TMP_TH = 10;
 
 
-	function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
-	function decodeNum2(s: string): number { return s.charCodeAt(0); }
+function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
+function decodeNum2(s: string): number { return s.charCodeAt(0); }
 
-	function sortSpread(copied: number[], index: number, card: Card): void {
-		while (index < 11 && copied[index+1]! < card) {
-			copied[index] = copied[index+1]!;
-			index++;
-		}
-		
-		while (index > 0 && copied[index-1]! > card) {
-			copied[index] = copied[index-1]!;
-			index--;
-		}
-		
-		copied[index] = card;
+function sortSpread(copied: number[], index: number, card: Card): void {
+	while (index < 11 && copied[index+1]! < card) {
+		copied[index] = copied[index+1]!;
+		index++;
 	}
 
-	abstract class Wavefront {
-		readonly nPlayers = N_PLAYERS;
-		round = 0;     // Round that lasts until all players make move 
-		playerTurn = 0; // Player to move next
-		
-		resetTurns(): void {
-			this.round = 0;
+	while (index > 0 && copied[index-1]! > card) {
+		copied[index] = copied[index-1]!;
+		index--;
+	}
+
+	copied[index] = card;
+}
+
+abstract class Wavefront {
+	readonly nPlayers = N_PLAYERS;
+	round = 0;     // Round that lasts until all players make move 
+	playerTurn = 0; // Player to move next
+
+	resetTurns(): void {
+		this.round = 0;
+		this.playerTurn = 0;
+	}
+
+	move(): void {
+		this.moveImpl();
+		this.playerTurn++;
+		if (this.playerTurn == this.nPlayers) {
 			this.playerTurn = 0;
+			this.round++;
 		}
-		
-		move(): void {
-			this.moveImpl();
+	}
 
-			this.playerTurn++;
-			if (this.playerTurn == this.nPlayers) {
-				this.playerTurn = 0;
-				this.round++;
-			}
-		}
-		
-		abstract moveImpl(): void;
-	}
-	
-	interface StateValue<T> {
-		keyString(): string;
-		niceString(): string;
-		isSame(other: T): boolean;
-	}
+	abstract moveImpl(): void;
+}
+
+interface StateValue<T> {
+	keyString(): string;
+	niceString(): string;
+	isSame(other: T): boolean;
+}
+
 
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
 	export const MAX_TOKEN_STACKS = "444440";
-									"555550";
-									"777770";
-
+																	"555550";
+																	"777770";
 
 	export class PlayerCards implements StateValue<PlayerCards> {
 		readonly bonuses: TokenVec;
@@ -118,24 +121,21 @@ export namespace GameStates {
 		}
 		
 		keyString(): string { return encodeNum2(this.points) + this.bonuses.str; }
-		
 		niceString(): string { return `(${numStringD(this.points)})${this.bonuses.toLongString()} []`; }
-
 		isSame(other: PlayerCards): boolean { return this.bonuses.str == other.bonuses.str && this.points == other.points; /* TODO: reserved cards when become relevant*/ }
 
 		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s), []); }
 
-		// If if can afford, otherwise undef
+		// If can afford, otherwise undef
 		buyUniversal(c: Card): PlayerCards | undefined {
 			const ind = (c-1) % 5;
 			const deficit = this.bonuses.TMP_effPrice(c).sum();
 			const gold = parseInt(this.bonuses.str[5]!, 16);				
 			
-			if (deficit > gold) 
-				return undefined;
+			if (deficit > gold) return undefined;
 
 			const newBonuses = this.bonuses.incAt(ind).payGold(deficit);
-			const newPoints = this.points + POINT_TABLE[c]!;//getCardPoints(c);
+			const newPoints = this.points + POINT_TABLE[c]!;
 			return new PlayerCards(newBonuses, newPoints, this.reserved);
 		}
 		
@@ -146,7 +146,6 @@ export namespace GameStates {
 	}
 	
 	const DEFAULT_PLAYER_CARDS = new PlayerCards(new TokenVec("000000"), 0, []);
-
 
 	export class ManyPlayerCards implements StateValue<ManyPlayerCards> {
 		readonly arr: PlayerCards[];
@@ -176,15 +175,13 @@ export namespace GameStates {
 			const parts: string[] = [];
 			for (let i = 0; i < N_PLAYERS; i++) parts.push(s.substring(i*PLEN, i*PLEN + PLEN));
 			
-			const eights = parts;
-			const playerCards = eights.map(PlayerCards.fromKeyString);
+			const playerCards = parts.map(PlayerCards.fromKeyString);
 			return new ManyPlayerCards(playerCards);
 		}
 
 		playerKString(): string { return this.arr.map(x => x.keyString()).join(''); }
-
 		ofPlayer(player: number): PlayerCards { return this.arr[player]!; }
-		
+
 		buyUniversal(player: number, c: Card): ManyPlayerCards | undefined {
 			const thisPlayer = this.ofPlayer(player);
 			const thisPlayerNew = thisPlayer.buyUniversal(c);
@@ -199,79 +196,278 @@ export namespace GameStates {
 
 
 
-	export class TableCards implements StateValue<TableCards> {
-		readonly stackNums: number[];
-		readonly spread: Card[]; // Cards seen on table
-		
-		constructor(sn: number[], sp: Card[]) {
-			this.stackNums = sn;
-			this.spread = sp;
+	class Row implements StateValue<Row> {
+		readonly stackSize: number;
+		readonly cards: number[];
+
+		constructor(ss: number, cards: number[]) {
+			this.stackSize = ss;
+			this.cards = cards;
+		}
+
+		keyString(): string { 
+			return String.fromCharCode(this.stackSize, ...this.cards); // 5 chars
 		}
 		
-		keyString(): string {			
-			return String.fromCharCode(...this.stackNums, ...this.spread); // 3 (nums) + 12 (cards) + 1 ('0' to pad) = 16
-		}
+		niceString(): string { return `[${this.stackSize} ${this.cards}]`; }
 
-		niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
+		isSame(other: Row): boolean {
+			if (other.stackSize != this.stackSize) return false;
 
-		isSame(other: TableCards): boolean {			
-			return this.stackNums.toString() == other.stackNums.toString() && this.spread.toString() == other.spread.toString();
-		}
-
-		static fromKeyString(s: string): TableCards {
-			const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));
-			const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));//.map(c => c.charCodeAt(0));		
-			return new TableCards(nums, spread);
-		}
-
-		grabAt(index: number): TableCards {
-			if (index < 0 || index > 11) throw new Error("Wrong index");
-			
-			const row = index >> 2;
-			const col = index & 3;
-			const stackSize = this.stackNums[row]!;
-			
-			const newCard = TABLE_STACKS[row]![stackSize-1]!;
-			const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
-
-			const newSpread = [...this.spread];
-			sortSpread(newSpread, index, newCard);
-
-			return new TableCards(newStackNums, newSpread);
-		}
-
-			grab(c: Card): TableCards {
-				const index = this.spread.indexOf(c);
-				return this.grabAt(index);		
+			for (let i = 0; i < 4; i++) {
+				if (other.cards[i] != this.cards[i]) return false;
 			}
-		
+			return true;
+		}
+
+		static fromKeyString(s: string): Row {			
+			const ss = s.charCodeAt(0);
+			const cards = Array.from(s.substring(1), c => c.charCodeAt(0));
+			return new Row(ss, cards);
+		}
+
+
+		takeCol(thisRow: number, index: number): Row {
+			const c = TABLE_STACKS[thisRow]![this.stackSize-1]!;
+			const newCards = this.cards.with(index, c);
+			newCards.sort((a,b) => a-b);
+
+			return new Row(this.stackSize-1, newCards);
+		}
+
+		getNext(thisRow: number): Row[] {
+			const res = [0,1,2,3].map(i => this.takeCol(thisRow, i));
+			return res;
+		}
 	}
-	
+
+	const DUMMY_ROW = new Row(0, [0, 0, 0, 0]);
+	const INITIAL_ROW0 = new Row(INITIAL_STACK_SIZES[0], INITIAL_TABLE_NUMS[0]);
+	const INITIAL_ROW1 = new Row(INITIAL_STACK_SIZES[1], INITIAL_TABLE_NUMS[1]);
+	const INITIAL_ROW2 = new Row(INITIAL_STACK_SIZES[2], INITIAL_TABLE_NUMS[2]);
+
+
+
+	type RowId = number;
+
+
+	class RowDesc {
+		id: RowId;
+		state: Row;
+		next?: RowId[];
+
+		constructor(id: RowId, state: Row) {
+			this.id = id;
+			this.state = state;
+		}
+
+	}
+
+
+
+	class RowBase {
+		descriptors: RowDesc[] =  [new RowDesc(0, DUMMY_ROW), new RowDesc(1, INITIAL_ROW0), new RowDesc(2,INITIAL_ROW1), new RowDesc(2, INITIAL_ROW2)];
+		idMap: Map<string, RowId> = new Map<string, RowId>([[DUMMY_ROW.keyString(), 0],
+																												[INITIAL_ROW0.keyString(), 1],
+																												[INITIAL_ROW1.keyString(), 2],
+																												[INITIAL_ROW2.keyString(), 3],
+																											]);
+		
+		addDescriptor(rs: Row, ks: string): StateId {
+			const newId = this.descriptors.length;
+			this.descriptors.push(new RowDesc(newId, rs));
+			this.idMap.set(ks, newId);
+			return newId;
+		}
+		
+		// Trace mode: don't calculate if not already known 
+		getFollowers(thisRow: number, state: RowId): RowId[] {
+			const desc = this.descriptors[state];
+			if (desc == undefined) throw new Error("State not existing");
+
+			if (desc!.next == undefined) {
+				desc!.next = this.makeIds(desc.state.getNext(thisRow));
+			}
+			
+			return desc!.next!;
+		}
+
+		makeIds(states: (Row|undefined)[]): RowId[] {
+			const nextIds: RowId[] = [];
+			
+			// Find the states, if not existent then add
+			for (const [i, s] of states.entries()) {					
+				if (s == undefined) continue;
+				
+				// Find s in base...
+				const keyStr = s.keyString();
+				const theId = this.idMap.get(keyStr);
+				
+				if (theId != undefined) {
+					nextIds.push(theId);
+				}
+				else {
+					const newId = this.addDescriptor(s, keyStr);
+					nextIds.push(newId)	
+				}
+			}
+			
+			return nextIds;
+		}
+
+	}
+
+
+	const rowBase = new RowBase();
+
+
+	export class TableCardsShort implements StateValue<TableCardsShort> {
+			rows: RowId[];
+
+			constructor(r: number[]) {
+				this.rows = r;
+			}
+
+			// TODO: should be shortened (remove padding) but fromKeyString in dependents must be modified accordingly
+			keyString(): string {
+				return String.fromCharCode(...this.rows) + "............"; // pad to 15
+			}
+
+
+			niceString(): string { return `${this.rows}`; }
+
+			isSame(other: TableCardsShort): boolean {			
+				return this.rows[0] == other.rows[0] && this.rows[1] == other.rows[1] && this.rows[2] == other.rows[2];
+			}
+
+			static fromKeyString(s: string): TableCardsShort {
+				const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));
+				return new TableCardsShort(nums);
+			}
+
+					cards(rowInd: number): Card[] {
+						return rowBase.descriptors[this.rows[rowInd]].state.cards;
+					}
+
+			cardAt(index: number): number {
+				if (index < 0 || index > 11) throw new Error("Wrong index");
+				
+				const row = index >> 2;
+				const col = index & 3;
+				
+				const rows = this.rows;
+				return rowBase.descriptors[rows[row]].state.cards[col];
+			}
+
+			grabAt(index: number): TableCardsShort {
+				if (index < 0 || index > 11) throw new Error("Wrong index");
+				
+				const row = index >> 2;
+				const col = index & 3;
+
+				const resultRows = rowBase.getFollowers(row, this.rows[row]);
+				const newRows = this.rows.with(row, resultRows[col]);
+
+				return new TableCardsShort(newRows);
+			}
+
+				grabAt_ByRow(rowInd: number): TableCardsShort[] {
+					//if (index < 0 || index > 11) throw new Error("Wrong index");
+
+					const resultRows = rowBase.getFollowers(rowInd, this.rows[rowInd]);
+					const newRowsA = resultRows.map(ri => this.rows.with(rowInd, ri));
+					return newRowsA.map(rr => new TableCardsShort(rr));
+				}
+
+	}
+
+
+	const DEFAULT_TABLE_CARDS_SHORT = new TableCardsShort([1, 2, 3]);
+
+
+
+		export class TableCards implements StateValue<TableCards> {
+			readonly stackNums: number[];
+			readonly spread: Card[]; // Cards seen on table
+			
+			constructor(sn: number[], sp: Card[]) {
+				this.stackNums = sn;
+				this.spread = sp;
+			}
+			
+			keyString(): string {			
+				return String.fromCharCode(...this.stackNums, ...this.spread); // 3 (nums) + 12 (cards) = 15
+			}
+
+			niceString(): string { return `${this.stackNums} [` + this.spread.map(cardStringD).join(',') + ']'; }
+
+			isSame(other: TableCards): boolean {			
+				return this.stackNums.toString() == other.stackNums.toString() && this.spread.toString() == other.spread.toString();
+			}
+
+			static fromKeyString(s: string): TableCards {
+				const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));
+				const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));
+				return new TableCards(nums, spread);
+			}
+
+			cardAt(index: number): number {
+					return this.spread[index];
+			}
+
+			grabAt(index: number): TableCards {
+				if (index < 0 || index > 11) throw new Error("Wrong index");
+				
+				const row = index >> 2;
+				const col = index & 3;
+				const stackSize = this.stackNums[row]!;
+				
+				const newCard = TABLE_STACKS[row]![stackSize-1]!;
+				const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
+
+				const newSpread = [...this.spread];
+				sortSpread(newSpread, index, newCard);
+
+				return new TableCards(newStackNums, newSpread);
+			}
+
+		}
+		
 	const DEFAULT_TABLE_CARDS = new TableCards(INITIAL_STACK_SIZES, INITIAL_TABLE_NUMS.flat());
 
+
+		function CONV_TC(tcs: TableCardsShort): TableCards {
+			const ss = [rowBase.descriptors[tcs.rows[0]].state.stackSize, rowBase.descriptors[tcs.rows[1]].state.stackSize, rowBase.descriptors[tcs.rows[2]].state.stackSize,];
+			const sp = [...rowBase.descriptors[tcs.rows[0]].state.cards, ...rowBase.descriptors[tcs.rows[1]].state.cards, ...rowBase.descriptors[tcs.rows[2]].state.cards,];
+
+			return new TableCards(ss, sp);
+		}
+
+
+
 	export class CardState implements StateValue<CardState> {
-		readonly tableCards: TableCards;
+		readonly tableCards_S: TableCardsShort;
 		readonly mpc: ManyPlayerCards;
 		readonly moves: number; 
 		
-		constructor(t: TableCards, p: PlayerCards[], moves: number) {
-			this.tableCards = t;
+		constructor(p: PlayerCards[], moves: number, ts: TableCardsShort) {
+			this.tableCards_S = ts;
 			this.mpc = new ManyPlayerCards(p);
 			this.moves = moves;
 		}
 		
-		keyString(): string { return this.tableCards.keyString() + String.fromCharCode(this.moves) + this.mpc.keyString(); }
-		niceString(): string { return this.tableCards.niceString() + '    ' + this.mpc.niceString(); }
+		keyString(): string { return this.tableCards_S.keyString() + String.fromCharCode(this.moves) + this.mpc.keyString(); }
+		niceString(): string { return CONV_TC(this.tableCards_S).niceString() + '    ' + this.mpc.niceString(); }
 
-		isSame(other: CardState): boolean {			
-			if (!this.tableCards.isSame(other.tableCards)) return false;
+		isSame(other: CardState): boolean {
+			if (!this.tableCards_S.isSame(other.tableCards_S)) return false;
 			return this.mpc.isSame(other.mpc);
 		}
 
 		static fromKeyString(s: string): CardState {
-			const tableCards = TableCards.fromKeyString(s.slice(0,16)); // TODO: verify size
+			const tableCards_S = TableCardsShort.fromKeyString(s.slice(0,16)); // TODO: verify size
 			const playerCards = ManyPlayerCards.fromKeyString(s.substring(16)).arr;
-			return new CardState(tableCards, playerCards, s.charCodeAt(15));
+			return new CardState(playerCards, s.charCodeAt(15), tableCards_S);
 		}
 
 		playerKString(): string { return this.mpc.playerKString(); }
@@ -280,28 +476,66 @@ export namespace GameStates {
 
 		takeUniversal(): CardState {
 			const player = this.moves;
-			return new CardState(this.tableCards, this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS); 
+			return new CardState(this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS, this.tableCards_S); 
 		}
 		
-		buyUniversal(ind: number): CardState | undefined {
+		buyUniversal(ind: number): CardState|undefined {
 			const player = this.moves;
 				
-				// TMP: limit columns to buy (performance "hack")
-				if ((ind % 4) >= COLUMN_WALL) return undefined;
-				
-			const c = this.tableCards.spread[ind]!;
-			const newPlayerCardsArr = [...this.mpc.arr];
-			const newPlayerCards = newPlayerCardsArr[player]!.buyUniversal(c);
+				  // TMP: limit columns to buy (performance "hack")
+				  if ((ind % 4) >= COLUMN_WALL) return undefined;
+
+			const c = this.tableCards_S.cardAt(ind);
+			const newPlayerCards = this.mpc.arr[player]!.buyUniversal(c);
 			
 			if (newPlayerCards == undefined) return undefined;
 			
-			newPlayerCardsArr[player]! = newPlayerCards!;
-			return new CardState(this.tableCards.grabAt(ind), newPlayerCardsArr, (player+1) % N_PLAYERS);
+			const mpa = this.mpc.arr.with(player, newPlayerCards);
+			return new CardState(mpa, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
 
+
+			buyUniversal_ByRow(rowInd: number): (CardState|undefined)[] {
+				const player = this.moves;
+				
+					// const res_N: (CardState|undefined)[] = [];
+
+					// const cards = this.tableCards_S.cards(rowInd);
+					// const tcs = this.tableCards_S.grabAt_ByRow(rowInd);
+
+				const res = [0,1,2,3].map(i => this.buyUniversal(4*rowInd + i));
+
+
+				// for (let colInd = 0; colInd < 4; colInd++) {
+				// 	const pc = this.mpc.arr[player]!.buyUniversal(cards[colInd]);
+
+				// 	if (pc == undefined) {
+				// 		res_N.push(undefined);
+				// 		continue;
+				// 	}
+
+				// 	const mpa = this.mpc.arr.with(player, pc!);
+				// 	const tc = tcs[colInd];
+				// 	res_N.push(new CardState(mpa, (player+1) % N_PLAYERS, tc!));
+
+				// 		if (res_N[colInd] == undefined && res[colInd] != undefined) throw new Error('blele');
+				// 		if (res_N[colInd] != undefined && res[colInd] == undefined) throw new Error('rlele');
+
+				// 		if (!(res_N[colInd]!.isSame(res[colInd]!))) throw new Error("heh");
+				// }
+				return res;
+			}
+
+
+
 		genNextBU(): (CardState|undefined)[] {			
-			let res: (CardState|undefined)[] = [this.takeUniversal()];
-			res = res.concat( this.tableCards.spread.keys().toArray().map(i => this.buyUniversal(i)));
+			const buys = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i));
+			let res0: (CardState|undefined)[] = [this.takeUniversal()];
+
+				// TODO: remove undefined?
+				//			 remove nonoptimal takes?  
+
+			const res = res0.concat(buys);
 			return res;
 		}
 
@@ -312,11 +546,10 @@ export namespace GameStates {
 	}
 
 
-
 	export const DEFAULT_CARDS = new CardState(
-										DEFAULT_TABLE_CARDS, 
 										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS),
-										0
+										0,
+											DEFAULT_TABLE_CARDS_SHORT
 										);
 
 
@@ -325,30 +558,26 @@ export namespace GameStates {
 	type StateId = number;
 
 	type NodeCategory = 'unknown'
-				   | 'final'  // end the game
-				   | 'falls'; // leads to known final state (result determined)
+				   	  | 'final'  // end the game
+				   	  | 'falls'; // leads to known final state (result determined)
 	type GameRating = 'U' | '0' | '1' | 'D';
-
 
 
 
 	class StateDesc {
 		id: StateId;
-		//seq: string = "";
-		state: CardState;// = DEFAULT_CARDS;
-		next?: StateId[]; //
-		
+		state: CardState;
+		next?: StateId[];
+		prev: StateId[] = [];
+
 		category: NodeCategory = 'unknown';
-			//isFinal: boolean = false; // This state ends the game
-			//isDone: boolean = false;  // This state has been fully analyzed
 		rating: GameRating = 'U';
-		//isTraced: boolean = false;
 		
-		TMP_isDone(): boolean {
+		isDone(): boolean {
 			return this.category == 'falls' || this.category == 'final';
 		}
 		
-		TMP_isFinal(): boolean {
+		isFinal(): boolean {
 			return this.category == 'final';
 		}
 		
@@ -357,24 +586,20 @@ export namespace GameStates {
 			this.state = state;
 		}
 		
-		
 		verifyFinal(): void {
-			if (//this.isDone || 
-				this.state.moves != 0) return;
+			if (this.state.moves != 0) return;
 
 			const pts0 = this.state.mpc.ofPlayer(0).points;
 			const pts1 = this.state.mpc.ofPlayer(1).points;
 			
 			if (pts0 >= TMP_TH || pts1 >= TMP_TH) {
 				this.next = [];
-				//this.isFinal = true;
 				this.category = 'final';
 			}
 		}
 
 		rateFinal(): void {
-			if (//this.isDone || 
-				!this.TMP_isFinal()) return;
+			if (!this.isFinal()) return;
 			
 			const pts0 = this.state.mpc.ofPlayer(0).points;
 			const pts1 = this.state.mpc.ofPlayer(1).points;
@@ -382,17 +607,40 @@ export namespace GameStates {
 			if (pts0 > pts1) this.rating = '0';
 			else if (pts0 < pts1) this.rating = '1';
 			else this.rating = 'D';
-			
-			//this.isDone = true;
+		}
+
+		addPrev(state: StateId): void {
+			this.prev.push(state);
 		}
 
 	}
+
+
+	//type StateList = StateId[];
+	type StateList = Set<StateId>;
+
+	function makeStateList(arr: StateId[]): StateList {
+		//return arr;
+		return new Set(arr);
+	}
+
+	function getStateListSize(sl: StateList): number {
+		//return sl.length;
+		return sl.size;
+	}
+
 
 
 	class StateBase {
 		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
 		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
 		
+
+		getDesc(s: StateId) {
+			if (s >= this.descriptors.length) throw new Error(`non existing StateID #${s}, of ${this.descriptors.length}`); 
+			return this.descriptors[s];
+		}
+
 		addDescriptor(cs: CardState, ks: string): StateId {
 			const newId = this.descriptors.length;
 			this.descriptors.push(new StateDesc(newId, cs));
@@ -400,25 +648,24 @@ export namespace GameStates {
 			return newId;
 		}
 		
-		// Trace mode: don't calculate if not already known and don't skip when isDone 
+		// Trace mode: don't calculate if not already known 
 		getFollowers(state: StateId, trace: boolean = false): StateId[] {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
 
 			if (trace) {
-				//desc!.isTraced = true;		
 				if (desc!.next == undefined) {
 					return [];				
 				}
 			}
-
-			if (!trace) {				
+			else {
 				if (desc!.next == undefined) {
 					desc!.next = this.makeIds(desc.state.genNextBU());
 				}
+				//else return [];
 			}
-			
-			return [...desc!.next!];
+
+			return desc!.next!;
 		}
 
 		makeIds(states: (CardState|undefined)[]): StateId[] {
@@ -453,13 +700,23 @@ export namespace GameStates {
 			return this.getFollowerDescs(state).map(x => x.rating);
 		}
 
-		genBatchFollowers(input: StateId[], trace: boolean = false): StateId[] {
-			const flatArr = input.map(x => this.getFollowers(x, trace)).flat();
-			return Array.from(new Set<StateId>(flatArr));
+		genBatchFollowers(input: StateList, trace: boolean = false): StateList {
+			const flatArr = input.values().map(x => this.getFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
+			const stateSet = new Set<StateId>(flatArr); 
+			const result = stateSet;
+
+			return result;
 		}
-		
+
+			// Used more memory and is not faster:
+			genBatchFollowers_N(input: StateId[], trace: boolean = false): StateId[] {
+				const theSet = new Set<StateId>();
+				const flatArr = input.forEach(x => this.getFollowers(x, trace).forEach(s => theSet.add(s) ) );
+				return Array.from(theSet);
+			}
+
 		showTable(): void {
-			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n')
+			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n');
 			console.log(str);
 		}
 		
@@ -467,21 +724,33 @@ export namespace GameStates {
 			return input.map(x => this.descriptors[x]!.state.keyString());
 		}
 		
+		setPrevs(): void {
+			this.descriptors.forEach(desc => {
+				if (desc.next != undefined) desc.next.forEach(s => this.getDesc(s).addPrev(desc.id));
+			});
+
+			this.descriptors.forEach(desc => {desc.prev = Array.from(new Set<StateId>(desc.prev))});
+		}
+
 		markAndRateFinals(): number {
 			this.descriptors.forEach(x => x.verifyFinal());
 			this.descriptors.forEach(x => x.rateFinal());
-			return this.descriptors.filter(x => x.TMP_isFinal()).length;
+			return this.descriptors.filter(x => x.isFinal()).length;
 		}
 
 		rateNonfinals(): number {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
-			return this.descriptors.filter(x => x.TMP_isDone()).length;
+			return this.descriptors.filter(x => x.isDone()).length;
+		}
+
+		rateNonfinalsOfStates(sl: StateList): void {			
+			sl.values().forEach(s => this.processNonfinalOfState(s));
 		}
 		
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
-			if (desc.TMP_isDone() || 
-				desc.TMP_isFinal() || desc.next == undefined) return;
+
+			if (desc.isDone() || desc.isFinal() || desc.next == undefined) return;
 				
 			const ratings = this.followersRatings(desc.id);
 			const has0 = ratings.includes('0');
@@ -507,153 +776,281 @@ export namespace GameStates {
 				}
 				
 				desc.rating = rating;
-				if (rating != 'U') {
-					//desc.isDone = true;
-					desc.category = 'falls';
-				}
+				if (rating != 'U') desc.category = 'falls';
 			}
 
 		}
 		
+		processNonfinalOfState(s: StateId): void {
+			this.processNonfinal(this.getDesc(s));
+		}
+
 		terminateDoneNodes(): void {
-			this.descriptors.forEach(x => { if (x.TMP_isDone()) x.next = []; });
+			this.descriptors.forEach(x => { if (x.isDone()) x.next = []; });
 		}
 
 	}
 
 
+		// Layer is a cut in time: states after move X
+		class Layer {
+			constructor(e: StateId[], w: StateId[]) {
+				this.explored = e;
+				this.waiting = w;
+			}
+
+			canonize(): void {
+				const eS = new Set(this.explored);
+				const wS = new Set(this.waiting);
+				//const uS = eS.union(wS);
+				this.explored = Array.from(eS);
+				this.waiting = Array.from(wS.difference(eS));
+			}
+
+			checkDisjoint(): void {
+				if (new Set(this.explored).union(new Set(this.waiting)).size > 0) throw new Error('quququqq!'); 
+			}
+
+			explored: StateId[]; // states that have been searched further
+			waiting: StateId[]; // states that haven't been explored
+		}
+
+
 	export class WavefrontC extends Wavefront {
+
+
 		stateBase = new StateBase();
 
-		latest: StateId[] = [0];
-		record: StateId[][] = [[0]];
-		
+		latest: StateList = makeStateList([0]);
+		record: StateList[] = [makeStateList([0])];
+		layers: Layer[] = [new Layer([], [0])];
 		lastPts = -1;
 		
 		// Leave base, delete current state
 		clearSoft(): void {
 			this.resetTurns();
-			
-			this.latest = [0];
-			this.record = [[0]];
-			
+			this.latest = makeStateList([0]);
+			this.record = [makeStateList([0])];
 			this.lastPts = -1;
 		}
 
+		moveImpl(): void {
+	//				const prevNum = this.stateBase.descriptors.length;
+
+			const newFront = this.stateBase.genBatchFollowers(this.latest);
+
+					// const currentNum = this.stateBase.descriptors.length;
+
+
+					// if (this.record.length >= N_PLAYERS) { // Find which states have happened in previous move (of the same player)
+					// 	const prevIndex = this.record.length - N_PLAYERS;
+					// 	const newFront_F = newFront.difference(this.record[prevIndex]);
+					// 		console.log(`   Reduce ${newFront.size}->${newFront_F.size}`);
+					// }
+
+					// 	console.log(`  increase: ${currentNum - prevNum}`);
+
+
+			this.latest = newFront;
+			this.record.push(newFront);
+
+				const latestDescs = this.latest.values().map(x => this.stateBase.descriptors[x]!).toArray();
+				const pts = latestDescs.map(x => x.state.maxPoints());
+				const mp = pts.reduce((a,b) => Math.max(a,b), 0);
+
+				this.lastPts = mp;
+				
+				const nFinal = latestDescs.filter(x => x.category == 'final').length;
+				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
+				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
+
+			console.log(`{${this.round},${this.playerTurn}}` +
+					` setsize ${getStateListSize(this.latest)} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
+		
+		}
 
 		runStep(): void {
-			
-			console.time('step');
+			console.time('search');
 			
 			const movesBefore = this.record.length-1;
 			
+			// 2 moves
 			this.move();
 			this.move();
+
+			console.timeEnd('search');
 			
 			const movesNow = this.record.length-1; // +2
-			
+
+
 			if (this.lastPts >= TMP_TH) console.log(`  Reached ${this.lastPts} points`);
-			else {
-				console.log("  Not reached points");
-				return;
-			}
+			else return;
 			
 			// If points reached
-			
 			this.sumUp();
 			this.clearSoft();
 			console.log('Rerun');
 			this.moveTimes(movesNow);
-			console.log('Rerun done\n');
 			
-			console.timeEnd('step');
 		}
 
 
 		moveTimes(n: number): void {
 			console.time('moves');
-
 			for (let i = 0; i < n; i++) this.move();
-
 			console.timeEnd('moves');
 		}
 
-		moveImpl(): void {
-			const newFront = this.stateBase.genBatchFollowers(this.latest);			
-			
-			this.latest = newFront;
-			this.record.push(newFront);
-						
-			
-			const latestDescs = this.latest.map(x => this.stateBase.descriptors[x]!);
-
-				const pts = latestDescs.map(x => x.state.maxPoints());
-				const mp = pts.reduce((a,b) => Math.max(a,b), 0);
-				
-			this.lastPts = mp;
-			
-				const nFinal = latestDescs.filter(x => x.category == 'final').length;
-				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
-				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
-				
-				console.log(`{${this.round},${this.playerTurn}}` +
-						` setsize ${this.latest.length} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${mp}`);
-		}
 
 		sumUp(): void {
-			console.time('sum up');
-			
-			const descs = this.stateBase.descriptors;
-			
-			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
-			const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
-			console.log(pointHist.toString());
+				console.time('stat0');
 
-			const nFinal = this.stateBase.markAndRateFinals();
-			console.log(`nFinal: ${nFinal}`);
+				const nFinal = this.stateBase.markAndRateFinals();
 
-			const results = this.stateBase.descriptors.map(x => x.rating);
-			const hmap = Map.groupBy(results, x => x);
-			const resultHist = hmap.values().toArray().map(x => x.length);
-			console.log(hmap.keys().toArray());
-			console.log(resultHist.toString());
-			
-			
+				// This adds quite a lot of mem
+				//	this.stateBase.setPrevs();
+
+				if (false && true) {
+					const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
+					const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
+
+					const results = this.stateBase.descriptors.map(x => x.rating);
+
+					const hmap = Map.groupBy(results, x => x);
+					const resultHist = hmap.values().toArray().map(x => x.length);
+					
+					console.log(pointHist.toString());
+
+					console.log(`nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
+				}
+
+				console.timeEnd('stat0');
+
+
 			let nDone = 0;
 			let len = this.record.length;
 			
-			while (len-- > 0)
-				nDone = this.stateBase.rateNonfinals();
-			
-			const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
-			const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
-			const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
-			const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
-			console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
-		
-			
-			const doneIds = this.stateBase.descriptors.filter(x => x.TMP_isDone()).map(x => x.id);
-			let doneFollowers = doneIds;
-			
-			let cnt = 0;
-			
-			while (doneFollowers.length > 0 && cnt++ < 30) {
-				doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
-			}
-			console.log(`follows ${doneFollowers.length}`);
+				console.time('stat1');
 
+				if (true) {
+					// Backtrack from final states
+					while (true) {
+						const newDone = this.stateBase.rateNonfinals();
+						console.log(newDone);
+
+						if (newDone == nDone) break;
+						nDone = newDone;
+					}
+				}
+				else { // This doesn't work because chains of dependence needed to rate same states can be longer than number of layers (go back and forth through layers)
+					let iter = this.record.length-1; // 
+					while(iter >= 0) {
+						//this.stateBase.rateNonfinalsOfStates(this.record[iter]);
+						this.stateBase.rateNonfinalsOfStates(this.record[iter--]);
+				  	nDone = this.stateBase.descriptors.filter(x => x.isDone()).length;
+				  
+				  	console.log(nDone);
+				  }
+				}
+
+				console.timeEnd('stat1');
+
+				console.time('stat2');
+
+				if (true)
+				{
+					const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
+					const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
+					const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
+					const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
+
+
+					console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
+				}
+
+
+				console.timeEnd('stat2');
+
+
+				console.time('follow');
+			let cnt = 0;
+			let doneFollowers = makeStateList(this.stateBase.descriptors.filter(x => x.isDone()).map(x => x.id));
+			
+			// Track each stage into final states -> not needed for core functionality
+			if (false) {
+				while (getStateListSize(doneFollowers) > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation,
+					doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
+				}
+			}
+
+				console.timeEnd('follow');
+			console.log(`follows ${getStateListSize(doneFollowers)}`);
+
+				console.time('terminate');
 			this.stateBase.terminateDoneNodes();
 			
-			console.timeEnd('sum up');
+				console.timeEnd('terminate');
 			
-			console.log('\n');
-			
-				if (this.stateBase.descriptors[0]!.category == 'falls') {
-					console.log("Discovered solution!");
-					console.log(this.stateBase.descriptors[0]!);
-				}
+			if (this.stateBase.descriptors[0]!.category == 'falls') {
+				console.log(`Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
+			}
+
+
+							//process.exit();
+
 		}
-		
+	
+
+
+		analyzeLatest(): void {
+			// const listA = this.record.at(-2)!;			
+			// const listB = this.record.at(-1)!;
+
+			// const statesB = listB.values().map(s => this.stateBase.getDesc(s).state).toArray();
+
+			// const someIndex = 213;
+
+		  // const stateId = listA[someIndex];
+		  // const followerIds = this.stateBase.genBatchFollowers([stateId]);
+
+		  // console.log(`${someIndex} => ${stateId}`);
+		  // console.log(`${followerIds}`);
+
+		  // 	const preds = this.stateBase.descriptors.filter(x => x.next != undefined && x.next!.includes(stateId)).map(d => d.id);
+		  // console.log(`${preds}`)
+
+
+		  // console.log(this.stateBase.getDesc(stateId).state.niceString());
+		  // console.log('Followers');
+		  // followerIds.forEach(
+		  // 	x => console.log(this.stateBase.getDesc(x).state.niceString())
+		  // );
+		  // console.log('Preds');
+		  // preds.forEach(
+		  // 	x => console.log(this.stateBase.getDesc(x).state.niceString())
+		  // );
+
+
+		  // const groupR0 = Map.groupBy(statesB, st => st.tableCards_S.rows[0]);
+		  // const groupR1 = Map.groupBy(statesB, st => st.tableCards_S.rows[1]);
+		  // const groupR2 = Map.groupBy(statesB, st => st.tableCards_S.rows[2]);
+
+		  // const groupP0 = Map.groupBy(statesB, st => st.mpc.ofPlayer(0).keyString());
+		  // const groupP1 = Map.groupBy(statesB, st => st.mpc.ofPlayer(1).keyString());
+
+		  // console.log(` ${groupR0.size}, ${groupR1.size}, ${groupR2.size},     ${groupP0.size}, ${groupP1.size}`);
+
+
+		  // 	const pointDiffs = this.stateBase.descriptors.map(d => d.state.mpc).map(m => m.ofPlayer(0).points - m.ofPlayer(1).points);
+		  // 	console.log(pointDiffs.length);
+
+
+		  // 	fs.writeFileSync('showdiffs.txt', pointDiffs.join('\n'));
+
+		  // process.exit();
+		}
+
+
 	}
 
 }
