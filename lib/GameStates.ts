@@ -641,26 +641,10 @@ export namespace GameStates {
 		moveNew(tmpLatest: StateList): void {
 			if (!this.expand) return;
 
-
 			const prevSize = this.prevSize;
 			this.prevSize = this.descriptors.length;
-
-			// for (let i = prevSize; i < this.descriptors.length; i++) {
-
-			// }
 			const latestFront = makeStateList(this.descriptors.slice(prevSize).map(x => x.id));
-
-				const nominalLatestFront = tmpLatest;
-
-					// const diffset = latestFront.difference(nominalLatestFront);
-					// if (diffset.size > 0) {
-					// 	console.log(`!!! Diffset: ${diffset.size}`)
-					// 	console.log(diffset.values().next());
-					// }
-
 			this.genBatchFollowers(latestFront);
-
-			//console.log(`  explore  ${prevSize} -> ${this.descriptors.length} `);
 		}
 
 
@@ -689,11 +673,6 @@ export namespace GameStates {
 			else {
 				if (desc!.next == undefined) {
 					desc!.next = this.makeIds(desc.state.genNextBU());
-						  // const watched = [0, 1, 2, 3, 4, 5, 9, 24, 50, 88, 197, 507, 1179, 2572, 5538, 11773, 24057, 47749, 92611, 175978, 325205];
-						  // for (const w of watched)
-							// 	if (desc!.next!.includes(w)) {
-							// 		console.log(` source ${state}->${w}`);
-							// 	}
 				}
 			}
 
@@ -746,6 +725,13 @@ export namespace GameStates {
 				const flatArr = input.forEach(x => this.getFollowers(x, trace).forEach(s => theSet.add(s) ) );
 				return Array.from(theSet);
 			}
+
+
+		// states that are meant to grow - their followers are not known yet
+		getTips(): StateList {
+			return makeStateList(this.descriptors.filter(d => d.next == undefined).map(d => d.id));
+		}
+
 
 		showTable(): void {
 			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n');
@@ -870,16 +856,17 @@ export namespace GameStates {
 				// generate new states in base
 				//this.stateBase.moveNew(this.latest);
 
-
 				// 
-			const newFront = this.stateBase.genBatchFollowers(this.latest);
+			//const newFront = 
+					this.stateBase.genBatchFollowers(this.latest);
+
+			const newFront = this.stateBase.getTips();
 
 			this.latest = newFront;
 			this.record.push(newFront);
 
 				const latestDescs = this.latest.values().map(x => this.stateBase.descriptors[x]!).toArray();
 				const pts = latestDescs.map(x => x.state.maxPoints());
-										//this.stateBase.descriptors.map(x => x.state.maxPoints());
 				this.lastPts = pts.reduce((a,b) => Math.max(a,b), 0);
 				
 				const nFinal = latestDescs.filter(x => x.category == 'final').length;
@@ -912,8 +899,9 @@ export namespace GameStates {
 			this.sumUp();
 			
 
+			if (false)
 			{ // Rerun flow: back up to initial state and run again to omit HiddenStates
-			this.clearSoft();
+				this.clearSoft();
 				console.log('Rerun');
 
 						//	const watched = [0, 1, 2, 3, 4, 5, 9, 24, 50, 88, 197, 507, 1179, 2572, 5538, 11773, 24057, 47749, 92611, 175978, 325205];
