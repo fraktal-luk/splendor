@@ -732,6 +732,9 @@ export namespace GameStates {
 			return makeStateList(this.descriptors.filter(d => d.next == undefined).map(d => d.id));
 		}
 
+		getTipsAtLest(min: number): StateList {
+			return makeStateList(this.descriptors.filter(d => d.next == undefined && d.state.maxPoints() >= min).map(d => d.id));
+		}
 
 		showTable(): void {
 			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n');
@@ -807,6 +810,31 @@ export namespace GameStates {
 			this.descriptors.forEach(x => { if (x.isDone()) x.next = []; });
 		}
 
+		pointHist(states: StateList): number {
+		 	const maxPointValues = states.values().toArray().map(s => this.getDesc(s)).map(d => d.state.maxPoints());
+
+		 		const grouped = Map.groupBy(this.descriptors, d => d.state.maxPoints);
+
+		 	const mpGroups = Map.groupBy(maxPointValues, x => x);
+		 	const mpSorted = mpGroups.entries().toArray().map(arr => [arr[0], arr[1].length]).sort((a,b) => a[0]-b[0]);
+		 	console.log((mpSorted));
+
+		 	//const sum = mpSorted.map(a=>a[1]).reduce((a,b) => a+b);
+
+		 	const accum = mpSorted.map(a => a[1]);
+		 	let sum = 0;
+		 	for (let i = 0; i < accum.length; i++) {
+		 		sum += accum[i];
+		 		accum[i] = sum;
+		 	}
+
+		 	const thr = sum/2;
+		 	const start = accum.findIndex(x => x > thr);
+		 			console.log(`${accum}, threshold ${thr}, [${mpSorted[start]}]`);
+
+		 	return mpSorted[start][0];
+		}
+
 	}
 
 
@@ -874,6 +902,11 @@ export namespace GameStates {
 			console.log(`{${this.round},${this.playerTurn}}` +
 					` setsize ${getStateListSize(this.latest)} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${this.lastPts}`);
 		
+			const minInterestingPoints = this.stateBase.pointHist(this.latest);
+
+				//const newFrontUpdated = this.stateBase.getTipsAtLest(minInterestingPoints);
+
+				//this.latest = newFrontUpdated;
 		}
 
 		runStep(): void {
