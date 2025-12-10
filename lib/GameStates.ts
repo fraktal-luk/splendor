@@ -811,13 +811,19 @@ export namespace GameStates {
 		}
 
 		pointHist(states: StateList): number {
+			const groupMap = Map.groupBy(this.descriptors, d => d.category + '_' + d.state.maxPoints().toString(36));
+			const histMap = new Map(groupMap.entries().map(a => [a[0], a[1].length]));
+
+				//console.log(histMap.entries().toArray().sort());
+
+
 		 	const maxPointValues = states.values().toArray().map(s => this.getDesc(s)).map(d => d.state.maxPoints());
 
-		 		const grouped = Map.groupBy(this.descriptors, d => d.state.maxPoints);
+		 		const grouped = Map.groupBy(this.descriptors, d => d.state.maxPoints());
 
 		 	const mpGroups = Map.groupBy(maxPointValues, x => x);
 		 	const mpSorted = mpGroups.entries().toArray().map(arr => [arr[0], arr[1].length]).sort((a,b) => a[0]-b[0]);
-		 	console.log((mpSorted));
+		 		//console.log((mpSorted));
 
 		 	//const sum = mpSorted.map(a=>a[1]).reduce((a,b) => a+b);
 
@@ -828,9 +834,9 @@ export namespace GameStates {
 		 		accum[i] = sum;
 		 	}
 
-		 	const thr = sum/2;
-		 	const start = accum.findIndex(x => x > thr);
-		 			console.log(`${accum}, threshold ${thr}, [${mpSorted[start]}]`);
+		 	const thr = 0.2 * sum; //sum/2;
+		 	const start = accum.findIndex(x => x >= thr);
+		 			//console.log(`${accum}, threshold ${thr}, [${mpSorted[start]}]`);
 
 		 	return mpSorted[start][0];
 		}
@@ -891,7 +897,7 @@ export namespace GameStates {
 			this.latest = newFront;
 			this.record.push(newFront);
 
-				const latestDescs = this.latest.values().map(x => this.stateBase.descriptors[x]!).toArray();
+				const latestDescs = this.stateBase.descriptors;//this.latest.values().map(x => this.stateBase.descriptors[x]!).toArray();
 				const pts = latestDescs.map(x => x.state.maxPoints());
 				this.lastPts = pts.reduce((a,b) => Math.max(a,b), 0);
 				
@@ -899,14 +905,13 @@ export namespace GameStates {
 				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
 				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
 
-			console.log(`{${this.round},${this.playerTurn}}` +
-					` setsize ${getStateListSize(this.latest)} (${nFinal}, ${nFalls}, ${nUnknown}), all: ${this.stateBase.descriptors.length}, maxPoints = ${this.lastPts}`);
+			console.log(`  {${this.round},${this.playerTurn}}` +
+					`   setsize ${getStateListSize(this.latest)}, all: ${this.stateBase.descriptors.length}, (${nFinal}, ${nFalls}, ${nUnknown}) // maxPoints = ${this.lastPts}`);
 		
+
 			const minInterestingPoints = this.stateBase.pointHist(this.latest);
-
-				//const newFrontUpdated = this.stateBase.getTipsAtLest(minInterestingPoints);
-
-				//this.latest = newFrontUpdated;
+				const newFrontUpdated = this.stateBase.getTipsAtLest(minInterestingPoints);
+				this.latest = newFrontUpdated;
 		}
 
 		runStep(): void {
@@ -942,17 +947,17 @@ export namespace GameStates {
 			//	this.stateBase.setPrevs();
 
 			if (true) {
-				const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
-				const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
+				//const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
+				//const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
 
 				const results = this.stateBase.descriptors.map(x => x.rating);
 
 				const hmap = Map.groupBy(results, x => x);
 				const resultHist = hmap.values().toArray().map(x => x.length);
 				
-				console.log(pointHist.toString());
+				//console.log(pointHist.toString());
 
-				console.log(`nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
+				console.log(`   nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
 			}
 
 				console.timeEnd('stat0');
@@ -965,11 +970,12 @@ export namespace GameStates {
 			// Backtrack from final states
 			while (true) {
 				const newDone = this.stateBase.rateNonfinals();
-				console.log(newDone);
+				//console.log(newDone);
 
 				if (newDone == nDone) break;
 				nDone = newDone;
 			}
+
 				console.timeEnd('stat1');
 
 				console.time('stat2');
@@ -979,22 +985,23 @@ export namespace GameStates {
 				const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
 				const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
 				const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
-				console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
+				console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 			}
 				console.timeEnd('stat2');
 
-				console.time('follow');
-			let doneFollowers = makeStateList(this.stateBase.descriptors.filter(x => x.isDone()).map(x => x.id));
-				console.timeEnd('follow');
+			//	console.time('follow');
+			//let doneFollowers = makeStateList(this.stateBase.descriptors.filter(x => x.isDone()).map(x => x.id));
+			//	console.timeEnd('follow');
 
-			console.log(`follows ${getStateListSize(doneFollowers)}`);
+			//console.log(`follows ${getStateListSize(doneFollowers)}`);
 
 				console.time('terminate');
 			this.stateBase.terminateDoneNodes();	
 				console.timeEnd('terminate');
 			
 			if (this.stateBase.descriptors[0]!.category == 'falls') {
-				console.log(`Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
+				console.log(`  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
+				//process.exit();
 			}
 
 
