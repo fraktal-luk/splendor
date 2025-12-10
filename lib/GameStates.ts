@@ -856,9 +856,7 @@ export namespace GameStates {
 				// generate new states in base
 				//this.stateBase.moveNew(this.latest);
 
-				// 
-			//const newFront = 
-					this.stateBase.genBatchFollowers(this.latest);
+			this.stateBase.genBatchFollowers(this.latest);
 
 			const newFront = this.stateBase.getTips();
 
@@ -880,40 +878,18 @@ export namespace GameStates {
 
 		runStep(): void {
 			console.time('search');
-			
-			const movesBefore = this.record.length-1;
-			
+						
 			// 2 moves
 			this.move();
 			this.move();
 
 			console.timeEnd('search');
 			
-			const movesNow = this.record.length-1; // +2
-
-
 			if (this.lastPts >= TMP_TH) console.log(`  Reached ${this.lastPts} points`);
 			else return;
 			
 			// If points reached
 			this.sumUp();
-			
-
-			if (false)
-			{ // Rerun flow: back up to initial state and run again to omit HiddenStates
-				this.clearSoft();
-				console.log('Rerun');
-
-						//	const watched = [0, 1, 2, 3, 4, 5, 9, 24, 50, 88, 197, 507, 1179, 2572, 5538, 11773, 24057, 47749, 92611, 175978, 325205];
-
-						//	console.log(watched.map(w => this.stateBase.descriptors[w]));
-
-				this.stateBase.expand = false;
-
-				this.moveTimes(movesNow);
-				
-				this.stateBase.expand = true;
-			}
 		}
 
 
@@ -927,24 +903,24 @@ export namespace GameStates {
 		sumUp(): void {
 				console.time('stat0');
 
-				const nFinal = this.stateBase.markAndRateFinals();
+			const nFinal = this.stateBase.markAndRateFinals();
 
-				// This adds quite a lot of mem
-				//	this.stateBase.setPrevs();
+			// This adds quite a lot of mem
+			//	this.stateBase.setPrevs();
 
-				if (false && true) {
-					const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
-					const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
+			if (true) {
+				const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
+				const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
 
-					const results = this.stateBase.descriptors.map(x => x.rating);
+				const results = this.stateBase.descriptors.map(x => x.rating);
 
-					const hmap = Map.groupBy(results, x => x);
-					const resultHist = hmap.values().toArray().map(x => x.length);
-					
-					console.log(pointHist.toString());
+				const hmap = Map.groupBy(results, x => x);
+				const resultHist = hmap.values().toArray().map(x => x.length);
+				
+				console.log(pointHist.toString());
 
-					console.log(`nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
-				}
+				console.log(`nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
+			}
 
 				console.timeEnd('stat0');
 
@@ -953,64 +929,35 @@ export namespace GameStates {
 			let len = this.record.length;
 			
 				console.time('stat1');
+			// Backtrack from final states
+			while (true) {
+				const newDone = this.stateBase.rateNonfinals();
+				console.log(newDone);
 
-				if (true) {
-					// Backtrack from final states
-					while (true) {
-						const newDone = this.stateBase.rateNonfinals();
-						console.log(newDone);
-
-						if (newDone == nDone) break;
-						nDone = newDone;
-					}
-				}
-				else { // This doesn't work because chains of dependence needed to rate same states can be longer than number of layers (go back and forth through layers)
-					let iter = this.record.length-1; // 
-					while(iter >= 0) {
-						//this.stateBase.rateNonfinalsOfStates(this.record[iter]);
-						this.stateBase.rateNonfinalsOfStates(this.record[iter--]);
-				  	nDone = this.stateBase.descriptors.filter(x => x.isDone()).length;
-				  
-				  	console.log(nDone);
-				  }
-				}
-
+				if (newDone == nDone) break;
+				nDone = newDone;
+			}
 				console.timeEnd('stat1');
 
 				console.time('stat2');
-
-				if (true)
-				{
-					const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
-					const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
-					const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
-					const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
-
-
-					console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
-				}
-
-
+			if (true)
+			{
+				const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
+				const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
+				const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
+				const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
+				console.log(`nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
+			}
 				console.timeEnd('stat2');
 
-
 				console.time('follow');
-			let cnt = 0;
 			let doneFollowers = makeStateList(this.stateBase.descriptors.filter(x => x.isDone()).map(x => x.id));
-			
-			// Track each stage into final states -> not needed for core functionality
-			if (false) {
-				while (getStateListSize(doneFollowers) > 0 && cnt++ < 30) {  // TODO: cnt is for loop safety, maybe could prevent some computation,
-					doneFollowers = this.stateBase.genBatchFollowers(doneFollowers, true);
-				}
-			}
-
 				console.timeEnd('follow');
+
 			console.log(`follows ${getStateListSize(doneFollowers)}`);
 
 				console.time('terminate');
-			this.stateBase.terminateDoneNodes();
-			
+			this.stateBase.terminateDoneNodes();	
 				console.timeEnd('terminate');
 			
 			if (this.stateBase.descriptors[0]!.category == 'falls') {

@@ -16,7 +16,6 @@ let waveN = new GameStates.WavefrontC();
 console.time('total');
 for (let i = 0; i < 11 ; i++) {
 	waveN.runStep();
-	console.log('\n');
 }
 
 console.timeEnd('total');
