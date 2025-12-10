@@ -457,7 +457,7 @@ export namespace GameStates {
 		}
 		
 		keyString(): string { return this.tableCards_S.keyString() + String.fromCharCode(this.moves) + this.mpc.keyString(); }
-		niceString(): string { return CONV_TC(this.tableCards_S).niceString() + '    ' + this.mpc.niceString(); }
+		niceString(): string { return CONV_TC(this.tableCards_S).niceString() + '  @' + this.moves + '  ' + this.mpc.niceString(); }
 
 		isSame(other: CardState): boolean {
 			if (!this.tableCards_S.isSame(other.tableCards_S)) return false;
@@ -834,7 +834,7 @@ export namespace GameStates {
 		 		accum[i] = sum;
 		 	}
 
-		 	const thr = 0.2 * sum; //sum/2;
+		 	const thr = 0.25 /*0.25*/ * sum; //sum/2;
 		 	const start = accum.findIndex(x => x >= thr);
 		 			//console.log(`${accum}, threshold ${thr}, [${mpSorted[start]}]`);
 
@@ -878,6 +878,8 @@ export namespace GameStates {
 		layers: Layer[] = [new Layer([], [0])];
 		lastPts = -1;
 		
+		finished: boolean = false;
+
 		// Leave base, delete current state
 		clearSoft(): void {
 			this.resetTurns();
@@ -905,8 +907,10 @@ export namespace GameStates {
 				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
 				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
 
+				const nAll = this.stateBase.descriptors.length;
+
 			console.log(`  {${this.round},${this.playerTurn}}` +
-					`   setsize ${getStateListSize(this.latest)}, all: ${this.stateBase.descriptors.length}, (${nFinal}, ${nFalls}, ${nUnknown}) // maxPoints = ${this.lastPts}`);
+					`   setsize ${getStateListSize(this.latest)}, all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${this.lastPts}`);
 		
 
 			const minInterestingPoints = this.stateBase.pointHist(this.latest);
@@ -915,6 +919,9 @@ export namespace GameStates {
 		}
 
 		runStep(): void {
+				if (this.finished) return;
+
+
 			console.time('search');
 						
 			// 2 moves
@@ -1001,7 +1008,7 @@ export namespace GameStates {
 			
 			if (this.stateBase.descriptors[0]!.category == 'falls') {
 				console.log(`  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
-				//process.exit();
+				this.finished = true;
 			}
 
 
