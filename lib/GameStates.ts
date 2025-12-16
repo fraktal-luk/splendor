@@ -76,21 +76,21 @@ function sortSpread(copied: number[], index: number, card: Card): void {
 
 abstract class Wavefront {
 	readonly nPlayers = N_PLAYERS;
-	round = 0;     // Round that lasts until all players make move 
-	playerTurn = 0; // Player to move next
+	//round = 0;     // Round that lasts until all players make move 
+	//playerTurn = 0; // Player to move next
 
-	resetTurns(): void {
-		this.round = 0;
-		this.playerTurn = 0;
-	}
+	// resetTurns(): void {
+	// 	this.round = 0;
+	// 	this.playerTurn = 0;
+	// }
 
 	move(): void {
 		this.moveImpl();
-		this.playerTurn++;
-		if (this.playerTurn == this.nPlayers) {
-			this.playerTurn = 0;
-			this.round++;
-		}
+		// this.playerTurn++;
+		// if (this.playerTurn == this.nPlayers) {
+		// 	this.playerTurn = 0;
+		// 	this.round++;
+		// }
 	}
 
 	abstract moveImpl(): void;
@@ -745,13 +745,13 @@ export namespace GameStates {
 			return input.map(x => this.descriptors[x]!.state.keyString());
 		}
 		
-		setPrevs(): void {
-			this.descriptors.forEach(desc => {
-				if (desc.next != undefined) desc.next.forEach(s => this.getDesc(s).addPrev(desc.id));
-			});
+		// setPrevs(): void {
+		// 	this.descriptors.forEach(desc => {
+		// 		if (desc.next != undefined) desc.next.forEach(s => this.getDesc(s).addPrev(desc.id));
+		// 	});
 
-			this.descriptors.forEach(desc => {desc.prev = Array.from(new Set<StateId>(desc.prev))});
-		}
+		// 	this.descriptors.forEach(desc => {desc.prev = Array.from(new Set<StateId>(desc.prev))});
+		// }
 
 		markAndRateFinals(): number {
 			this.descriptors.forEach(x => x.verifyFinal());
@@ -881,12 +881,12 @@ export namespace GameStates {
 		finished: boolean = false;
 
 		// Leave base, delete current state
-		clearSoft(): void {
-			this.resetTurns();
-			this.latest = makeStateList([0]);
-			this.record = [makeStateList([0])];
-			this.lastPts = -1;
-		}
+		// clearSoft(): void {
+		// 	//this.resetTurns();
+		// 	this.latest = makeStateList([0]);
+		// 	this.record = [makeStateList([0])];
+		// 	this.lastPts = -1;
+		// }
 
 		moveImpl(): void {
 				// generate new states in base
@@ -909,7 +909,7 @@ export namespace GameStates {
 
 				const nAll = this.stateBase.descriptors.length;
 
-			console.log(`  {${this.round},${this.playerTurn}}` +
+			console.log(
 					`   setsize ${getStateListSize(this.latest)}, all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${this.lastPts}`);
 		
 
@@ -925,8 +925,9 @@ export namespace GameStates {
 			console.time('search');
 						
 			// 2 moves
-			this.move();
-			this.move();
+			//this.move();
+			//this.move();
+				this.moveImpl();
 
 			console.timeEnd('search');
 			
@@ -938,11 +939,11 @@ export namespace GameStates {
 		}
 
 
-		moveTimes(n: number): void {
-			console.time('moves');
-			for (let i = 0; i < n; i++) this.move();
-			console.timeEnd('moves');
-		}
+		// moveTimes(n: number): void {
+		// 	console.time('moves');
+		// 	for (let i = 0; i < n; i++) this.move();
+		// 	console.timeEnd('moves');
+		// }
 
 
 		sumUp(): void {
@@ -950,20 +951,12 @@ export namespace GameStates {
 
 			const nFinal = this.stateBase.markAndRateFinals();
 
-			// This adds quite a lot of mem
-			//	this.stateBase.setPrevs();
-
 			if (true) {
-				//const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
-				//const pointHist = Map.groupBy(pts, x => x).values().toArray().map(x => x.length);
-
 				const results = this.stateBase.descriptors.map(x => x.rating);
 
 				const hmap = Map.groupBy(results, x => x);
 				const resultHist = hmap.values().toArray().map(x => x.length);
 				
-				//console.log(pointHist.toString());
-
 				console.log(`   nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
 			}
 
@@ -977,7 +970,6 @@ export namespace GameStates {
 			// Backtrack from final states
 			while (true) {
 				const newDone = this.stateBase.rateNonfinals();
-				//console.log(newDone);
 
 				if (newDone == nDone) break;
 				nDone = newDone;
@@ -996,12 +988,6 @@ export namespace GameStates {
 			}
 				console.timeEnd('stat2');
 
-			//	console.time('follow');
-			//let doneFollowers = makeStateList(this.stateBase.descriptors.filter(x => x.isDone()).map(x => x.id));
-			//	console.timeEnd('follow');
-
-			//console.log(`follows ${getStateListSize(doneFollowers)}`);
-
 				console.time('terminate');
 			this.stateBase.terminateDoneNodes();	
 				console.timeEnd('terminate');
@@ -1011,59 +997,12 @@ export namespace GameStates {
 				this.finished = true;
 			}
 
-
-							//process.exit();
-
 		}
 	
 
 
 		analyzeLatest(): void {
-			// const listA = this.record.at(-2)!;			
-			// const listB = this.record.at(-1)!;
 
-			// const statesB = listB.values().map(s => this.stateBase.getDesc(s).state).toArray();
-
-			// const someIndex = 213;
-
-		  // const stateId = listA[someIndex];
-		  // const followerIds = this.stateBase.genBatchFollowers([stateId]);
-
-		  // console.log(`${someIndex} => ${stateId}`);
-		  // console.log(`${followerIds}`);
-
-		  // 	const preds = this.stateBase.descriptors.filter(x => x.next != undefined && x.next!.includes(stateId)).map(d => d.id);
-		  // console.log(`${preds}`)
-
-
-		  // console.log(this.stateBase.getDesc(stateId).state.niceString());
-		  // console.log('Followers');
-		  // followerIds.forEach(
-		  // 	x => console.log(this.stateBase.getDesc(x).state.niceString())
-		  // );
-		  // console.log('Preds');
-		  // preds.forEach(
-		  // 	x => console.log(this.stateBase.getDesc(x).state.niceString())
-		  // );
-
-
-		  // const groupR0 = Map.groupBy(statesB, st => st.tableCards_S.rows[0]);
-		  // const groupR1 = Map.groupBy(statesB, st => st.tableCards_S.rows[1]);
-		  // const groupR2 = Map.groupBy(statesB, st => st.tableCards_S.rows[2]);
-
-		  // const groupP0 = Map.groupBy(statesB, st => st.mpc.ofPlayer(0).keyString());
-		  // const groupP1 = Map.groupBy(statesB, st => st.mpc.ofPlayer(1).keyString());
-
-		  // console.log(` ${groupR0.size}, ${groupR1.size}, ${groupR2.size},     ${groupP0.size}, ${groupP1.size}`);
-
-
-		  // 	const pointDiffs = this.stateBase.descriptors.map(d => d.state.mpc).map(m => m.ofPlayer(0).points - m.ofPlayer(1).points);
-		  // 	console.log(pointDiffs.length);
-
-
-		  // 	fs.writeFileSync('showdiffs.txt', pointDiffs.join('\n'));
-
-		  // process.exit();
 		}
 
 
