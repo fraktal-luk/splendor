@@ -722,6 +722,10 @@ export namespace GameStates {
 			return makeStateList(this.descriptors.filter(d => d.next == undefined && d.state.maxPoints() >= min).map(d => d.id));
 		}
 
+		getTipDescs(): StateDesc[] {
+			return this.descriptors.filter(d => d.next == undefined);
+		}
+
 		showTable(): void {
 			const str = this.descriptors.map(x => `${x.id}, ${x.state.niceString()}`).join('\n');
 			console.log(str);
@@ -818,10 +822,11 @@ export namespace GameStates {
 	export class WavefrontC extends Wavefront {
 		stateBase = new StateBase();
 
-		latest: StateList = makeStateList([0]);
-		lastPts = -1;
-		
+		active: StateList = makeStateList([0]);
+		maxTipPts = 0;
+
 		finished: boolean = false;
+		stepNum = 0;
 
 		// Needed for interface compliance
 		moveImpl(): void {
@@ -831,34 +836,40 @@ export namespace GameStates {
 		runStep(): void {
 			if (this.finished) return;
 
-			// Looking for new states
-			this.search();
+			console.log('> Step ' + this.stepNum);
+
 			this.filterFront();
+			this.search();
 			this.propagateStates();
 			this.stats();
 
 			if (this.stateBase.descriptors[0]!.category == 'falls') {
-				console.log(`  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
+				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
 				this.finished = true;
 			}
 
+			this.stepNum++;
 		}
 
 
-		filterFront(): void {
-				console.time('search1');
-			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
-			this.lastPts = pts.reduce((a,b) => Math.max(a,b), 0);
+		findPointThreshold(): number {
+			const newFront = this.stateBase.getTips();
+			console.log(`   setsize ${getStateListSize(newFront)}`);
+			return this.stateBase.pointHist(newFront);
+		}
 
+		filterFront(): void {
+				console.time('hist');
 			const pointMin = this.findPointThreshold();
-			this.latest = this.stateBase.getTipsAtLeast(pointMin);
-			  console.timeEnd('search1');
+
+			this.active = this.stateBase.getTipsAtLeast(pointMin);
+			  console.timeEnd('hist');
 		}
 
 
 		search(): void {
 			  console.time('search0');
-			this.stateBase.genBatchFollowers(this.latest);
+			this.stateBase.genBatchFollowers(this.active);
 				console.timeEnd('search0');
 		}
 
@@ -875,6 +886,7 @@ export namespace GameStates {
 				const newDone =	this.stateBase.descriptors.filter(x => x.isDone()).length;
 
 				if (newDone == nDone) break;
+
 				nDone = newDone;
 			}
 
@@ -885,25 +897,27 @@ export namespace GameStates {
 
 
 		stats(): void {
-				const latestDescs = this.stateBase.descriptors;
-				const nFinal = latestDescs.filter(x => x.category == 'final').length;
-				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
-				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
-				const nAll = this.stateBase.descriptors.length;
-				console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${this.lastPts}`);
+			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
+			const maxPts = pts.reduce((a,b) => Math.max(a,b), 0);
 
-				const nDone = this.stateBase.descriptors.filter(x => x.isDone()).length;
-				const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
-				const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
-				const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
-				const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
-				console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
-		}
 
-		findPointThreshold(): number {
-			const newFront = this.stateBase.getTips();
-			console.log(`   setsize ${getStateListSize(newFront)}`);
-			return this.stateBase.pointHist(newFront);
+			const tipPts = this.stateBase.getTipDescs().map(d => d.state.maxPoints());
+			const maxTipPts = tipPts.reduce((a,b) => Math.max(a,b), 0);
+			this.maxTipPts = maxTipPts;
+
+			const latestDescs = this.stateBase.descriptors;
+			const nFinal = latestDescs.filter(x => x.category == 'final').length;
+			const nFalls = latestDescs.filter(x => x.category == 'falls').length;
+			const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
+			const nAll = this.stateBase.descriptors.length;
+			console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${maxPts} (tip ${maxTipPts})`);
+
+			const nDone = this.stateBase.descriptors.filter(x => x.isDone()).length;
+			const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
+			const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
+			const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
+			const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
+			console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 		}
 
 		analyzeLatest(): void {
