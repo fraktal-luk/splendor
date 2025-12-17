@@ -651,6 +651,8 @@ export namespace GameStates {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
 
+			if (desc.isDone()) return [];
+
 			if (trace) {
 				if (desc!.next == undefined) {
 					return [];				
@@ -789,7 +791,7 @@ export namespace GameStates {
 		}
 
 		terminateDoneNodes(): void {
-			this.descriptors.forEach(x => { if (x.isDone()) x.next = []; });
+			//this.descriptors.forEach(x => { if (x.isDone()) x.next = []; });
 		}
 
 		pointHist(states: StateList): number {
@@ -861,7 +863,7 @@ export namespace GameStates {
 		filterFront(): void {
 				console.time('hist');
 			const pointMin = this.findPointThreshold();
-
+											//	Math.min( this.maxTipPts, TMP_TH );
 			this.active = this.stateBase.getTipsAtLeast(pointMin);
 			  console.timeEnd('hist');
 		}
@@ -923,6 +925,40 @@ export namespace GameStates {
 		analyzeLatest(): void {
 
 		}
+
+
+		// follow the winning sequence of moves
+		traceGame(): void {
+			const visited: StateId[] = [];
+
+			const winner = this.stateBase.descriptors[0].rating;
+			const initialDesc = this.stateBase.descriptors[0]!;
+
+			let currentDesc = initialDesc;
+
+			visited.push(currentDesc.id);
+
+				// problem: we may be looping!
+
+			while (true) {
+
+					console.log(`${currentDesc.id}: ` + currentDesc.state.niceString());
+
+				const fnums = currentDesc.next!;
+				const fds = fnums.map(n => this.stateBase.getDesc(n));
+				//console.log(fds);
+
+				const chosenDesc = fds.findLast(d => (!visited.includes(d.id) && d.rating == winner))!; 
+				currentDesc = chosenDesc;
+
+				visited.push(currentDesc.id);
+
+				if (chosenDesc.category == 'final') break;
+			}
+
+			console.log(`${currentDesc.id}: ` + currentDesc.state.niceString());
+		}
+
 
 
 	}

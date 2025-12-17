@@ -21,3 +21,6 @@ for (let i = 0; i < 11 + 10  + 21 ; i++) {
 console.timeEnd('total');
 
 console.log(process.memoryUsage());
+
+
+	waveN.traceGame();
