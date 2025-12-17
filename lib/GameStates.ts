@@ -732,10 +732,10 @@ export namespace GameStates {
 		}
 
 
-		markAndRateFinals(): number {
+		markAndRateFinals(): void {
 			this.descriptors.forEach(x => x.verifyFinal());
 			this.descriptors.forEach(x => x.rateFinal());
-			return this.descriptors.filter(x => x.isFinal()).length;
+			//return this.descriptors.filter(x => x.isFinal()).length;
 		}
 
 		rateNonfinals(): void {			
@@ -836,6 +836,9 @@ export namespace GameStates {
 				console.timeEnd('search0');
 
 				console.time('search1');
+
+			this.statsPre0();
+
 			const pointMin = this.stats0();
 			const newFrontUpdated = this.stateBase.getTipsAtLeast(pointMin);
 			this.latest = newFrontUpdated;
@@ -845,10 +848,11 @@ export namespace GameStates {
 			else return;
 
 
-			this.statsA();
+			  console.time('rating');
+
+			this.stateBase.markAndRateFinals();
 
 			// Backtrack from final states
-			  console.time('rating');
 			let nDone = 0;
 			while (true) {
 				this.stateBase.rateNonfinals();
@@ -857,73 +861,81 @@ export namespace GameStates {
 				if (newDone == nDone) break;
 				nDone = newDone;
 			}
+
+			this.stateBase.terminateDoneNodes();	
 				console.timeEnd('rating');
 
-				console.time('terminate');
-			this.stateBase.terminateDoneNodes();	
-				console.timeEnd('terminate');
 
 			// Statistics
 			this.statsB();
 
-			
 			if (this.stateBase.descriptors[0]!.category == 'falls') {
 				console.log(`  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
 				this.finished = true;
 			}
 
 		}
-	
 
-		stats0(): number {
-			const latestDescs = this.stateBase.descriptors;//this.latest.values().map(x => this.stateBase.descriptors[x]!).toArray();
-			const pts = latestDescs.map(x => x.state.maxPoints());
-			this.lastPts = pts.reduce((a,b) => Math.max(a,b), 0);
-			
-			const nFinal = latestDescs.filter(x => x.category == 'final').length;
-			const nFalls = latestDescs.filter(x => x.category == 'falls').length;
-			const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
-			const nAll = this.stateBase.descriptors.length;
 
-			const newFront = this.stateBase.getTips();
-			const minInterestingPoints = this.stateBase.pointHist(newFront);
 
-			console.log(
-				`   setsize ${getStateListSize(newFront)}, all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${this.lastPts}`);
 
-			return minInterestingPoints;
-		}
-
-			statsA(): void {
-				console.time('stat0');
-
-				// First stats
-				const nFinal = this.stateBase.markAndRateFinals();
-					if (true) {
-						const results = this.stateBase.descriptors.map(x => x.rating);
-						const hmap = Map.groupBy(results, x => x);
-						const resultHist = hmap.values().toArray().map(x => x.length);
-						console.log(`   nFinal: ${nFinal}/ (${hmap.keys().toArray()}) ${resultHist.toString()}`);
-					}
-
-				console.timeEnd('stat0');
-			}
-
+			// Only stats
 			statsB(): void {
-					console.time('stat2');
-				if (true)
-				{
+					console.time('statB');
+
 					const nDone = this.stateBase.descriptors.filter(x => x.isDone()).length;
 					const n0 = this.stateBase.descriptors.filter(x => x.rating == '0').length;
 					const n1 = this.stateBase.descriptors.filter(x => x.rating == '1').length;
 					const nD = this.stateBase.descriptors.filter(x => x.rating == 'D').length;
 					const nU = this.stateBase.descriptors.filter(x => x.rating == 'U').length;
-					console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
-				}
-					console.timeEnd('stat2');
 
+					console.timeEnd('statB');
+
+					console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 			}
 
+
+		statsPre0(): void {
+				const latestDescs = this.stateBase.descriptors;//this.latest.values().map(x => this.stateBase.descriptors[x]!).toArray();
+				
+				const pts = latestDescs.map(x => x.state.maxPoints());
+				this.lastPts = pts.reduce((a,b) => Math.max(a,b), 0);
+				
+				const nFinal = latestDescs.filter(x => x.category == 'final').length;
+				const nFalls = latestDescs.filter(x => x.category == 'falls').length;
+				const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
+				const nAll = this.stateBase.descriptors.length;
+
+
+				console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${this.lastPts}`);
+
+		}
+
+
+		stats0(): number {
+
+
+				// const latestDescs = this.stateBase.descriptors;//this.latest.values().map(x => this.stateBase.descriptors[x]!).toArray();
+				
+				// const pts = latestDescs.map(x => x.state.maxPoints());
+				// this.lastPts = pts.reduce((a,b) => Math.max(a,b), 0);
+				
+				// const nFinal = latestDescs.filter(x => x.category == 'final').length;
+				// const nFalls = latestDescs.filter(x => x.category == 'falls').length;
+				// const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
+				// const nAll = this.stateBase.descriptors.length;
+
+
+				// console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${this.lastPts}`);
+
+
+			const newFront = this.stateBase.getTips();
+			console.log(`   setsize ${getStateListSize(newFront)}`);
+
+			const minInterestingPoints = this.stateBase.pointHist(newFront);
+
+			return minInterestingPoints;
+		}
 
 
 		analyzeLatest(): void {
