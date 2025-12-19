@@ -544,6 +544,7 @@ export namespace GameStates {
 	type StateId = number;
 
 	type NodeCategory = 'unknown'
+								| 'late'
 				   	  | 'final'  // end the game
 				   	  | 'falls'; // leads to known final state (result determined)
 	type GameRating = 'U' | '0' | '1' | 'D';
@@ -554,11 +555,15 @@ export namespace GameStates {
 		id: StateId;
 		state: CardState;
 		next?: StateId[];
-		prev: StateId[] = [];
+		//prev: StateId[] = [];
 
 		category: NodeCategory = 'unknown';
 		rating: GameRating = 'U';
 		
+			maxP = 0;
+			diffP = 0;
+			finalDiff?: number = undefined;
+
 		isDone(): boolean {
 			return this.category == 'falls' || this.category == 'final';
 		}
@@ -570,34 +575,40 @@ export namespace GameStates {
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
 			this.state = state;
+
+			const p0 = state.ofPlayer(0).points;
+			const p1 = state.ofPlayer(1).points;
+
+			this.maxP = Math.max(p0, p1);
+			this.diffP = p0 - p1;
+
+				this.verifyFinal();
+				this.rateFinal();
 		}
 		
 		verifyFinal(): void {
-			if (this.state.moves != 0) return;
+			if (this.maxP < TMP_TH) return;
 
-			const pts0 = this.state.mpc.ofPlayer(0).points;
-			const pts1 = this.state.mpc.ofPlayer(1).points;
-			
-			if (pts0 >= TMP_TH || pts1 >= TMP_TH) {
+			if (this.state.moves == 0) {
 				this.next = [];
 				this.category = 'final';
 			}
+			else this.category = 'late';
 		}
 
 		rateFinal(): void {
 			if (!this.isFinal()) return;
-			
-			const pts0 = this.state.mpc.ofPlayer(0).points;
-			const pts1 = this.state.mpc.ofPlayer(1).points;
-			
-			if (pts0 > pts1) this.rating = '0';
-			else if (pts0 < pts1) this.rating = '1';
+
+			this.finalDiff = this.diffP;
+
+			if (this.diffP > 0) this.rating = '0';
+			else if (this.diffP < 0) this.rating = '1';
 			else this.rating = 'D';
 		}
 
-		addPrev(state: StateId): void {
-			this.prev.push(state);
-		}
+		// addPrev(state: StateId): void {
+		// 	this.prev.push(state);
+		// }
 
 	}
 
@@ -738,11 +749,11 @@ export namespace GameStates {
 		}
 
 
-		markAndRateFinals(): void {
-			this.descriptors.forEach(x => x.verifyFinal());
-			this.descriptors.forEach(x => x.rateFinal());
-			//return this.descriptors.filter(x => x.isFinal()).length;
-		}
+		// markAndRateFinals(): void {
+		// 	//this.descriptors.forEach(x => x.verifyFinal());
+		// 	//this.descriptors.forEach(x => x.rateFinal());
+		// 	//return this.descriptors.filter(x => x.isFinal()).length;
+		// }
 
 		rateNonfinals(): void {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
@@ -879,7 +890,7 @@ export namespace GameStates {
 		propagateStates(): void {
 			console.time('rating');
 
-			this.stateBase.markAndRateFinals();
+			//this.stateBase.markAndRateFinals();
 
 			// Backtrack from final states
 			let nDone = 0;
@@ -910,7 +921,7 @@ export namespace GameStates {
 			const latestDescs = this.stateBase.descriptors;
 			const nFinal = latestDescs.filter(x => x.category == 'final').length;
 			const nFalls = latestDescs.filter(x => x.category == 'falls').length;
-			const nUnknown = latestDescs.filter(x => x.category == 'unknown').length;
+			const nUnknown = latestDescs.filter(x => x.category == 'unknown').length + latestDescs.filter(x => x.category == 'late').length;
 			const nAll = this.stateBase.descriptors.length;
 			console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${maxPts} (tip ${maxTipPts})`);
 
@@ -948,6 +959,8 @@ export namespace GameStates {
 				const fds = fnums.map(n => this.stateBase.getDesc(n));
 				//console.log(fds);
 
+
+						// TODO: find option that is best even if losing (smallest point deficit)
 				const chosenDesc = fds.findLast(d => (!visited.includes(d.id) && d.rating == winner))!; 
 				currentDesc = chosenDesc;
 
