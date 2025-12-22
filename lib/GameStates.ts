@@ -52,7 +52,7 @@ const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
 const N_PLAYERS = 2;
-const COLUMN_WALL = 2;
+const COLUMN_WALL = 2 + 1 + 1;
 
 const TMP_TH = 10;
 
@@ -823,10 +823,11 @@ export namespace GameStates {
 
 		expand(): void {
 			this.expandTimes(4);
-			const currentMaxP = this.stateBase.descriptors.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
+			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
+			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
 			this.pointThreshold = currentMaxP - 3;
 
-			console.log(`  max ${currentMaxP}, thr ${this.pointThreshold}`);
+			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
 		}
 
 		expandTimes(times: number): void {
@@ -840,7 +841,7 @@ export namespace GameStates {
 					console.time('expand');
 				const pointMin = 0;//this.findPointThreshold();
 				this.active = this.stateBase.getTipsAtLeast(expansionThr);
-
+						console.log(`   ${getStateListSize(this.active)}`);
 				this.stateBase.genBatchFollowers(this.active);
 					console.timeEnd('expand');
 			}
