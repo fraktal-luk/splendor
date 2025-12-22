@@ -772,7 +772,7 @@ export namespace GameStates {
 		 		accum[i] = sum;
 		 	}
 
-		 	const thr = 0.25 * sum; //sum/2;
+		 	const thr = 0; //0.25 * sum; //sum/2;
 		 	const start = accum.findIndex(x => x >= thr);
 
 		 	return mpSorted[start][0];
@@ -790,6 +790,8 @@ export namespace GameStates {
 		finished: boolean = false;
 		stepNum = 0;
 
+			pointThreshold = 0;
+
 		// Needed for interface compliance
 		moveImpl(): void {
 		}
@@ -800,6 +802,7 @@ export namespace GameStates {
 			console.log('> Step ' + this.stepNum);
 
 			this.expand();
+			//this.expandTimes(16);
 			this.propagateStates();
 			this.stats();
 
@@ -819,16 +822,24 @@ export namespace GameStates {
 		}
 
 		expand(): void {
-			this.expandOnce();
-			//this.expandSinglePath();
+			this.expandTimes(6);
+			const currentMaxP = this.stateBase.descriptors.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
+			this.pointThreshold = currentMaxP - 3;
+
+			console.log(`  max ${currentMaxP}, thr ${this.pointThreshold}`);
+		}
+
+		expandTimes(times: number): void {
+			const thr = this.pointThreshold;
+			for (let i = 0; i < times; i++) this.expandOnce(thr);
 		}
 
 
-		expandOnce(): void {
+		expandOnce(expansionThr: number): void {
 			for (const c of [0,]) {
 					console.time('expand');
-				const pointMin = this.findPointThreshold();
-				this.active = this.stateBase.getTipsAtLeast(pointMin);
+				const pointMin = 0;//this.findPointThreshold();
+				this.active = this.stateBase.getTipsAtLeast(expansionThr);
 
 				this.stateBase.genBatchFollowers(this.active);
 					console.timeEnd('expand');
@@ -907,6 +918,10 @@ export namespace GameStates {
 		}
 
 		analyzeLatest(): void {
+				const pointMap = Map.groupBy(this.stateBase.getTipDescs(), d => d.maxP);
+				const pmr = pointMap.entries().toArray().toSorted((a,b) => a[0] - b[0]);
+				console.log(pmr.map(a => a[0]).join(', '));
+				console.log(pmr.map(a => a[1].length).join(', '));
 		}
 
 		// follow the winning sequence of moves
