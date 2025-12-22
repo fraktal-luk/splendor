@@ -768,6 +768,26 @@ export namespace GameStates {
 
 			if (desc.isDone() || desc.isFinal() || desc.next == undefined) return;
 				
+			const fds = this.getFollowerDescs(desc.id);
+
+			const mover = desc.state.moves;
+
+			const fdiffs = fds.map(d => d.finalDiff);
+			const fdiffsSorted = fdiffs.filter(n => n != undefined).toSorted((a,b) => a-b); // undefined goes to end when sorting
+
+			const hasUndefined = (fdiffs.at(-1) == undefined);
+
+			let bestResult: number|undefined = undefined;
+
+			if (mover == 0) {
+				bestResult = fdiffsSorted.at(-1);
+			}
+			else { // mover == 1
+				bestResult = fdiffsSorted.at(0);
+			}
+
+
+
 			const ratings = this.followersRatings(desc.id);
 			const has0 = ratings.includes('0');
 			const has1 = ratings.includes('1');
@@ -776,7 +796,7 @@ export namespace GameStates {
 
 			if (has0 || has1 || hasD) {
 				let rating = 'U' as GameRating;
-				const mover = desc.state.moves;
+				//const mover = desc.state.moves;
 
 				if (mover == 0) {
 					if (has0) rating = '0';
@@ -790,9 +810,15 @@ export namespace GameStates {
 					else if (hasD) rating = 'D';
 					else rating = '0';
 				}
-				
+
+					desc.finalDiff = bestResult;
+
+
 				desc.rating = rating;
-				if (rating != 'U') desc.category = 'falls';
+				if (rating != 'U') {
+					if (desc.finalDiff == undefined) throw new Error("unknown diff!");
+					desc.category = 'falls';
+				}
 			}
 
 		}
@@ -953,25 +979,46 @@ export namespace GameStates {
 
 			while (true) {
 
-					console.log(`${currentDesc.id}: ` + currentDesc.state.niceString());
+					const img = currentDesc.state.niceString();
+
+					console.log(`${currentDesc.id}: ` + img);
+					console.log(currentDesc);
 
 				const fnums = currentDesc.next!;
 				const fds = fnums.map(n => this.stateBase.getDesc(n));
 				//console.log(fds);
 
+					//fds.sort((a,b) => (a.finalDiff - b.finalDiff));
+					const fdiffs = fds.map(d => d.finalDiff).filter(x => x != undefined);
+
+					const fdiffsSorted = fdiffs.toSorted((a,b) => a-b);
+
+					const bestDiff = (currentDesc.state.moves == 0) ? fdiffsSorted.at(-1)! : fdiffsSorted.at(0)!;
+
+					console.log("  C " + fds.map(d => d.rating).join(', '));
+					console.log("  d " + fds.map(d => d.diffP).join(', '));
+					console.log("  f " + fds.map(d => d.finalDiff).join(', '));
+
+						console.log(`[${fdiffs}], [${fdiffsSorted}]: bestdiff = ${bestDiff}`);
 
 						// TODO: find option that is best even if losing (smallest point deficit)
-				const chosenDesc = fds.findLast(d => (!visited.includes(d.id) && d.rating == winner))!; 
-				currentDesc = chosenDesc;
+				const chosenDesc = fds.find(d => (!visited.includes(d.id) &&  d.finalDiff == bestDiff))!;
+													//(currentDesc.state.moves == 0) ? fds.at(-1) : fds.at(0);
+
+				currentDesc = chosenDesc!;
 
 				visited.push(currentDesc.id);
 
-				if (chosenDesc.category == 'final') break;
+					console.log('\n\n');
+
+				if (currentDesc.category == 'final') break;
 			}
 
-			console.log(`${currentDesc.id}: ` + currentDesc.state.niceString());
-		}
+				const img = currentDesc.state.niceString();
 
+			console.log(`${currentDesc.id}: ` + img);
+			console.log(currentDesc)
+		}
 
 
 	}
