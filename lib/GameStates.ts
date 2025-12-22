@@ -698,10 +698,6 @@ export namespace GameStates {
 		rateNonfinals(): void {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
 		}
-
-		rateNonfinalsOfStates(sl: StateList): void {			
-			sl.values().forEach(s => this.processNonfinalOfState(s));
-		}
 		
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
@@ -757,10 +753,6 @@ export namespace GameStates {
 			}
 
 		}
-		
-		processNonfinalOfState(s: StateId): void {
-			this.processNonfinal(this.getDesc(s));
-		}
 
 		pointHist(states: StateList): number {
 			const groupMap = Map.groupBy(this.descriptors, d => d.category + '_' + d.state.maxPoints().toString(36));
@@ -807,8 +799,7 @@ export namespace GameStates {
 
 			console.log('> Step ' + this.stepNum);
 
-			this.filterFront();
-			this.search();
+			this.expand();
 			this.propagateStates();
 			this.stats();
 
@@ -827,17 +818,51 @@ export namespace GameStates {
 			return this.stateBase.pointHist(newFront);
 		}
 
-		filterFront(): void {
-				console.time('hist');
-			const pointMin = this.findPointThreshold();
-			this.active = this.stateBase.getTipsAtLeast(pointMin);
-			  console.timeEnd('hist');
+		expand(): void {
+			this.expandOnce();
+			//this.expandSinglePath();
 		}
 
-		search(): void {
-			  console.time('search0');
-			this.stateBase.genBatchFollowers(this.active);
-				console.timeEnd('search0');
+
+		expandOnce(): void {
+			for (const c of [0,]) {
+					console.time('expand');
+				const pointMin = this.findPointThreshold();
+				this.active = this.stateBase.getTipsAtLeast(pointMin);
+
+				this.stateBase.genBatchFollowers(this.active);
+					console.timeEnd('expand');
+			}
+		}
+
+
+		expandSinglePath(): void {
+				const tips = this.stateBase.getTipDescs();
+				tips.sort((a,b) => Math.abs(a.diffP) - Math.abs(b.diffP));
+
+				let currentTip = tips.at(-1)!;
+				let ct = 0;
+
+				while (currentTip.category != 'final') {
+					ct++;
+
+					this.stateBase.genBatchFollowers(makeStateList([currentTip.id]));//.map(x => this.stateBase.getDesc(x));
+					const fds = this.stateBase.getFollowerDescs(currentTip.id);
+					const mover = currentTip.state.moves;
+
+					fds.sort((a,b) => (a.diffP) - (b.diffP));
+
+					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
+
+					console.log(`substep ${ct}`);
+					console.log('Id:  ' + fds.map(d => d.id).join(', '));
+					console.log('dP:  ' + fds.map(d => d.diffP).join(', '));
+					console.log(`  choose ${currentTip.id} (${currentTip.diffP})`);
+					console.log(`  ${currentTip.state.niceString()}`);
+					console.log();
+
+				}
+				console.log(`expanded steps: ${ct}`);
 		}
 
 		propagateStates(): void {
