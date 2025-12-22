@@ -822,7 +822,7 @@ export namespace GameStates {
 		}
 
 		expand(): void {
-			this.expandTimes(6);
+			this.expandTimes(4);
 			const currentMaxP = this.stateBase.descriptors.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
 			this.pointThreshold = currentMaxP - 3;
 
