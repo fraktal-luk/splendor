@@ -910,7 +910,7 @@ export namespace GameStates {
 		}
 
 		// follow the winning sequence of moves
-		traceGame(): void {
+		traceGame(estimate: boolean): void {
 			const visited: StateId[] = [];
 
 			const winner = this.stateBase.descriptors[0].rating;
@@ -929,17 +929,27 @@ export namespace GameStates {
 				const fnums = currentDesc.next!;
 				const fds = fnums.map(n => this.stateBase.getDesc(n));
 
-				const fdiffs = fds.map(d => d.finalDiff).filter(x => x != undefined);
-				const fdiffsSorted = fdiffs.toSorted((a,b) => a-b);
-				const bestDiff = (currentDesc.state.moves == 0) ? fdiffsSorted.at(-1)! : fdiffsSorted.at(0)!;
 
 				console.log("  C " + fds.map(d => d.rating).join(', '));
 				console.log("  d " + fds.map(d => d.diffP).join(', '));
 				console.log("  f " + fds.map(d => d.finalDiff).join(', '));
 
-				console.log(`[${fdiffs}], [${fdiffsSorted}]: bestdiff = ${bestDiff}`);
 
-				const chosenDesc = fds.find(d => (!visited.includes(d.id) &&  d.finalDiff == bestDiff))!;
+				const fdiffs = fds.map(d => d.finalDiff).filter(x => x != undefined);
+				const ediffs = fds.map(d => d.diffP).filter(x => x != undefined);
+
+				const diffs = estimate ? ediffs : fdiffs;
+
+				const diffsSorted = diffs.toSorted((a,b) => a-b);
+				const bestDiff = (currentDesc.state.moves == 0) ? diffsSorted.at(-1)! : diffsSorted.at(0)!;
+
+
+
+				console.log(`[${diffs}], [${diffsSorted}]: bestdiff = ${bestDiff}`);
+
+				const chosenDesc = estimate ?
+															fds.find(d => (!visited.includes(d.id) &&  d.diffP == bestDiff))!
+														: fds.find(d => (!visited.includes(d.id) &&  d.finalDiff == bestDiff))!;
 
 				currentDesc = chosenDesc!;
 
