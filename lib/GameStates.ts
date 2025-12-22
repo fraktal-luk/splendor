@@ -13,7 +13,7 @@ import {cardStringList, CARD_SPECS, getCardPrice, getCardPoints, TokenVec, MAX_P
 from './searching_base.ts';
 
 
-				const fs = require('fs');
+const fs = require('fs');
 
 
 
@@ -480,47 +480,11 @@ export namespace GameStates {
 			return new CardState(mpa, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
 
-
-			buyUniversal_ByRow(rowInd: number): (CardState|undefined)[] {
-				const player = this.moves;
-				
-					// const res_N: (CardState|undefined)[] = [];
-
-					// const cards = this.tableCards_S.cards(rowInd);
-					// const tcs = this.tableCards_S.grabAt_ByRow(rowInd);
-
-				const res = [0,1,2,3].map(i => this.buyUniversal(4*rowInd + i));
-
-
-				// for (let colInd = 0; colInd < 4; colInd++) {
-				// 	const pc = this.mpc.arr[player]!.buyUniversal(cards[colInd]);
-
-				// 	if (pc == undefined) {
-				// 		res_N.push(undefined);
-				// 		continue;
-				// 	}
-
-				// 	const mpa = this.mpc.arr.with(player, pc!);
-				// 	const tc = tcs[colInd];
-				// 	res_N.push(new CardState(mpa, (player+1) % N_PLAYERS, tc!));
-
-				// 		if (res_N[colInd] == undefined && res[colInd] != undefined) throw new Error('blele');
-				// 		if (res_N[colInd] != undefined && res[colInd] == undefined) throw new Error('rlele');
-
-				// 		if (!(res_N[colInd]!.isSame(res[colInd]!))) throw new Error("heh");
-				// }
-				return res;
-			}
-
-
-
 		genNextBU(): (CardState|undefined)[] {			
 			const buys = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i));
 			let res0: (CardState|undefined)[] = [this.takeUniversal()];
 
-				// TODO: remove undefined?
-				//			 remove nonoptimal takes?  
-
+				// TODO: remove undefined? remove nonoptimal takes?
 			const res = res0.concat(buys);
 			return res;
 		}
@@ -555,14 +519,13 @@ export namespace GameStates {
 		id: StateId;
 		state: CardState;
 		next?: StateId[];
-		//prev: StateId[] = [];
 
 		category: NodeCategory = 'unknown';
 		rating: GameRating = 'U';
 		
-			maxP = 0;
-			diffP = 0;
-			finalDiff?: number = undefined;
+		maxP = 0;
+		diffP = 0;
+		finalDiff?: number = undefined;
 
 		isDone(): boolean {
 			return this.category == 'falls' || this.category == 'final';
@@ -582,8 +545,8 @@ export namespace GameStates {
 			this.maxP = Math.max(p0, p1);
 			this.diffP = p0 - p1;
 
-				this.verifyFinal();
-				this.rateFinal();
+			this.verifyFinal();
+			this.rateFinal();
 		}
 		
 		verifyFinal(): void {
@@ -605,10 +568,6 @@ export namespace GameStates {
 			else if (this.diffP < 0) this.rating = '1';
 			else this.rating = 'D';
 		}
-
-		// addPrev(state: StateId): void {
-		// 	this.prev.push(state);
-		// }
 
 	}
 
@@ -633,17 +592,6 @@ export namespace GameStates {
 		prevSize = 0;
 		expand = true;
 		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
-		
-
-		moveNew(tmpLatest: StateList): void {
-			if (!this.expand) return;
-
-			const prevSize = this.prevSize;
-			this.prevSize = this.descriptors.length;
-			const latestFront = makeStateList(this.descriptors.slice(prevSize).map(x => x.id));
-			this.genBatchFollowers(latestFront);
-		}
-
 
 		getDesc(s: StateId) {
 			if (s >= this.descriptors.length) throw new Error(`non existing StateID #${s}, of ${this.descriptors.length}`); 
@@ -714,7 +662,6 @@ export namespace GameStates {
 			const flatArr = input.values().map(x => this.getFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
 			const stateSet = new Set<StateId>(flatArr); 
 			const result = stateSet;
-
 			return result;
 		}
 
@@ -748,13 +695,6 @@ export namespace GameStates {
 			return input.map(x => this.descriptors[x]!.state.keyString());
 		}
 
-
-		// markAndRateFinals(): void {
-		// 	//this.descriptors.forEach(x => x.verifyFinal());
-		// 	//this.descriptors.forEach(x => x.rateFinal());
-		// 	//return this.descriptors.filter(x => x.isFinal()).length;
-		// }
-
 		rateNonfinals(): void {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
 		}
@@ -769,12 +709,10 @@ export namespace GameStates {
 			if (desc.isDone() || desc.isFinal() || desc.next == undefined) return;
 				
 			const fds = this.getFollowerDescs(desc.id);
-
 			const mover = desc.state.moves;
 
 			const fdiffs = fds.map(d => d.finalDiff);
 			const fdiffsSorted = fdiffs.filter(n => n != undefined).toSorted((a,b) => a-b); // undefined goes to end when sorting
-
 			const hasUndefined = (fdiffs.at(-1) == undefined);
 
 			let bestResult: number|undefined = undefined;
@@ -785,8 +723,6 @@ export namespace GameStates {
 			else { // mover == 1
 				bestResult = fdiffsSorted.at(0);
 			}
-
-
 
 			const ratings = this.followersRatings(desc.id);
 			const has0 = ratings.includes('0');
@@ -811,8 +747,7 @@ export namespace GameStates {
 					else rating = '0';
 				}
 
-					desc.finalDiff = bestResult;
-
+				desc.finalDiff = bestResult;
 
 				desc.rating = rating;
 				if (rating != 'U') {
@@ -825,10 +760,6 @@ export namespace GameStates {
 		
 		processNonfinalOfState(s: StateId): void {
 			this.processNonfinal(this.getDesc(s));
-		}
-
-		terminateDoneNodes(): void {
-			//this.descriptors.forEach(x => { if (x.isDone()) x.next = []; });
 		}
 
 		pointHist(states: StateList): number {
@@ -871,7 +802,6 @@ export namespace GameStates {
 		moveImpl(): void {
 		}
 
-
 		runStep(): void {
 			if (this.finished) return;
 
@@ -900,11 +830,9 @@ export namespace GameStates {
 		filterFront(): void {
 				console.time('hist');
 			const pointMin = this.findPointThreshold();
-											//	Math.min( this.maxTipPts, TMP_TH );
 			this.active = this.stateBase.getTipsAtLeast(pointMin);
 			  console.timeEnd('hist');
 		}
-
 
 		search(): void {
 			  console.time('search0');
@@ -912,11 +840,8 @@ export namespace GameStates {
 				console.timeEnd('search0');
 		}
 
-
 		propagateStates(): void {
 			console.time('rating');
-
-			//this.stateBase.markAndRateFinals();
 
 			// Backtrack from final states
 			let nDone = 0;
@@ -928,8 +853,6 @@ export namespace GameStates {
 
 				nDone = newDone;
 			}
-
-			this.stateBase.terminateDoneNodes();	
 			
 			console.timeEnd('rating');
 		}
@@ -939,7 +862,6 @@ export namespace GameStates {
 			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
 			const maxPts = pts.reduce((a,b) => Math.max(a,b), 0);
 
-
 			const tipPts = this.stateBase.getTipDescs().map(d => d.state.maxPoints());
 			const maxTipPts = tipPts.reduce((a,b) => Math.max(a,b), 0);
 			this.maxTipPts = maxTipPts;
@@ -947,7 +869,7 @@ export namespace GameStates {
 			const latestDescs = this.stateBase.descriptors;
 			const nFinal = latestDescs.filter(x => x.category == 'final').length;
 			const nFalls = latestDescs.filter(x => x.category == 'falls').length;
-			const nUnknown = latestDescs.filter(x => x.category == 'unknown').length + latestDescs.filter(x => x.category == 'late').length;
+			const nUnknown = latestDescs.filter(x => ['unknown', 'late'].includes(x.category)).length;
 			const nAll = this.stateBase.descriptors.length;
 			console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${maxPts} (tip ${maxTipPts})`);
 
@@ -960,9 +882,7 @@ export namespace GameStates {
 		}
 
 		analyzeLatest(): void {
-
 		}
-
 
 		// follow the winning sequence of moves
 		traceGame(): void {
@@ -975,46 +895,37 @@ export namespace GameStates {
 
 			visited.push(currentDesc.id);
 
-				// problem: we may be looping!
-
 			while (true) {
+				const img = currentDesc.state.niceString();
 
-					const img = currentDesc.state.niceString();
-
-					console.log(`${currentDesc.id}: ` + img);
-					console.log(currentDesc);
+				console.log(`${currentDesc.id}: ` + img);
+				console.log(currentDesc);
 
 				const fnums = currentDesc.next!;
 				const fds = fnums.map(n => this.stateBase.getDesc(n));
-				//console.log(fds);
 
-					//fds.sort((a,b) => (a.finalDiff - b.finalDiff));
-					const fdiffs = fds.map(d => d.finalDiff).filter(x => x != undefined);
+				const fdiffs = fds.map(d => d.finalDiff).filter(x => x != undefined);
+				const fdiffsSorted = fdiffs.toSorted((a,b) => a-b);
+				const bestDiff = (currentDesc.state.moves == 0) ? fdiffsSorted.at(-1)! : fdiffsSorted.at(0)!;
 
-					const fdiffsSorted = fdiffs.toSorted((a,b) => a-b);
+				console.log("  C " + fds.map(d => d.rating).join(', '));
+				console.log("  d " + fds.map(d => d.diffP).join(', '));
+				console.log("  f " + fds.map(d => d.finalDiff).join(', '));
 
-					const bestDiff = (currentDesc.state.moves == 0) ? fdiffsSorted.at(-1)! : fdiffsSorted.at(0)!;
+				console.log(`[${fdiffs}], [${fdiffsSorted}]: bestdiff = ${bestDiff}`);
 
-					console.log("  C " + fds.map(d => d.rating).join(', '));
-					console.log("  d " + fds.map(d => d.diffP).join(', '));
-					console.log("  f " + fds.map(d => d.finalDiff).join(', '));
-
-						console.log(`[${fdiffs}], [${fdiffsSorted}]: bestdiff = ${bestDiff}`);
-
-						// TODO: find option that is best even if losing (smallest point deficit)
 				const chosenDesc = fds.find(d => (!visited.includes(d.id) &&  d.finalDiff == bestDiff))!;
-													//(currentDesc.state.moves == 0) ? fds.at(-1) : fds.at(0);
 
 				currentDesc = chosenDesc!;
 
 				visited.push(currentDesc.id);
 
-					console.log('\n\n');
+				console.log('\n\n');
 
 				if (currentDesc.category == 'final') break;
 			}
 
-				const img = currentDesc.state.niceString();
+			const img = currentDesc.state.niceString();
 
 			console.log(`${currentDesc.id}: ` + img);
 			console.log(currentDesc)
