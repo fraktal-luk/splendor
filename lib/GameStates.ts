@@ -52,7 +52,7 @@ const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
 const N_PLAYERS = 2;
-const COLUMN_WALL = 2 + 1 + 1;
+const COLUMN_WALL = 2;
 
 const TMP_TH = 10;
 
@@ -130,7 +130,14 @@ export namespace GameStates {
 		takeUniversal(): PlayerCards {
 			return new PlayerCards(this.bonuses.takeUniversal(), this.points, []);
 		}
-		
+
+		// Get effective gload price and points
+		evaluateCard(c: Card): [Card, number, number] {
+				const deficit = this.bonuses.TMP_effPrice(c).sum();
+				const points = getCardPoints(c);
+				return [c, deficit, points];
+		}
+
 	}
 	
 	const DEFAULT_PLAYER_CARDS = new PlayerCards(new TokenVec("000000"), 0, []);
@@ -441,7 +448,8 @@ export namespace GameStates {
 			this.mpc = new ManyPlayerCards(p);
 			this.moves = moves;
 		}
-		
+
+
 		keyString(): string { return this.tableCards_S.keyString() + String.fromCharCode(this.moves) + this.mpc.keyString(); }
 		niceString(): string { return CONV_TC(this.tableCards_S).niceString() + '  @' + this.moves + '  ' + this.mpc.niceString(); }
 
@@ -491,6 +499,24 @@ export namespace GameStates {
 
 		maxPoints(): number {
 			return this.mpc.maxPoints();
+		}
+
+		// How many points if the player could now buy cards from the table without competitors intervening (no takes and no filling cards)
+		// In other words - converting tokens to points
+		prospectPoints(player: number): number {
+			const pc = this.mpc.ofPlayer(player);
+			//const gold = parseInt(this.bonuses.str[5]!, 16);				
+
+			const inds = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].filter(n => n % 4 < COLUMN_WALL);
+			const tableCards = inds.map(n => this.tableCards_S.cardAt(n));
+			const evals = tableCards.map(c => pc.evaluateCard(c));
+
+			// Now we need to find largest sum of points that can be bought with our gold
+
+				console.log(pc.bonuses);
+				console.log(evals.map(a => `(${a})`).join(', '));
+
+			return 0;
 		}
 
 	}
@@ -801,8 +827,8 @@ export namespace GameStates {
 
 			console.log('> Step ' + this.stepNum);
 
+
 			this.expand();
-			//this.expandTimes(16);
 			this.propagateStates();
 			this.stats();
 
@@ -810,6 +836,8 @@ export namespace GameStates {
 				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
 				this.finished = true;
 			}
+
+
 
 			this.stepNum++;
 		}
@@ -825,9 +853,13 @@ export namespace GameStates {
 			this.expandTimes(4);
 			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
 			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
+
+
 			this.pointThreshold = currentMaxP - 3;
 
 			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
+
+				//	this.runDepth( this.stateBase.getTips() , 2);
 		}
 
 		expandTimes(times: number): void {
@@ -848,8 +880,8 @@ export namespace GameStates {
 		}
 
 
-		expandSinglePath(): void {
-				const tips = this.stateBase.getTipDescs();
+		expandSinglePath(input: StateDesc[]): void {
+				const tips = input;//= this.stateBase.getTipDescs();
 				tips.sort((a,b) => Math.abs(a.diffP) - Math.abs(b.diffP));
 
 				let currentTip = tips.at(-1)!;
@@ -876,6 +908,18 @@ export namespace GameStates {
 				}
 				console.log(`expanded steps: ${ct}`);
 		}
+
+		// TODO
+		runDepth(states: StateList, depth: number): StateList {
+			let currentStates = states;
+
+			for (let i = 0; i < depth; i++) {
+				currentStates = this.stateBase.genBatchFollowers(currentStates);
+			}
+
+			return currentStates;
+		}
+
 
 		propagateStates(): void {
 			console.time('rating');
@@ -923,6 +967,9 @@ export namespace GameStates {
 				const pmr = pointMap.entries().toArray().toSorted((a,b) => a[0] - b[0]);
 				console.log(pmr.map(a => a[0]).join(', '));
 				console.log(pmr.map(a => a[1].length).join(', '));
+
+						//			this.expandSinglePath(([this.stateBase.descriptors[0]!]));
+
 		}
 
 		// follow the winning sequence of moves
@@ -938,6 +985,8 @@ export namespace GameStates {
 
 			while (true) {
 				const img = currentDesc.state.niceString();
+
+				const mover = currentDesc.state.moves;
 
 				console.log(`${currentDesc.id}: ` + img);
 				console.log(currentDesc);
@@ -959,9 +1008,16 @@ export namespace GameStates {
 				const diffsSorted = diffs.toSorted((a,b) => a-b);
 				const bestDiff = (currentDesc.state.moves == 0) ? diffsSorted.at(-1)! : diffsSorted.at(0)!;
 
+					fdiffs.sort((a,b) => a-b);
+					ediffs.sort((a,b) => a-b);
+
+				const bestEdiff = (currentDesc.state.moves == 0) ? ediffs.at(-1)! : ediffs.at(0)!;
+				const bestFdiff = (currentDesc.state.moves == 0) ? fdiffs.at(-1)! : fdiffs.at(0)!;
 
 
-				console.log(`[${diffs}], [${diffsSorted}]: bestdiff = ${bestDiff}`);
+				console.log(`[${diffs}], [${diffsSorted}]: bestdiff = (${bestEdiff}, ${bestFdiff})`);
+
+						currentDesc.state.prospectPoints(mover);
 
 				const chosenDesc = estimate ?
 															fds.find(d => (!visited.includes(d.id) &&  d.diffP == bestDiff))!

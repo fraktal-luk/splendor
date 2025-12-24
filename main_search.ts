@@ -22,10 +22,12 @@ console.timeEnd('total');
 
 console.log(process.memoryUsage());
 
-	// console.log('\nTrace precise\n');
-	// waveN.traceGame(false);
-
-	// console.log('\nTrace estimate\n');
-	// waveN.traceGame(true);
-
 	waveN.analyzeLatest();
+
+
+	//console.log('\nTrace precise\n');
+	//waveN.traceGame(false);
+
+	 // console.log('\nTrace estimate\n');
+	 // waveN.traceGame(true);
+
