@@ -91,6 +91,14 @@ interface StateValue<T> {
 }
 
 
+function compareNumbers(a?: number, b?: number): number {
+	if (a == undefined && b == undefined) return 0;
+	if (a == undefined) return 1;
+	if (b == undefined) return -1;
+	return a!-b!;
+}
+
+
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
 	export const MAX_TOKEN_STACKS = "444440";
@@ -541,6 +549,11 @@ export namespace GameStates {
 
 
 
+	function bestForPlayer(arr: (number|undefined)[], player: number): number {
+		const sorted = arr.filter(x => x != undefined).toSorted((a,b) => a-b);
+		return player == 0 ? sorted.at(-1)! : sorted.at(0)!;
+	}
+
 	class StateDesc {
 		id: StateId;
 		state: CardState;
@@ -552,6 +565,9 @@ export namespace GameStates {
 		maxP = 0;
 		diffP = 0;
 		finalDiff?: number = undefined;
+
+			futureScore?: number;
+
 
 		isDone(): boolean {
 			return this.category == 'falls' || this.category == 'final';
@@ -611,6 +627,9 @@ export namespace GameStates {
 		return sl.size;
 	}
 
+	function stateArr(sl: StateList): StateId[] {
+		return sl.values().toArray();
+	}
 
 
 	class StateBase {
@@ -636,7 +655,7 @@ export namespace GameStates {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
 
-			if (desc.isDone()) return [];
+			if (!trace && desc.isDone()) return [];
 
 			if (trace) {
 				if (desc!.next == undefined) {
@@ -698,7 +717,6 @@ export namespace GameStates {
 				return Array.from(theSet);
 			}
 
-
 		// states that are meant to grow - their followers are not known yet
 		getTips(): StateList {
 			return makeStateList(this.descriptors.filter(d => d.next == undefined).map(d => d.id));
@@ -725,6 +743,10 @@ export namespace GameStates {
 			this.descriptors.forEach(x => this.processNonfinal(x));
 		}
 		
+		rateForColdness(): void {
+			this.descriptors.forEach(x => this.processForColdness(x));
+		}
+
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
 
@@ -737,14 +759,7 @@ export namespace GameStates {
 			const fdiffsSorted = fdiffs.filter(n => n != undefined).toSorted((a,b) => a-b); // undefined goes to end when sorting
 			const hasUndefined = (fdiffs.at(-1) == undefined);
 
-			let bestResult: number|undefined = undefined;
-
-			if (mover == 0) {
-				bestResult = fdiffsSorted.at(-1);
-			}
-			else { // mover == 1
-				bestResult = fdiffsSorted.at(0);
-			}
+			const bestResult = bestForPlayer(fdiffs, mover);
 
 			const ratings = this.followersRatings(desc.id);
 			const has0 = ratings.includes('0');
@@ -754,7 +769,6 @@ export namespace GameStates {
 
 			if (has0 || has1 || hasD) {
 				let rating = 'U' as GameRating;
-				//const mover = desc.state.moves;
 
 				if (mover == 0) {
 					if (has0) rating = '0';
@@ -780,30 +794,37 @@ export namespace GameStates {
 
 		}
 
-		pointHist(states: StateList): number {
-			const groupMap = Map.groupBy(this.descriptors, d => d.category + '_' + d.state.maxPoints().toString(36));
-			const histMap = new Map(groupMap.entries().map(a => [a[0], a[1].length]));
 
-		 	const maxPointValues = states.values().toArray().map(s => this.getDesc(s)).map(d => d.state.maxPoints());
+		processForColdness(desc: StateDesc): void {
+					// TODO: not clear if coldness is a valid idea
+					return;
 
-		 	const grouped = Map.groupBy(this.descriptors, d => d.state.maxPoints());
+			if (desc.next == undefined) return;
+				
+			const fds = this.getFollowerDescs(desc.id);
+			const mover = desc.state.moves;
+			const rating = desc.rating;
 
-		 	const mpGroups = Map.groupBy(maxPointValues, x => x);
-		 	const mpSorted = mpGroups.entries().toArray().map(arr => [arr[0], arr[1].length]).sort((a,b) => a[0]-b[0]);
+			// If there's a winning follower, non-winning followers become cold
+			// mover == 0 && rating == '0' => UD1 cold
+			// mover == 1 && rating == '1' => UD0 cold
 
-		 	const accum = mpSorted.map(a => a[1]);
-		 	let sum = 0;
-		 	for (let i = 0; i < accum.length; i++) {
-		 		sum += accum[i];
-		 		accum[i] = sum;
-		 	}
+			// If there's no winnning but a draw, non-drawing followers become cold
+			// mover == 0 && rating == 'D' => U1 cold
+			// mover == 1 && rating == 'D' => U0 cold
 
-		 	const thr = 0; //0.25 * sum; //sum/2;
-		 	const start = accum.findIndex(x => x >= thr);
+			let coldRatings = [''];
 
-		 	return mpSorted[start][0];
+			if (mover == 0 && rating == '0') coldRatings == 'UD1'.split('');
+			if (mover == 0 && rating == '1') return;//coldRatings == 'UD1'.split('');
+			if (mover == 0 && rating == 'D') coldRatings == 'U1'.split('');
+
+			if (mover == 1 && rating == '0') return;
+			if (mover == 1 && rating == '1') coldRatings == 'UD0'.split('');
+			if (mover == 1 && rating == 'D') coldRatings == 'U0'.split('');
+
+
 		}
-
 	}
 
 
@@ -816,6 +837,7 @@ export namespace GameStates {
 		finished: boolean = false;
 		stepNum = 0;
 
+			latestList = makeStateList([0]);
 			pointThreshold = 0;
 
 		// Needed for interface compliance
@@ -870,24 +892,33 @@ export namespace GameStates {
 		}
 
 			expand_New(): void {
+
 				const thr = this.pointThreshold;
 				const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
 
-				const nextStates = this.runDepth(startStates, 4);
+						console.log(`starting with size ${getStateListSize(startStates)}`);
 
-				// for (let i = 0; i < 4; i++) {
-				// 	this.stateBase.getTipsAtLeast(this.pointThreshold);
-				// 	this.expandOnce(this.pointThreshold);
-				// }
+					if (false) {
+							console.time('futures');
+						const allTips = this.stateBase.getTipDescs();
+							console.log( `  tip set ${(allTips.length)}`)
+						allTips.forEach(d => this.exploreDesc(d, 2)); // search each to depth 2
+							console.timeEnd('futures');
+
+							// After exploration allTips are no longer tips!
+							const scores = allTips.filter(d => d.futureScore != undefined).map(d => d.futureScore!);
+							scores.sort((a,b) => a-b);
+
+							console.log(` fs range [${scores.at(0)}:${scores.at(-1)}]`);
+					}
+
+				const nextStates = this.runDepth(startStates, 4);
 
 				const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
 				const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
 
 				this.pointThreshold = currentMaxP - 3;
-
-
-						//	this.runDepth(nextStates, 2);
-
+				this.latestList = nextStates;
 
 				console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
 			}
@@ -941,17 +972,25 @@ export namespace GameStates {
 		}
 
 		// TODO
-		runDepth(states: StateList, depth: number): StateList {
+		runDepth(states: StateList, depth: number, log: boolean = true): StateList {
 			let currentStates = states;
 
 			for (let i = 0; i < depth; i++) {
-					console.time('exp');
-				currentStates = this.stateBase.genBatchFollowers(currentStates);
-				console.log(`  setsize ${getStateListSize(currentStates)}`);
-					console.timeEnd('exp');
+				if (log) console.time('exp');
+				currentStates = this.stateBase.genBatchFollowers(currentStates, !log); 
+				if (log) console.log(`  setsize ${getStateListSize(currentStates)}`);
+				if (log) console.timeEnd('exp');
 			}
 
 			return currentStates;
+		}
+
+		exploreDesc(desc: StateDesc, depth: number, trace: boolean = false): void {
+			const mover = desc.state.moves;
+			const futures = this.runDepth(makeStateList([desc.id]), 2, !trace);
+			const futureDPoints = stateArr(futures).map(s => this.stateBase.getDesc(s).diffP).filter(n => n != undefined).toSorted((a,b) => a-b);
+
+			desc.futureScore = mover == 0 ? futureDPoints.at(-1) : futureDPoints.at(0);
 		}
 
 
@@ -970,6 +1009,14 @@ export namespace GameStates {
 			}
 			
 			console.timeEnd('rating');
+		}
+
+		propagateColdness(): void {
+			console.time('coldness');
+
+				this.stateBase.rateForColdness();
+
+			console.timeEnd('coldness');
 		}
 
 
@@ -1001,9 +1048,6 @@ export namespace GameStates {
 				const pmr = pointMap.entries().toArray().toSorted((a,b) => a[0] - b[0]);
 				console.log(pmr.map(a => a[0]).join(', '));
 				console.log(pmr.map(a => a[1].length).join(', '));
-
-						//			this.expandSinglePath(([this.stateBase.descriptors[0]!]));
-
 		}
 
 		// follow the winning sequence of moves
@@ -1019,7 +1063,6 @@ export namespace GameStates {
 
 			while (true) {
 				const img = currentDesc.state.niceString();
-
 				const mover = currentDesc.state.moves;
 
 				console.log(`${currentDesc.id}: ` + img);
@@ -1028,34 +1071,29 @@ export namespace GameStates {
 				const fnums = currentDesc.next!;
 				const fds = fnums.map(n => this.stateBase.getDesc(n));
 
+						fds.forEach(d => this.exploreDesc(d,2,true)); // trace mode
+
+						fds.sort((da,db) => compareNumbers(da.finalDiff, db.finalDiff));
+
 
 				console.log("  C " + fds.map(d => d.rating).join(', '));
 				console.log("  d " + fds.map(d => d.diffP).join(', '));
 				console.log("  f " + fds.map(d => d.finalDiff).join(', '));
+				console.log("  s " + fds.map(d => d.futureScore).join(', '));
 
+				const fdiffs = fds.map(d => d.finalDiff);
+				const ediffs = fds.map(d => d.diffP);
 
-				const fdiffs = fds.map(d => d.finalDiff).filter(x => x != undefined);
-				const ediffs = fds.map(d => d.diffP).filter(x => x != undefined);
+				const bestEdiff = bestForPlayer(ediffs, mover);
+				const bestFdiff = bestForPlayer(fdiffs, mover);
 
-				const diffs = estimate ? ediffs : fdiffs;
-
-				const diffsSorted = diffs.toSorted((a,b) => a-b);
-				const bestDiff = (currentDesc.state.moves == 0) ? diffsSorted.at(-1)! : diffsSorted.at(0)!;
-
-					fdiffs.sort((a,b) => a-b);
-					ediffs.sort((a,b) => a-b);
-
-				const bestEdiff = (currentDesc.state.moves == 0) ? ediffs.at(-1)! : ediffs.at(0)!;
-				const bestFdiff = (currentDesc.state.moves == 0) ? fdiffs.at(-1)! : fdiffs.at(0)!;
-
-
-				console.log(`[${diffs}], [${diffsSorted}]: bestdiff = (${bestEdiff}, ${bestFdiff})`);
+				console.log(`bestdiff = (${bestEdiff}, ${bestFdiff})`);
 
 						currentDesc.state.prospectPoints(mover);
 
 				const chosenDesc = estimate ?
-															fds.find(d => (!visited.includes(d.id) &&  d.diffP == bestDiff))!
-														: fds.find(d => (!visited.includes(d.id) &&  d.finalDiff == bestDiff))!;
+															fds.find(d => (!visited.includes(d.id) && d.diffP == bestEdiff))!
+														: fds.find(d => (!visited.includes(d.id) && d.finalDiff == bestFdiff))!;
 
 				currentDesc = chosenDesc!;
 
