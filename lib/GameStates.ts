@@ -823,6 +823,9 @@ export namespace GameStates {
 		}
 
 		runStep(): void {
+				this.runStep_New();
+				return;
+
 			if (this.finished) return;
 
 			console.log('> Step ' + this.stepNum);
@@ -837,16 +840,24 @@ export namespace GameStates {
 				this.finished = true;
 			}
 
-
-
 			this.stepNum++;
 		}
 
+		runStep_New(): void {
+			if (this.finished) return;
 
-		findPointThreshold(): number {
-			const newFront = this.stateBase.getTips();
-			console.log(`   setsize ${getStateListSize(newFront)}`);
-			return this.stateBase.pointHist(newFront);
+			console.log('> Step ' + this.stepNum);
+
+			this.expand_New();
+			this.propagateStates();
+			this.stats();
+
+			if (this.stateBase.descriptors[0]!.category == 'falls') {
+				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
+				this.finished = true;
+			}
+
+			this.stepNum++;
 		}
 
 		expand(): void {
@@ -854,13 +865,33 @@ export namespace GameStates {
 			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
 			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
 
-
 			this.pointThreshold = currentMaxP - 3;
-
 			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
-
-				//	this.runDepth( this.stateBase.getTips() , 2);
 		}
+
+			expand_New(): void {
+				const thr = this.pointThreshold;
+				const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
+
+				const nextStates = this.runDepth(startStates, 4);
+
+				// for (let i = 0; i < 4; i++) {
+				// 	this.stateBase.getTipsAtLeast(this.pointThreshold);
+				// 	this.expandOnce(this.pointThreshold);
+				// }
+
+				const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
+				const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
+
+				this.pointThreshold = currentMaxP - 3;
+
+
+						//	this.runDepth(nextStates, 2);
+
+
+				console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
+			}
+
 
 		expandTimes(times: number): void {
 			const thr = this.pointThreshold;
@@ -914,7 +945,10 @@ export namespace GameStates {
 			let currentStates = states;
 
 			for (let i = 0; i < depth; i++) {
+					console.time('exp');
 				currentStates = this.stateBase.genBatchFollowers(currentStates);
+				console.log(`  setsize ${getStateListSize(currentStates)}`);
+					console.timeEnd('exp');
 			}
 
 			return currentStates;
