@@ -568,6 +568,8 @@ export namespace GameStates {
 
 			futureScore?: number;
 
+			hot = false;
+
 
 		isDone(): boolean {
 			return this.category == 'falls' || this.category == 'final';
@@ -671,6 +673,27 @@ export namespace GameStates {
 			return desc!.next!;
 		}
 
+		// This mode is trace always
+		getInterestingFollowers(state: StateId, trace__: boolean = true): StateId[] {
+			const trace = true;
+			const desc = this.descriptors[state];
+			if (desc == undefined) throw new Error("State not existing");
+
+			if (!desc.isDone()) return [];
+
+					// If this desc weren't interesting, it wouldn't be followed
+					desc.hot = true;
+
+			if (desc!.next == undefined) {
+				return [];				
+			}
+
+			const fds = this.getFollowerDescs(state).filter(d => d.rating == desc.rating);
+
+			return fds.map(d => d.id);
+		}
+
+
 		makeIds(states: (CardState|undefined)[]): StateId[] {
 			const nextIds: StateId[] = [];
 			
@@ -716,6 +739,13 @@ export namespace GameStates {
 				const flatArr = input.forEach(x => this.getFollowers(x, trace).forEach(s => theSet.add(s) ) );
 				return Array.from(theSet);
 			}
+
+		genInterestingFollowers(input: StateList, trace: boolean = false): StateList {
+			const flatArr = input.values().map(x => this.getInterestingFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
+			const stateSet = new Set<StateId>(flatArr); 
+			const result = stateSet;
+			return result;
+		}
 
 		// states that are meant to grow - their followers are not known yet
 		getTips(): StateList {
@@ -784,8 +814,8 @@ export namespace GameStates {
 				}
 
 				desc.finalDiff = bestResult;
-
 				desc.rating = rating;
+
 				if (rating != 'U') {
 					if (desc.finalDiff == undefined) throw new Error("unknown diff!");
 					desc.category = 'falls';
@@ -837,8 +867,8 @@ export namespace GameStates {
 		finished: boolean = false;
 		stepNum = 0;
 
-			latestList = makeStateList([0]);
-			pointThreshold = 0;
+		latestList = makeStateList([0]);
+		pointThreshold = 0;
 
 		// Needed for interface compliance
 		moveImpl(): void {
@@ -851,7 +881,6 @@ export namespace GameStates {
 			if (this.finished) return;
 
 			console.log('> Step ' + this.stepNum);
-
 
 			this.expand();
 			this.propagateStates();
@@ -892,7 +921,6 @@ export namespace GameStates {
 		}
 
 			expand_New(): void {
-
 				const thr = this.pointThreshold;
 				const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
 
@@ -943,7 +971,7 @@ export namespace GameStates {
 
 
 		expandSinglePath(input: StateDesc[]): void {
-				const tips = input;//= this.stateBase.getTipDescs();
+				const tips = input;
 				tips.sort((a,b) => Math.abs(a.diffP) - Math.abs(b.diffP));
 
 				let currentTip = tips.at(-1)!;
@@ -971,8 +999,8 @@ export namespace GameStates {
 				console.log(`expanded steps: ${ct}`);
 		}
 
-		// TODO
-		runDepth(states: StateList, depth: number, log: boolean = true): StateList {
+		runDepth(states: StateList, depth: number, trace: boolean = false): StateList {
+			const log = !trace;
 			let currentStates = states;
 
 			for (let i = 0; i < depth; i++) {
@@ -987,7 +1015,7 @@ export namespace GameStates {
 
 		exploreDesc(desc: StateDesc, depth: number, trace: boolean = false): void {
 			const mover = desc.state.moves;
-			const futures = this.runDepth(makeStateList([desc.id]), 2, !trace);
+			const futures = this.runDepth(makeStateList([desc.id]), 2, trace);
 			const futureDPoints = stateArr(futures).map(s => this.stateBase.getDesc(s).diffP).filter(n => n != undefined).toSorted((a,b) => a-b);
 
 			desc.futureScore = mover == 0 ? futureDPoints.at(-1) : futureDPoints.at(0);
@@ -1071,10 +1099,8 @@ export namespace GameStates {
 				const fnums = currentDesc.next!;
 				const fds = fnums.map(n => this.stateBase.getDesc(n));
 
-						fds.forEach(d => this.exploreDesc(d,2,true)); // trace mode
-
-						fds.sort((da,db) => compareNumbers(da.finalDiff, db.finalDiff));
-
+				fds.forEach(d => this.exploreDesc(d,2,true)); // trace mode
+				fds.sort((da,db) => compareNumbers(da.finalDiff, db.finalDiff));
 
 				console.log("  C " + fds.map(d => d.rating).join(', '));
 				console.log("  d " + fds.map(d => d.diffP).join(', '));
@@ -1110,6 +1136,46 @@ export namespace GameStates {
 			console.log(currentDesc)
 		}
 
+
+		traceHot(): void {
+			console.time('TraceHot');
+			
+			const winner = this.stateBase.descriptors[0].rating;
+			const initialDesc = this.stateBase.descriptors[0]!;
+
+			let currentSet = makeStateList([initialDesc.id]);
+
+			let ct = 0;
+			while (ct < 34 && getStateListSize(currentSet) > 0) {
+				console.log(getStateListSize(currentSet));
+
+				// reject uninteresting ones
+				const filteredArr = stateArr(currentSet).filter(s => this.stateBase.getDesc(s).category != 'unknown');
+				const filteredSet = makeStateList(filteredArr);
+
+				currentSet = this.stateBase.genInterestingFollowers(filteredSet, true);
+				ct++;
+			}
+
+				if (false) {
+				 const lastArr = stateArr(currentSet);
+				 const exampleSet1 = makeStateList([lastArr[0]]);
+				 const exampleSet2 = this.stateBase.genBatchFollowers(exampleSet1, true);
+				 const exampleSet3 = this.stateBase.genBatchFollowers(exampleSet2, true);
+				 const exampleSet4 = this.stateBase.genBatchFollowers(exampleSet3, true);
+
+				 	console.log(stateArr(exampleSet1));
+				 	console.log(stateArr(exampleSet2));
+				 	console.log(stateArr(exampleSet3));
+				 	console.log(stateArr(exampleSet4));
+
+				 	console.log(stateArr(exampleSet1).map(s => this.stateBase.getDesc(s).state.niceString()).join('\n') + '\n');
+				 	console.log(stateArr(exampleSet2).map(s => this.stateBase.getDesc(s).state.niceString()).join('\n') + '\n');
+				 	console.log(stateArr(exampleSet3).map(s => this.stateBase.getDesc(s).state.niceString()).join('\n') + '\n');
+				}
+
+			console.timeEnd('TraceHot');
+		}
 
 	}
 

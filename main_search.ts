@@ -25,8 +25,10 @@ console.log(process.memoryUsage());
 	waveN.analyzeLatest();
 
 
-	console.log('\nTrace precise\n');
-	waveN.traceGame(false);
+	waveN.traceHot();
+
+	//console.log('\nTrace precise\n');
+	//waveN.traceGame(false);
 
 	 // console.log('\nTrace estimate\n');
 	 // waveN.traceGame(true);
