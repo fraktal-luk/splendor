@@ -385,8 +385,6 @@ export namespace GameStates {
 
 	const DEFAULT_TABLE_CARDS_SHORT = new TableCardsShort([1, 2, 3]);
 
-
-
 		export class TableCards implements StateValue<TableCards> {
 			readonly stackNums: number[];
 			readonly spread: Card[]; // Cards seen on table
@@ -443,7 +441,6 @@ export namespace GameStates {
 
 			return new TableCards(ss, sp);
 		}
-
 
 
 	export class CardState implements StateValue<CardState> {
@@ -835,14 +832,6 @@ export namespace GameStates {
 			const mover = desc.state.moves;
 			const rating = desc.rating;
 
-			// If there's a winning follower, non-winning followers become cold
-			// mover == 0 && rating == '0' => UD1 cold
-			// mover == 1 && rating == '1' => UD0 cold
-
-			// If there's no winnning but a draw, non-drawing followers become cold
-			// mover == 0 && rating == 'D' => U1 cold
-			// mover == 1 && rating == 'D' => U0 cold
-
 			let coldRatings = [''];
 
 			if (mover == 0 && rating == '0') coldRatings == 'UD1'.split('');
@@ -875,9 +864,6 @@ export namespace GameStates {
 		}
 
 		runStep(): void {
-				this.runStep_New();
-				return;
-
 			if (this.finished) return;
 
 			console.log('> Step ' + this.stepNum);
@@ -894,62 +880,36 @@ export namespace GameStates {
 			this.stepNum++;
 		}
 
-		runStep_New(): void {
-			if (this.finished) return;
-
-			console.log('> Step ' + this.stepNum);
-
-			this.expand_New();
-			this.propagateStates();
-			this.stats();
-
-			if (this.stateBase.descriptors[0]!.category == 'falls') {
-				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating}`);
-				this.finished = true;
-			}
-
-			this.stepNum++;
-		}
-
 		expand(): void {
-			this.expandTimes(4);
+			const thr = this.pointThreshold;
+			const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
+
+					console.log(`starting with size ${getStateListSize(startStates)}`);
+
+				if (false) {
+						console.time('futures');
+					const allTips = this.stateBase.getTipDescs();
+						console.log( `  tip set ${(allTips.length)}`)
+					allTips.forEach(d => this.exploreDesc(d, 2)); // search each to depth 2
+						console.timeEnd('futures');
+
+						// After exploration allTips are no longer tips!
+						const scores = allTips.filter(d => d.futureScore != undefined).map(d => d.futureScore!);
+						scores.sort((a,b) => a-b);
+
+						console.log(` fs range [${scores.at(0)}:${scores.at(-1)}]`);
+				}
+
+			const nextStates = this.runDepth(startStates, 4);
+
 			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
 			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
 
 			this.pointThreshold = currentMaxP - 3;
+			this.latestList = nextStates;
+
 			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
 		}
-
-			expand_New(): void {
-				const thr = this.pointThreshold;
-				const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
-
-						console.log(`starting with size ${getStateListSize(startStates)}`);
-
-					if (false) {
-							console.time('futures');
-						const allTips = this.stateBase.getTipDescs();
-							console.log( `  tip set ${(allTips.length)}`)
-						allTips.forEach(d => this.exploreDesc(d, 2)); // search each to depth 2
-							console.timeEnd('futures');
-
-							// After exploration allTips are no longer tips!
-							const scores = allTips.filter(d => d.futureScore != undefined).map(d => d.futureScore!);
-							scores.sort((a,b) => a-b);
-
-							console.log(` fs range [${scores.at(0)}:${scores.at(-1)}]`);
-					}
-
-				const nextStates = this.runDepth(startStates, 4);
-
-				const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
-				const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
-
-				this.pointThreshold = currentMaxP - 3;
-				this.latestList = nextStates;
-
-				console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
-			}
 
 
 		expandTimes(times: number): void {
@@ -1030,23 +990,17 @@ export namespace GameStates {
 			while (true) {
 				this.stateBase.rateNonfinals();
 				const newDone =	this.stateBase.descriptors.filter(x => x.isDone()).length;
-
 				if (newDone == nDone) break;
-
 				nDone = newDone;
 			}
-			
 			console.timeEnd('rating');
 		}
 
 		propagateColdness(): void {
 			console.time('coldness');
-
-				this.stateBase.rateForColdness();
-
+			this.stateBase.rateForColdness();
 			console.timeEnd('coldness');
 		}
-
 
 		stats(): void {
 			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
@@ -1115,7 +1069,7 @@ export namespace GameStates {
 
 				console.log(`bestdiff = (${bestEdiff}, ${bestFdiff})`);
 
-						currentDesc.state.prospectPoints(mover);
+				currentDesc.state.prospectPoints(mover);
 
 				const chosenDesc = estimate ?
 															fds.find(d => (!visited.includes(d.id) && d.diffP == bestEdiff))!
@@ -1135,7 +1089,6 @@ export namespace GameStates {
 			console.log(`${currentDesc.id}: ` + img);
 			console.log(currentDesc)
 		}
-
 
 		traceHot(): void {
 			console.time('TraceHot');
