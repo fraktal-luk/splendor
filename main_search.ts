@@ -28,8 +28,11 @@ console.log(process.memoryUsage());
 	waveN.traceHot();
 
 	//console.log('\nTrace precise\n');
-	//waveN.traceGame(false);
+	waveN.traceGame(false);
+
+	console.log('\n\n\nTrace single');
 
 	 // console.log('\nTrace estimate\n');
 	 // waveN.traceGame(true);
+	waveN.traceSingle();
 

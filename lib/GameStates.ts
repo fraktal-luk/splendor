@@ -884,21 +884,7 @@ export namespace GameStates {
 			const thr = this.pointThreshold;
 			const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
 
-					console.log(`starting with size ${getStateListSize(startStates)}`);
-
-				if (false) {
-						console.time('futures');
-					const allTips = this.stateBase.getTipDescs();
-						console.log( `  tip set ${(allTips.length)}`)
-					allTips.forEach(d => this.exploreDesc(d, 2)); // search each to depth 2
-						console.timeEnd('futures');
-
-						// After exploration allTips are no longer tips!
-						const scores = allTips.filter(d => d.futureScore != undefined).map(d => d.futureScore!);
-						scores.sort((a,b) => a-b);
-
-						console.log(` fs range [${scores.at(0)}:${scores.at(-1)}]`);
-				}
+				console.log(`starting with size ${getStateListSize(startStates)}`);
 
 			const nextStates = this.runDepth(startStates, 4);
 
@@ -911,61 +897,14 @@ export namespace GameStates {
 			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
 		}
 
-
-		expandTimes(times: number): void {
-			const thr = this.pointThreshold;
-			for (let i = 0; i < times; i++) this.expandOnce(thr);
-		}
-
-
-		expandOnce(expansionThr: number): void {
-			for (const c of [0,]) {
-					console.time('expand');
-				const pointMin = 0;//this.findPointThreshold();
-				this.active = this.stateBase.getTipsAtLeast(expansionThr);
-						console.log(`   ${getStateListSize(this.active)}`);
-				this.stateBase.genBatchFollowers(this.active);
-					console.timeEnd('expand');
-			}
-		}
-
-
-		expandSinglePath(input: StateDesc[]): void {
-				const tips = input;
-				tips.sort((a,b) => Math.abs(a.diffP) - Math.abs(b.diffP));
-
-				let currentTip = tips.at(-1)!;
-				let ct = 0;
-
-				while (currentTip.category != 'final') {
-					ct++;
-
-					this.stateBase.genBatchFollowers(makeStateList([currentTip.id]));//.map(x => this.stateBase.getDesc(x));
-					const fds = this.stateBase.getFollowerDescs(currentTip.id);
-					const mover = currentTip.state.moves;
-
-					fds.sort((a,b) => (a.diffP) - (b.diffP));
-
-					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
-
-					console.log(`substep ${ct}`);
-					console.log('Id:  ' + fds.map(d => d.id).join(', '));
-					console.log('dP:  ' + fds.map(d => d.diffP).join(', '));
-					console.log(`  choose ${currentTip.id} (${currentTip.diffP})`);
-					console.log(`  ${currentTip.state.niceString()}`);
-					console.log();
-
-				}
-				console.log(`expanded steps: ${ct}`);
-		}
-
+		// n steps of followers
 		runDepth(states: StateList, depth: number, trace: boolean = false): StateList {
 			const log = !trace;
 			let currentStates = states;
 
 			for (let i = 0; i < depth; i++) {
 				if (log) console.time('exp');
-				currentStates = this.stateBase.genBatchFollowers(currentStates, !log); 
+				currentStates = this.stateBase.genBatchFollowers(currentStates, trace); 
 				if (log) console.log(`  setsize ${getStateListSize(currentStates)}`);
 				if (log) console.timeEnd('exp');
 			}
@@ -973,15 +912,8 @@ export namespace GameStates {
 			return currentStates;
 		}
 
-		exploreDesc(desc: StateDesc, depth: number, trace: boolean = false): void {
-			const mover = desc.state.moves;
-			const futures = this.runDepth(makeStateList([desc.id]), 2, trace);
-			const futureDPoints = stateArr(futures).map(s => this.stateBase.getDesc(s).diffP).filter(n => n != undefined).toSorted((a,b) => a-b);
 
-			desc.futureScore = mover == 0 ? futureDPoints.at(-1) : futureDPoints.at(0);
-		}
-
-
+		// Marks as done if a state has a known and determined future
 		propagateStates(): void {
 			console.time('rating');
 
@@ -996,12 +928,7 @@ export namespace GameStates {
 			console.timeEnd('rating');
 		}
 
-		propagateColdness(): void {
-			console.time('coldness');
-			this.stateBase.rateForColdness();
-			console.timeEnd('coldness');
-		}
-
+		// Refers to whole descriptor base, not a chosen subset
 		stats(): void {
 			const pts = this.stateBase.descriptors.map(x => x.state.maxPoints());
 			const maxPts = pts.reduce((a,b) => Math.max(a,b), 0);
@@ -1025,12 +952,62 @@ export namespace GameStates {
 			console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 		}
 
-		analyzeLatest(): void {
-				const pointMap = Map.groupBy(this.stateBase.getTipDescs(), d => d.maxP);
-				const pmr = pointMap.entries().toArray().toSorted((a,b) => a[0] - b[0]);
-				console.log(pmr.map(a => a[0]).join(', '));
-				console.log(pmr.map(a => a[1].length).join(', '));
+
+
+
+			traceSingle(): void {
+					this.expandSinglePath([this.stateBase.descriptors[0]!]);
+			}
+
+
+		expandSinglePath(input: StateDesc[]): void {
+				const tips = input;
+				tips.sort((a,b) => Math.abs(a.diffP) - Math.abs(b.diffP));
+
+				let currentTip = tips.at(-1)!;
+				let ct = 0;
+
+				while (currentTip.category != 'final') {
+					ct++;
+
+					this.stateBase.genBatchFollowers(makeStateList([currentTip.id]));
+					const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
+					const mover = currentTip.state.moves;
+
+					fds.sort((a,b) => (a.diffP) - (b.diffP));
+
+					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
+
+					console.log(`substep ${ct}`);
+					console.log(`  ${currentTip.state.niceString()}`);
+					console.log(currentTip);
+
+					console.log('Id:  ' + fds.map(d => d.id).join(', '));
+					console.log('dP:  ' + fds.map(d => d.diffP).join(', '));
+					console.log(`  choose ${currentTip.id} (${currentTip.diffP})`);
+
+
+					console.log();
+
+				}
+				console.log(`expanded steps: ${ct}`);
 		}
+
+
+			// UNUSED
+			propagateColdness(): void {
+				console.time('coldness');
+				this.stateBase.rateForColdness();
+				console.timeEnd('coldness');
+			}
+
+			// UNUSED
+			analyzeLatest(): void {
+					const pointMap = Map.groupBy(this.stateBase.getTipDescs(), d => d.maxP);
+					const pmr = pointMap.entries().toArray().toSorted((a,b) => a[0] - b[0]);
+					console.log(pmr.map(a => a[0]).join(', '));
+					console.log(pmr.map(a => a[1].length).join(', '));
+			}
 
 		// follow the winning sequence of moves
 		traceGame(estimate: boolean): void {
@@ -1053,7 +1030,6 @@ export namespace GameStates {
 				const fnums = currentDesc.next!;
 				const fds = fnums.map(n => this.stateBase.getDesc(n));
 
-				fds.forEach(d => this.exploreDesc(d,2,true)); // trace mode
 				fds.sort((da,db) => compareNumbers(da.finalDiff, db.finalDiff));
 
 				console.log("  C " + fds.map(d => d.rating).join(', '));
