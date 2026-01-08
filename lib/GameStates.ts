@@ -956,41 +956,60 @@ export namespace GameStates {
 
 
 			traceSingle(): void {
-					this.expandSinglePath([this.stateBase.descriptors[0]!]);
+					const pathHistory = this.expandSinglePath([this.stateBase.descriptors[0]!]);
+
+					this.propagateStates();
+
+					// Trace again while ratings are known 
+					//this.expandSinglePath([this.stateBase.descriptors[0]!]);
+
+					pathHistory.forEach(x => this.TMP_print(x));
 			}
 
 
-		expandSinglePath(input: StateDesc[]): void {
+		expandSinglePath(input: StateDesc[]): StateDesc[] {
+				const res: StateDesc[] = [];
+
 				const tips = input;
 				tips.sort((a,b) => Math.abs(a.diffP) - Math.abs(b.diffP));
 
 				let currentTip = tips.at(-1)!;
 				let ct = 0;
 
-				while (currentTip.category != 'final') {
+				while (ct < 50) {//currentTip.category != 'final') {
+						res.push(currentTip);
+
 					ct++;
 
 					this.stateBase.genBatchFollowers(makeStateList([currentTip.id]));
-					const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
 					const mover = currentTip.state.moves;
+					const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
 
 					fds.sort((a,b) => (a.diffP) - (b.diffP));
 
-					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
-
 					console.log(`substep ${ct}`);
-					console.log(`  ${currentTip.state.niceString()}`);
-					console.log(currentTip);
 
-					console.log('Id:  ' + fds.map(d => d.id).join(', '));
-					console.log('dP:  ' + fds.map(d => d.diffP).join(', '));
+					// console.log(`  ${currentTip.state.niceString()}`);
+					// console.log(currentTip);
+					// console.log('Id:  ' + fds.map(d => d.id).join(', '));
+					// console.log('dP:  ' + fds.map(d => d.diffP).join(', '));
+					// console.log('ra:  ' + fds.map(d => d.rating).join(', '));
+
+					this.TMP_print(currentTip);
+
+
+						if (currentTip.category == 'final') break;
+
+
+					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
 					console.log(`  choose ${currentTip.id} (${currentTip.diffP})`);
-
-
 					console.log();
 
 				}
+
 				console.log(`expanded steps: ${ct}`);
+
+				return res;
 		}
 
 
@@ -1106,6 +1125,24 @@ export namespace GameStates {
 			console.timeEnd('TraceHot');
 		}
 
+
+		TMP_print(currentTip: StateDesc): void {
+				const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
+				fds.sort((a,b) => (a.diffP) - (b.diffP));
+
+				console.log(`  ${currentTip.state.niceString()}`);
+				console.log(currentTip);
+				console.log('Id:  ' + fds.map(d => d.id).join(', '));
+				console.log('dP:  ' + fds.map(d => d.diffP).join(', '));
+				console.log('ra:  ' + fds.map(d => d.rating).join(', '));
+				console.log();
+		}
+
 	}
+
+
+
+
+
 
 }
