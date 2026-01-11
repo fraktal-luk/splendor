@@ -920,18 +920,22 @@ export namespace GameStates {
 
 
 		// Marks as done if a state has a known and determined future
-		propagateStates(): void {
+		propagateStates(): number {
 			console.time('rating');
 
 			// Backtrack from final states
 			let nDone = 0;
+			let ct = 0;
 			while (true) {
+				ct++;
 				this.stateBase.rateNonfinals();
 				const newDone =	this.stateBase.descriptors.filter(x => x.isDone()).length;
 				if (newDone == nDone) break;
 				nDone = newDone;
 			}
 			console.timeEnd('rating');
+
+			return ct;
 		}
 
 		// Refers to whole descriptor base, not a chosen subset
@@ -963,6 +967,15 @@ export namespace GameStates {
 
 			traceSingle(): void {
 
+							this.stateBase.descriptors.forEach(d => 
+									{ 
+										if (d.category == 'falls') {
+											d.category = 'unknown';
+											d.rating = 'U';
+										}
+									}
+								);
+
 					const histories: StateDesc[][] = [];
 
 					let pathHistory: StateDesc[] = [];
@@ -972,18 +985,20 @@ export namespace GameStates {
 					while (ct < 3000) {
 						ct++;
 
-						console.log(`\nTracing path (${ct})`);
 
 						const newTrack = this.expandSinglePath([pivot]);
+
+						if (ct % 100 == 0) {
+							console.log(`\nTracing path (${ct})`);
 							console.log(pathHistory.map(d => d.id).join(', ') + "...");
 							console.log(newTrack.map(d => d.id).join(', '));
+						}
 
 						pathHistory = pathHistory.concat(newTrack);
 						histories.push([...pathHistory]);
 
-						this.propagateStates();
-
-						//pathHistory.forEach(x => this.TMP_print(x));
+						const propagationIters = this.propagateStates();
+								console.log(`Len: ${newTrack.length}, prop: ${propagationIters}`);
 
 						const lastUnk = pathHistory.findLast(x => x.rating == 'U')!;
 						const lastUnknownIndex = pathHistory.findLastIndex(x => x.rating == 'U')!;
@@ -993,7 +1008,7 @@ export namespace GameStates {
 									break;
 							}
 
-						console.log(`\nLast unknown is ${lastUnk.id}`);
+								//console.log(`\nLast unknown is ${lastUnk.id}`);
 
 						// now look at followers of lastUnk
 						this.stateBase.genBatchFollowers(desc2sl(lastUnk));
@@ -1011,6 +1026,8 @@ export namespace GameStates {
 
 
 		expandSinglePath(input: StateDesc[]): StateDesc[] {
+				console.time('singlepath');
+
 				const res: StateDesc[] = [];
 
 				const tips = input;
@@ -1035,13 +1052,17 @@ export namespace GameStates {
 
 						if (currentTip.category == 'final') break;
 
-					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
-					//console.log(`  choose ${currentTip.id} (${currentTip.diffP})`);
-					//console.log();
+					if (fds.length == 0) {
+						console.log('>>>> no followers! State is');
+						console.log(currentTip);
+					}
 
+					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
 				}
 
-				console.log(`expanded steps: ${ct}`);
+				//console.log(`expanded steps: ${ct}`);
+
+				console.timeEnd('singlepath');
 
 				return res;
 		}
