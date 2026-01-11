@@ -631,6 +631,12 @@ export namespace GameStates {
 	}
 
 
+	function desc2sl(sd: StateDesc): StateList {
+		return makeStateList([sd.id]);
+	}
+
+
+
 	class StateBase {
 		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
 		prevSize = 0;
@@ -956,14 +962,50 @@ export namespace GameStates {
 
 
 			traceSingle(): void {
-					const pathHistory = this.expandSinglePath([this.stateBase.descriptors[0]!]);
+					const histories: StateDesc[][] = [];
 
-					this.propagateStates();
+					let pathHistory: StateDesc[] = [];
+					let pivot = this.stateBase.descriptors[0]!;
 
-					// Trace again while ratings are known 
-					//this.expandSinglePath([this.stateBase.descriptors[0]!]);
+					let ct = 0;
+					while (ct < 15) {
+						ct++;
 
-					pathHistory.forEach(x => this.TMP_print(x));
+						console.log("\nTracing path");
+
+						const newTrack = this.expandSinglePath([pivot]);
+							console.log(pathHistory.map(d => d.id).join(', ') + "...");
+							console.log(newTrack.map(d => d.id).join(', '));
+
+						pathHistory = pathHistory.concat(newTrack);
+						histories.push([...pathHistory]);
+
+						this.propagateStates();
+
+						//pathHistory.forEach(x => this.TMP_print(x));
+
+						const lastUnk = pathHistory.findLast(x => x.rating == 'U')!;
+						const lastUnknownIndex = pathHistory.findLastIndex(x => x.rating == 'U')!;
+
+							if (lastUnknownIndex == -1) {
+									console.log('ok, all known!');
+									return;
+							}
+
+						console.log(`\nLast unknown is ${lastUnk.id}`);
+
+						// now look at followers of lastUnk
+						this.stateBase.genBatchFollowers(desc2sl(lastUnk));
+						const fds = this.stateBase.getFollowerDescs(lastUnk.id);
+						// one which is undefined too
+						pivot = fds.find(d => d.rating == 'U')!;
+
+						pathHistory = pathHistory.slice(0, lastUnknownIndex+1); // Cut what's after the lastUnk
+					}
+
+					//pathHistory = pathHistory.concat(this.expandSinglePath([pivot]));
+
+
 			}
 
 
@@ -981,29 +1023,20 @@ export namespace GameStates {
 
 					ct++;
 
-					this.stateBase.genBatchFollowers(makeStateList([currentTip.id]));
 					const mover = currentTip.state.moves;
+					this.stateBase.genBatchFollowers(makeStateList([currentTip.id]));
 					const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
 
 					fds.sort((a,b) => (a.diffP) - (b.diffP));
 
-					console.log(`substep ${ct}`);
-
-					// console.log(`  ${currentTip.state.niceString()}`);
-					// console.log(currentTip);
-					// console.log('Id:  ' + fds.map(d => d.id).join(', '));
-					// console.log('dP:  ' + fds.map(d => d.diffP).join(', '));
-					// console.log('ra:  ' + fds.map(d => d.rating).join(', '));
-
-					this.TMP_print(currentTip);
-
+				//	console.log(`substep ${ct}`);
+			//		this.TMP_print(currentTip);
 
 						if (currentTip.category == 'final') break;
 
-
 					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
-					console.log(`  choose ${currentTip.id} (${currentTip.diffP})`);
-					console.log();
+					//console.log(`  choose ${currentTip.id} (${currentTip.diffP})`);
+					//console.log();
 
 				}
 
@@ -1130,12 +1163,14 @@ export namespace GameStates {
 				const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
 				fds.sort((a,b) => (a.diffP) - (b.diffP));
 
-				console.log(`  ${currentTip.state.niceString()}`);
-				console.log(currentTip);
-				console.log('Id:  ' + fds.map(d => d.id).join(', '));
-				console.log('dP:  ' + fds.map(d => d.diffP).join(', '));
-				console.log('ra:  ' + fds.map(d => d.rating).join(', '));
-				console.log();
+					console.log(currentTip.id);
+
+				// console.log(`  ${currentTip.state.niceString()}`);
+				// console.log(currentTip);
+				// console.log('Id:  ' + fds.map(d => d.id).join(', '));
+				// console.log('dP:  ' + fds.map(d => d.diffP).join(', '));
+				// console.log('ra:  ' + fds.map(d => d.rating).join(', '));
+				// console.log();
 		}
 
 	}
