@@ -962,16 +962,17 @@ export namespace GameStates {
 
 
 			traceSingle(): void {
+
 					const histories: StateDesc[][] = [];
 
 					let pathHistory: StateDesc[] = [];
 					let pivot = this.stateBase.descriptors[0]!;
 
 					let ct = 0;
-					while (ct < 15) {
+					while (ct < 3000) {
 						ct++;
 
-						console.log("\nTracing path");
+						console.log(`\nTracing path (${ct})`);
 
 						const newTrack = this.expandSinglePath([pivot]);
 							console.log(pathHistory.map(d => d.id).join(', ') + "...");
@@ -989,7 +990,7 @@ export namespace GameStates {
 
 							if (lastUnknownIndex == -1) {
 									console.log('ok, all known!');
-									return;
+									break;
 							}
 
 						console.log(`\nLast unknown is ${lastUnk.id}`);
@@ -1005,7 +1006,7 @@ export namespace GameStates {
 
 					//pathHistory = pathHistory.concat(this.expandSinglePath([pivot]));
 
-
+					pathHistory.forEach(d => console.log(d));
 			}
 
 
