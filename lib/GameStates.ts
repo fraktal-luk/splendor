@@ -967,6 +967,7 @@ export namespace GameStates {
 
 			traceSingle(): void {
 
+							// Clear ratings to fnd out how long it takes to restore them
 							this.stateBase.descriptors.forEach(d => 
 									{ 
 										if (d.category == 'falls') {
@@ -982,33 +983,41 @@ export namespace GameStates {
 					let pivot = this.stateBase.descriptors[0]!;
 
 					let ct = 0;
-					while (ct < 3000) {
+					while (ct < 1000) {
 						ct++;
-
 
 						const newTrack = this.expandSinglePath([pivot]);
 
-						if (ct % 100 == 0) {
-							console.log(`\nTracing path (${ct})`);
+						//if (ct % 100 == 0)
+						{
+							const last = newTrack.at(-1)!;
+							console.log(`Tracing path (${ct}),  points ${last.state.ofPlayer(0).points}:${last.state.ofPlayer(1).points}`);
 							console.log(pathHistory.map(d => d.id).join(', ') + "...");
 							console.log(newTrack.map(d => d.id).join(', '));
+
+									console.log(pathHistory.map(d => `${d.id}: ` + d.state.niceString()).join('\n') + "\n...");
+									console.log(newTrack.map(d => `${d.id}: ` + d.state.niceString()).join('\n'));
+
+							if (ct > 2800 && ct < 2820) {
+								console.log('Points:')
+								console.log(pathHistory.map(d => `(${d.state.ofPlayer(0).points}:${d.state.ofPlayer(1).points})`).join(' ') + '...');
+							}
 						}
 
 						pathHistory = pathHistory.concat(newTrack);
 						histories.push([...pathHistory]);
 
 						const propagationIters = this.propagateStates();
-								console.log(`Len: ${newTrack.length}, prop: ${propagationIters}`);
-
 						const lastUnk = pathHistory.findLast(x => x.rating == 'U')!;
 						const lastUnknownIndex = pathHistory.findLastIndex(x => x.rating == 'U')!;
+
+								console.log(`cut: ${pathHistory.length - 1 - lastUnknownIndex}, Len: ${newTrack.length}, prop: ${propagationIters}`);
+								console.log(`Wins: ${newTrack.at(-1)!.rating}, last U moves: ${lastUnk.state.moves}\n`);
 
 							if (lastUnknownIndex == -1) {
 									console.log('ok, all known!');
 									break;
 							}
-
-								//console.log(`\nLast unknown is ${lastUnk.id}`);
 
 						// now look at followers of lastUnk
 						this.stateBase.genBatchFollowers(desc2sl(lastUnk));
@@ -1018,8 +1027,6 @@ export namespace GameStates {
 
 						pathHistory = pathHistory.slice(0, lastUnknownIndex+1); // Cut what's after the lastUnk
 					}
-
-					//pathHistory = pathHistory.concat(this.expandSinglePath([pivot]));
 
 					pathHistory.forEach(d => console.log(d));
 			}
@@ -1036,9 +1043,8 @@ export namespace GameStates {
 				let currentTip = tips.at(-1)!;
 				let ct = 0;
 
-				while (ct < 50) {//currentTip.category != 'final') {
+				while (ct < 150) {//currentTip.category != 'final') {
 						res.push(currentTip);
-
 					ct++;
 
 					const mover = currentTip.state.moves;
@@ -1047,41 +1053,18 @@ export namespace GameStates {
 
 					fds.sort((a,b) => (a.diffP) - (b.diffP));
 
-				//	console.log(`substep ${ct}`);
-			//		this.TMP_print(currentTip);
-
-						if (currentTip.category == 'final') break;
-
+					if (currentTip.category == 'final') break;
 					if (fds.length == 0) {
-						console.log('>>>> no followers! State is');
+						console.log('\n>>>> no followers! State is');
 						console.log(currentTip);
 					}
 
 					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
 				}
-
-				//console.log(`expanded steps: ${ct}`);
-
 				console.timeEnd('singlepath');
-
 				return res;
 		}
 
-
-			// UNUSED
-			propagateColdness(): void {
-				console.time('coldness');
-				this.stateBase.rateForColdness();
-				console.timeEnd('coldness');
-			}
-
-			// UNUSED
-			analyzeLatest(): void {
-					const pointMap = Map.groupBy(this.stateBase.getTipDescs(), d => d.maxP);
-					const pmr = pointMap.entries().toArray().toSorted((a,b) => a[0] - b[0]);
-					console.log(pmr.map(a => a[0]).join(', '));
-					console.log(pmr.map(a => a[1].length).join(', '));
-			}
 
 		// follow the winning sequence of moves
 		traceGame(estimate: boolean): void {
@@ -1159,23 +1142,6 @@ export namespace GameStates {
 				currentSet = this.stateBase.genInterestingFollowers(filteredSet, true);
 				ct++;
 			}
-
-				if (false) {
-				 const lastArr = stateArr(currentSet);
-				 const exampleSet1 = makeStateList([lastArr[0]]);
-				 const exampleSet2 = this.stateBase.genBatchFollowers(exampleSet1, true);
-				 const exampleSet3 = this.stateBase.genBatchFollowers(exampleSet2, true);
-				 const exampleSet4 = this.stateBase.genBatchFollowers(exampleSet3, true);
-
-				 	console.log(stateArr(exampleSet1));
-				 	console.log(stateArr(exampleSet2));
-				 	console.log(stateArr(exampleSet3));
-				 	console.log(stateArr(exampleSet4));
-
-				 	console.log(stateArr(exampleSet1).map(s => this.stateBase.getDesc(s).state.niceString()).join('\n') + '\n');
-				 	console.log(stateArr(exampleSet2).map(s => this.stateBase.getDesc(s).state.niceString()).join('\n') + '\n');
-				 	console.log(stateArr(exampleSet3).map(s => this.stateBase.getDesc(s).state.niceString()).join('\n') + '\n');
-				}
 
 			console.timeEnd('TraceHot');
 		}
