@@ -559,13 +559,16 @@ export namespace GameStates {
 		category: NodeCategory = 'unknown';
 		rating: GameRating = 'U';
 		
-		maxP = 0;
+		//maxP = 0;
 		diffP = 0;
 		finalDiff?: number = undefined;
 
-			futureScore?: number;
-
-			hot = false;
+		//futureScore?: number;
+		//	hot = false;
+		qqq = 6778;
+		ehf = 78933;
+		//fffff = 0.7884;
+		//7383 = 91;
 
 
 		isDone(): boolean {
@@ -583,7 +586,7 @@ export namespace GameStates {
 			const p0 = state.ofPlayer(0).points;
 			const p1 = state.ofPlayer(1).points;
 
-			this.maxP = Math.max(p0, p1);
+		//	this.maxP = state.maxPoints();// Math.max(p0, p1);
 			this.diffP = p0 - p1;
 
 			this.verifyFinal();
@@ -591,7 +594,7 @@ export namespace GameStates {
 		}
 		
 		verifyFinal(): void {
-			if (this.maxP < TMP_TH) return;
+			if (this.state.maxPoints() < TMP_TH) return;
 
 			if (this.state.moves == 0) {
 				this.next = [];
@@ -685,7 +688,7 @@ export namespace GameStates {
 			if (!desc.isDone()) return [];
 
 					// If this desc weren't interesting, it wouldn't be followed
-					desc.hot = true;
+					//desc.hot = true;
 
 			if (desc!.next == undefined) {
 				return [];				
@@ -894,10 +897,12 @@ export namespace GameStates {
 
 			const nextStates = this.runDepth(startStates, 4);
 
-			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
-			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxP).reduce((a,b) => Math.max(a, b), 0);
+			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.state.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
+			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.state.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 
-			this.pointThreshold = currentMaxP - 3;
+			const PARAM_TRIM_LOW = true;
+
+			this.pointThreshold = PARAM_TRIM_LOW ? 0 : currentMaxP - 3;
 			this.latestList = nextStates;
 
 			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
@@ -913,6 +918,13 @@ export namespace GameStates {
 				currentStates = this.stateBase.genBatchFollowers(currentStates, trace); 
 				if (log) console.log(`  setsize ${getStateListSize(currentStates)}`);
 				if (log) console.timeEnd('exp');
+
+				const PARAM_REJECT_KNOWN = false;
+
+				if (PARAM_REJECT_KNOWN) {
+					const filteredList = stateArr(currentStates).filter(x => this.stateBase.getDesc(x).rating == 'U');
+					currentStates = makeStateList(filteredList);
+				}
 			}
 
 			return currentStates;
@@ -1092,7 +1104,7 @@ export namespace GameStates {
 				console.log("  C " + fds.map(d => d.rating).join(', '));
 				console.log("  d " + fds.map(d => d.diffP).join(', '));
 				console.log("  f " + fds.map(d => d.finalDiff).join(', '));
-				console.log("  s " + fds.map(d => d.futureScore).join(', '));
+				//console.log("  s " + fds.map(d => d.futureScore).join(', '));
 
 				const fdiffs = fds.map(d => d.finalDiff);
 				const ediffs = fds.map(d => d.diffP);

@@ -20,7 +20,12 @@ for (let i = 0; i < 1 + 20 + 1    - 6; i++) {
 
 console.timeEnd('main');
 
+console.log(process.memoryUsage());
+
 	process.exit(0);
+
+
+
 
 	console.log('\n\n\nTrace single');
 
