@@ -22,6 +22,9 @@ console.timeEnd('main');
 
 console.log(process.memoryUsage());
 
+
+	waveN.traceGame(false);
+
 	process.exit(0);
 
 

@@ -881,7 +881,7 @@ export namespace GameStates {
 			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.state.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 
 
-			this.pointThreshold = PARAM_TRIM_LOW ? currentMaxTipP - 3 : 0;
+			this.pointThreshold = PARAM_TRIM_LOW ? currentMaxTipP /*- 3*/ : 0;
 			this.latestList = nextStates;
 
 			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
