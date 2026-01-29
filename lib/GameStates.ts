@@ -51,14 +51,14 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
-const PARAM_TMP_TH = 10;
+const PARAM_TMP_TH = 10 - 0;
 
 
 const PARAM_TRIM_LOW = true;
 
-const PARAM_COLUMN_WALL = /*2*/ 2;
+const PARAM_COLUMN_WALL = /*2*/ 4;
 
-const PARAM_RUN_DEPTH = /*4*/ 2;  // If no clipping, (PARAM_TRIM_LOW = true), depth doesnt matter
+const PARAM_RUN_DEPTH = /*4*/ 2;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
 
 const N_PLAYERS = 2;
 
@@ -115,12 +115,12 @@ export namespace GameStates {
 	export class PlayerCards implements StateValue<PlayerCards> {
 		readonly bonuses: TokenVec;
 		readonly points: number;
-		readonly reserved: Card[];
+		//readonly reserved: Card[];
 		
 		constructor(b: TokenVec, p: number, r: Card[]) {
 			this.bonuses = b;
 			this.points = p;
-			this.reserved = r;
+			//this.reserved = r;
 		}
 		
 		keyString(): string { return encodeNum2(this.points) + this.bonuses.str; }
@@ -139,7 +139,7 @@ export namespace GameStates {
 
 			const newBonuses = this.bonuses.incAt(ind).payGold(deficit);
 			const newPoints = this.points + POINT_TABLE[c]!;
-			return new PlayerCards(newBonuses, newPoints, this.reserved);
+			return new PlayerCards(newBonuses, newPoints, []);//this.reserved);
 		}
 		
 		takeUniversal(): PlayerCards {
@@ -334,7 +334,7 @@ export namespace GameStates {
 	export class TableCardsShort implements StateValue<TableCardsShort> {
 			rows: RowId[];
 
-			constructor(r: number[]) {
+			constructor(r: RowId[]) {
 				this.rows = r;
 			}
 
@@ -863,16 +863,6 @@ export namespace GameStates {
 
 			if (this.stateBase.descriptors[0]!.falls()) {
 				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating()}`);
-
-				// for (let i = 0; i < 1; i++) {
-				// 	const theKeys = this.stateBase.idMap.keys().toArray().map(x => x.substring(0));
-
-				// 	const states = theKeys.map(CardState.fromKeyString);
-				// }
-
-					//const bc = structuredClone(this.stateBase);
-
-
 				this.finished = true;
 			}
 
@@ -891,7 +881,7 @@ export namespace GameStates {
 			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.state.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 
 
-			this.pointThreshold = PARAM_TRIM_LOW ? 0 : currentMaxP - 3;
+			this.pointThreshold = PARAM_TRIM_LOW ? currentMaxTipP - 3 : 0;
 			this.latestList = nextStates;
 
 			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
@@ -908,6 +898,7 @@ export namespace GameStates {
 				if (log) console.log(`  setsize ${getStateListSize(currentStates)}`);
 				if (log) console.timeEnd('exp');
 
+				// Probably useless anyway!
 				const PARAM_REJECT_KNOWN = false;
 
 				if (PARAM_REJECT_KNOWN) {
@@ -965,6 +956,9 @@ export namespace GameStates {
 			const nD = this.stateBase.descriptors.filter(x => x.rating() == 'D').length;
 			const nU = this.stateBase.descriptors.filter(x => x.rating() == 'U').length;
 			console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
+
+			console.log(process.memoryUsage());
+
 		}
 
 
