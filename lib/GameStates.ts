@@ -51,10 +51,14 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
-const PARAM_COLUMN_WALL = 2;
 const PARAM_TMP_TH = 10;
 
-const PARAM_RUN_DEPTH = 4;
+
+const PARAM_TRIM_LOW = true;
+
+const PARAM_COLUMN_WALL = /*2*/ 2;
+
+const PARAM_RUN_DEPTH = /*4*/ 2;  // If no clipping, (PARAM_TRIM_LOW = true), depth doesnt matter
 
 const N_PLAYERS = 2;
 
@@ -451,9 +455,9 @@ export namespace GameStates {
 		readonly mpc: ManyPlayerCards;
 		readonly moves: number; 
 		
-		constructor(p: PlayerCards[], moves: number, ts: TableCardsShort) {
+		constructor(mp: ManyPlayerCards, moves: number, ts: TableCardsShort) {
 			this.tableCards_S = ts;
-			this.mpc = new ManyPlayerCards(p);
+			this.mpc = mp;//new ManyPlayerCards(p);
 			this.moves = moves;
 		}
 
@@ -467,9 +471,9 @@ export namespace GameStates {
 		}
 
 		static fromKeyString(s: string): CardState {
-			const tableCards_S = TableCardsShort.fromKeyString(s.slice(0,16)); // TODO: verify size
-			const playerCards = ManyPlayerCards.fromKeyString(s.substring(16)).arr;
-			return new CardState(playerCards, s.charCodeAt(15), tableCards_S);
+			const tableCards_S = TableCardsShort.fromKeyString(s.slice(0,/*16*/4)); // TODO: verify size
+			const playerCards = ManyPlayerCards.fromKeyString(s.substring(/*16*/4));
+			return new CardState(playerCards, s.charCodeAt(/*15*/3), tableCards_S);
 		}
 
 		playerKString(): string { return this.mpc.playerKString(); }
@@ -478,7 +482,7 @@ export namespace GameStates {
 
 		takeUniversal(): CardState {
 			const player = this.moves;
-			return new CardState(this.mpc.takeUniversal(player).arr, (player+1) % N_PLAYERS, this.tableCards_S); 
+			return new CardState(this.mpc.takeUniversal(player), (player+1) % N_PLAYERS, this.tableCards_S); 
 		}
 		
 		buyUniversal(ind: number): CardState|undefined {
@@ -493,7 +497,8 @@ export namespace GameStates {
 			if (newPlayerCards == undefined) return undefined;
 			
 			const mpa = this.mpc.arr.with(player, newPlayerCards);
-			return new CardState(mpa, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
+			const mpc = new ManyPlayerCards(mpa);
+			return new CardState(mpc, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
 
 		genNextBU(): (CardState|undefined)[] {			
@@ -531,7 +536,7 @@ export namespace GameStates {
 
 
 	export const DEFAULT_CARDS = new CardState(
-										[DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS),
+										new ManyPlayerCards([DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS)),
 										0,
 											DEFAULT_TABLE_CARDS_SHORT
 										);
@@ -858,6 +863,16 @@ export namespace GameStates {
 
 			if (this.stateBase.descriptors[0]!.falls()) {
 				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating()}`);
+
+				// for (let i = 0; i < 1; i++) {
+				// 	const theKeys = this.stateBase.idMap.keys().toArray().map(x => x.substring(0));
+
+				// 	const states = theKeys.map(CardState.fromKeyString);
+				// }
+
+					//const bc = structuredClone(this.stateBase);
+
+
 				this.finished = true;
 			}
 
@@ -875,7 +890,6 @@ export namespace GameStates {
 			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.state.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.state.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 
-			const PARAM_TRIM_LOW = true;
 
 			this.pointThreshold = PARAM_TRIM_LOW ? 0 : currentMaxP - 3;
 			this.latestList = nextStates;
