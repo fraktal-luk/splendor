@@ -51,12 +51,13 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
-const PARAM_TMP_TH = 10 - 0;
+const PARAM_TMP_TH = 10;
 
 
 const PARAM_TRIM_LOW = true;
+const PARAM_TIP_SUB = 3;
 
-const PARAM_COLUMN_WALL = /*2*/ 4;
+const PARAM_COLUMN_WALL = 4;
 
 const PARAM_RUN_DEPTH = /*4*/ 2;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
 
@@ -557,18 +558,23 @@ export namespace GameStates {
 	function bestForPlayer(arr: (number|undefined)[], player: number): number|undefined {
 		const sorted = arr.filter(x => x != undefined).toSorted((a,b) => a-b);
 
+		if (sorted.length == 0) return undefined;
+
 		const hasUndef = arr.includes(undefined);
 
 		const first = sorted.at(0)!;
 		const last = sorted.at(-1)!;
 
 		// Dont accept losing position if some is unknown
+		// Dont accept draw if not sure
 		if (player == 0) {
-			if (last < 0 && hasUndef) return undefined;
+			if (last <= 0 && hasUndef) return undefined;
 		}
 		else {
-			if (first > 0 && hasUndef) return undefined;
+			if (first >= 0 && hasUndef) return undefined;
 		}
+
+		const tmpResult = player == 0 ? last : first;
 
 		return player == 0 ? last : first;
 	}
@@ -881,7 +887,7 @@ export namespace GameStates {
 			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.state.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 
 
-			this.pointThreshold = PARAM_TRIM_LOW ? currentMaxTipP /*- 3*/ : 0;
+			this.pointThreshold = PARAM_TRIM_LOW ? currentMaxTipP - PARAM_TIP_SUB : 0;
 			this.latestList = nextStates;
 
 			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
