@@ -51,10 +51,13 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
-const N_PLAYERS = 2;
-const COLUMN_WALL = 2;
+const PARAM_COLUMN_WALL = 2;
+const PARAM_TMP_TH = 10;
 
-const TMP_TH = 10;
+const PARAM_RUN_DEPTH = 4;
+
+const N_PLAYERS = 2;
+
 
 
 function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
@@ -482,7 +485,7 @@ export namespace GameStates {
 			const player = this.moves;
 				
 				  // TMP: limit columns to buy (performance "hack")
-				  if ((ind % 4) >= COLUMN_WALL) return undefined;
+				  if ((ind % 4) >= PARAM_COLUMN_WALL) return undefined;
 
 			const c = this.tableCards_S.cardAt(ind);
 			const newPlayerCards = this.mpc.arr[player]!.buyUniversal(c);
@@ -512,7 +515,7 @@ export namespace GameStates {
 			const pc = this.mpc.ofPlayer(player);
 			//const gold = parseInt(this.bonuses.str[5]!, 16);				
 
-			const inds = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].filter(n => n % 4 < COLUMN_WALL);
+			const inds = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].filter(n => n % 4 < PARAM_COLUMN_WALL);
 			const tableCards = inds.map(n => this.tableCards_S.cardAt(n));
 			const evals = tableCards.map(c => pc.evaluateCard(c));
 
@@ -569,104 +572,58 @@ export namespace GameStates {
 		id: StateId;
 		state: CardState;
 		next?: StateId[];
-
-		category: NodeCategory = 'unknown';
-	//	_rating: GameRating = 'U';
-		
-		//maxP = 0;
-		//diffP() = 0;
 		finalDiff?: number = undefined;
 
-		//futureScore?: number;
-		//	hot = false;
-	//	qqq = 6778;
-	//	ehf = 78933;
-		//fffff = 0.7884;
-		//7383 = 91;
-
-
 		rating(): GameRating {
-				// switch (this._rating) {
-				// 	case 'U': if (this.finalDiff != undefined) throw new Error('fffff'); break;
-				// 	case '0': if (this.finalDiff! <= 0) throw new Error('ff0f'); break;
-				// 	case '1': if (this.finalDiff! >= 0) throw new Error('fff1'); break;
-				// 	case 'D': if (this.finalDiff! != 0) throw new Error('ffddf');  break;
-
-				// 	default:
-				// 		if (this.finalDiff != undefined) throw new Error('fff');
-				// }
-
 			if (this.finalDiff == undefined) return 'U';
 			else if (this.finalDiff! > 0) return '0'; 
 			else if (this.finalDiff! < 0) return '1'; 
 			else return 'D';
-
-			//return this._rating;
 		}
 
 		diffP(): number {
 			return this.state.ofPlayer(0).points - this.state.ofPlayer(1).points;
 		}
 
-
 		isDone(): boolean {
-			return this.category == 'falls' || this.category == 'final';
+			return this.finalDiff != undefined;
 		}
 		
 		isFinal(): boolean {
-
-			const isCateg = this.category == 'final';
-
-			const isChecked = this.state.maxPoints() >= TMP_TH && this.state.moves == 0;
-
-				if (isCateg != isChecked) throw new Error('uuuuuu');
-
+			const isChecked = this.state.maxPoints() >= PARAM_TMP_TH && this.state.moves == 0;
 			return isChecked;
 		}
 
 		isLate(): boolean {
-
-			//const isCateg = this.category == 'final';
-
-			const isChecked = this.state.maxPoints() >= TMP_TH && this.state.moves != 0;
-
-				//if (isCateg != isChecked) throw new Error('uuuuuu');
-
+			const isChecked = this.state.maxPoints() >= PARAM_TMP_TH && this.state.moves != 0;
 			return isChecked;
+		}
+
+		falls(): boolean {
+			//return this.category == 'falls';
+			return this.finalDiff != undefined && !this.isFinal();
 		}
 
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
 			this.state = state;
 
-			// const p0 = state.ofPlayer(0).points;
-			// const p1 = state.ofPlayer(1).points;
-
-		//	this.maxP = state.maxPoints();// Math.max(p0, p1);
-			//this.diffP() = p0 - p1;
-
 			this.verifyFinal();
 			this.rateFinal();
 		}
 		
 		verifyFinal(): void {
-			if (this.state.maxPoints() < TMP_TH) return;
+			if (this.state.maxPoints() < PARAM_TMP_TH) return;
 
 			if (this.state.moves == 0) {
 				this.next = [];
-				this.category = 'final';
 			}
-			else this.category = 'late';
 		}
 
 		rateFinal(): void {
 			if (!this.isFinal()) return;
 
 			this.finalDiff = this.diffP();
-
-			// if (this.diffP() > 0) this._rating = '0';
-			// else if (this.diffP() < 0) this._rating = '1';
-			// else this._rating = 'D';
 		}
 
 	}
@@ -742,9 +699,6 @@ export namespace GameStates {
 			if (desc == undefined) throw new Error("State not existing");
 
 			if (!desc.isDone()) return [];
-
-					// If this desc weren't interesting, it wouldn't be followed
-					//desc.hot = true;
 
 			if (desc!.next == undefined) {
 				return [];				
@@ -841,62 +795,14 @@ export namespace GameStates {
 
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
-
 			if (desc.isDone() || desc.isFinal() || desc.next == undefined) return;
 				
 			const fds = this.getFollowerDescs(desc.id);
 			const mover = desc.state.moves;
-
 			const fdiffs = fds.map(d => d.finalDiff);
-			const fdiffsSorted = fdiffs.filter(n => n != undefined).toSorted((a,b) => a-b); // undefined goes to end when sorting
-			const hasUndefined = (fdiffs.at(-1) == undefined);
 
 			const bestResult = bestForPlayer(fdiffs, mover);
-
-			const ratings = this.followersRatings(desc.id);
-			const has0 = ratings.includes('0');
-			const has1 = ratings.includes('1');
-			const hasU = ratings.includes('U');
-			const hasD = ratings.includes('D');
-
-			if (has0 || has1 || hasD) {
-				let rating = 'U' as GameRating;
-
-				if (mover == 0) {
-					if (has0) rating = '0';
-					else if (hasD) rating = 'D'; // accept draw if we can
-					else if (hasU) rating = 'U';
-					else rating = '1';
-				}
-				else if (mover == 1) {
-					if (has1) rating = '1';
-					else if (hasD) rating = 'D'; // accept draw if we can
-					else if (hasU) rating = 'U';
-					else rating = '0';
-				}
-
-				desc.finalDiff = bestResult;
-				//desc._rating = rating;
-
-					let R: GameRating = 'D';
-					if (bestResult == undefined || isNaN(bestResult)) R = 'U';
-					else if (bestResult! > 0) R = '0';
-					else if (bestResult! < 0) R = '1';
-
-					if (rating != R) {
-						console.log(mover);
-						console.log(bestResult);
-						console.log(ratings);
-						console.log(fdiffs);
-						throw new Error(`rating${R}, should ${rating}`);
-					}
-
-				if (rating != 'U') {
-					if (desc.finalDiff == undefined) throw new Error("unknown diff!");
-					desc.category = 'falls';
-				}
-			}
-
+			desc.finalDiff = bestResult;
 		}
 
 
@@ -950,7 +856,7 @@ export namespace GameStates {
 			this.propagateStates();
 			this.stats();
 
-			if (this.stateBase.descriptors[0]!.category == 'falls') {
+			if (this.stateBase.descriptors[0]!.falls()) {
 				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating()}`);
 				this.finished = true;
 			}
@@ -964,7 +870,7 @@ export namespace GameStates {
 
 				console.log(`starting with size ${getStateListSize(startStates)}`);
 
-			const nextStates = this.runDepth(startStates, 4);
+			const nextStates = this.runDepth(startStates, PARAM_RUN_DEPTH);
 
 			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.state.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.state.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
@@ -1029,10 +935,14 @@ export namespace GameStates {
 			this.maxTipPts = maxTipPts;
 
 			const latestDescs = this.stateBase.descriptors;
-			const nFinal = latestDescs.filter(x => x.category == 'final').length;
-			const nFalls = latestDescs.filter(x => x.category == 'falls').length;
-			const nUnknown = latestDescs.filter(x => ['unknown', 'late'].includes(x.category)).length;
+			const nFinal = latestDescs.filter(x => x.isFinal()).length;
+			const nFalls = latestDescs.filter(x => x.falls()).length;
+
 			const nAll = this.stateBase.descriptors.length;
+
+			const nUnknown = nAll - nFinal - nFalls;//latestDescs.filter(x => ['unknown', 'late'].includes(x.category)).length;
+
+
 			console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${maxPts} (tip ${maxTipPts})`);
 
 			const nDone = this.stateBase.descriptors.filter(x => x.isDone()).length;
@@ -1051,8 +961,8 @@ export namespace GameStates {
 							// Clear ratings to fnd out how long it takes to restore them
 							this.stateBase.descriptors.forEach(d => 
 									{ 
-										if (d.category == 'falls') {
-											d.category = 'unknown';
+										if (d.falls()) {
+											//d.category = 'unknown';
 											//d._rating = 'U';
 											d.finalDiff = undefined; 
 										}
@@ -1135,7 +1045,7 @@ export namespace GameStates {
 
 					fds.sort((a,b) => (a.diffP()) - (b.diffP()));
 
-					if (currentTip.category == 'final') break;
+					if (currentTip.isFinal()) break;
 					if (fds.length == 0) {
 						console.log('\n>>>> no followers! State is');
 						console.log(currentTip);
@@ -1196,7 +1106,7 @@ export namespace GameStates {
 
 				console.log('\n\n');
 
-				if (currentDesc.category == 'final') break;
+				if (currentDesc.isFinal()) break;
 			}
 
 			const img = currentDesc.state.niceString();
@@ -1218,7 +1128,7 @@ export namespace GameStates {
 				console.log(getStateListSize(currentSet));
 
 				// reject uninteresting ones
-				const filteredArr = stateArr(currentSet).filter(s => this.stateBase.getDesc(s).category != 'unknown');
+				const filteredArr = stateArr(currentSet).filter(s => this.stateBase.getDesc(s).finalDiff != undefined);
 				const filteredSet = makeStateList(filteredArr);
 
 				currentSet = this.stateBase.genInterestingFollowers(filteredSet, true);
