@@ -15,22 +15,15 @@ let waveN = new GameStates.WavefrontC();
 
 console.time('main');
 for (let i = 0; i < 1 + 20 + 1    - 6; i++) {
-	//waveN.runStep();
+	waveN.runStep();
 }
 
 console.timeEnd('main');
 
-//console.log(process.memoryUsage());
-
-	//waveN.traceHot();
-
-	//console.log('\nTrace precise\n');
-	//waveN.traceGame(false);
+	process.exit(0);
 
 	console.log('\n\n\nTrace single');
 
-	 // console.log('\nTrace estimate\n');
-	 // waveN.traceGame(true);
 console.time('ts');
 	waveN.traceSingle();
 console.timeEnd('ts');
