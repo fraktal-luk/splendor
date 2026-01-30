@@ -590,6 +590,11 @@ export namespace GameStates {
 		next?: StateId[];
 		finalDiff?: number = undefined;
 
+			mover = -1;
+			maxP = -1;
+			playerPts = [-1, -1];
+
+
 		rating(): GameRating {
 			if (this.finalDiff == undefined) return 'U';
 			else if (this.finalDiff! > 0) return '0'; 
@@ -701,6 +706,10 @@ export namespace GameStates {
 			return this.descriptors[s];
 		}
 
+		getNiceString(s: StateId): string {
+			return CardState.fromKeyString(this.strings[s]).niceString();
+		}
+
 		addDescriptor(cs: CardState, ks: string): StateId {
 			const newId = this.descriptors.length;
 			this.descriptors.push(new StateDesc(newId, cs));
@@ -716,6 +725,11 @@ export namespace GameStates {
 
 			if (!trace && desc.isDone()) return [];
 
+
+				const stateObj = desc.state;
+				const stateObjS = CardState.fromKeyString(this.strings[state]);
+					if (!stateObjS.isSame(stateObj)) throw new Error("Duu pa");
+
 			if (trace) {
 				if (desc!.next == undefined) {
 					return [];				
@@ -723,7 +737,7 @@ export namespace GameStates {
 			}
 			else {
 				if (desc!.next == undefined) {
-					desc!.next = this.makeIds(desc.state.genNextBU());
+					desc!.next = this.makeIds(stateObj.genNextBU());
 				}
 			}
 
@@ -814,10 +828,10 @@ export namespace GameStates {
 			return this.descriptors.filter(d => d.next == undefined);
 		}
 
-		showTable(): void {
-			const str = this.descriptors.map(x => `${x.id}, ${x.getNiceString()}`).join('\n');
-			console.log(str);
-		}
+		// showTable(): void {
+		// 	const str = this.descriptors.map(x => `${x.id}, ${x.getNiceString()}`).join('\n');
+		// 	console.log(str);
+		// }
 
 		rateNonfinals(): void {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
@@ -1004,8 +1018,10 @@ export namespace GameStates {
 							console.log(pathHistory.map(d => d.id).join(', ') + "...");
 							console.log(newTrack.map(d => d.id).join(', '));
 
-									console.log(pathHistory.map(d => `${d.id}: ` + d.getNiceString()).join('\n') + "\n...");
-									console.log(newTrack.map(d => `${d.id}: ` + d.getNiceString()).join('\n'));
+								//const ns = //d.getNiceString();
+									//					this.stateBase.getNiceString(d.id);
+									console.log(pathHistory.map(d => `${d.id}: ` + this.stateBase.getNiceString(d.id)).join('\n') + "\n...");
+									console.log(newTrack.map(d => `${d.id}: ` + this.stateBase.getNiceString(d.id)).join('\n'));
 
 							if (ct > 2800 && ct < 2820) {
 								console.log('Points:')
@@ -1087,7 +1103,8 @@ export namespace GameStates {
 			visited.push(currentDesc.id);
 
 			while (true) {
-				const img = currentDesc.getNiceString();
+				const img = //currentDesc.getNiceString();
+										this.stateBase.getNiceString(currentDesc.id);
 				const mover = currentDesc.moves();
 
 				console.log(`${currentDesc.id}: ` + img);
@@ -1126,7 +1143,8 @@ export namespace GameStates {
 				if (currentDesc.isFinal()) break;
 			}
 
-			const img = currentDesc.getNiceString();
+			const img = //currentDesc.getNiceString();
+									this.stateBase.getNiceString(currentDesc.id);
 
 			console.log(`${currentDesc.id}: ` + img);
 			console.log(currentDesc)
