@@ -13,17 +13,26 @@ import {GameStates} from './lib/GameStates.ts'
 let waveN = new GameStates.WavefrontC();
 
 
-console.time('total');
-for (let i = 0; i < 1 + 20 + 1; i++) {
+console.time('main');
+for (let i = 0; i < 1 + 20 + 1 ; i++) {
 	waveN.runStep();
 }
 
-console.timeEnd('total');
+console.timeEnd('main');
 
 console.log(process.memoryUsage());
 
-	console.log('\nTrace precise\n');
+
 	waveN.traceGame(false);
 
-	console.log('\nTrace estimate\n');
-	waveN.traceGame(true);
+	process.exit(0);
+
+
+
+
+	console.log('\n\n\nTrace single');
+
+console.time('ts');
+	waveN.traceSingle();
+console.timeEnd('ts');
+
