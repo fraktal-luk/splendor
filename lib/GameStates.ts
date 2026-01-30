@@ -586,7 +586,7 @@ export namespace GameStates {
 
 	class StateDesc {
 		id: StateId;
-		state: CardState;
+		//state: CardState;
 		next?: StateId[];
 		finalDiff?: number = undefined;
 
@@ -604,20 +604,23 @@ export namespace GameStates {
 
 
 			moves(): number {
-				return this.state.moves;
+				//return //this.state.moves;
+					return		 this.mover;
 			}
 
 			maxPoints(): number {
-				return this.state.maxPoints();
+				//return this.state.maxPoints();
+				return Math.max(this.playerPts[0], this.playerPts[1]);
 			}
 
-			playerPoints(p: number) {
-				return this.state.ofPlayer(p).points;
+			playerPoints(p: number): number {
+				//return //this.state.ofPlayer(p).points;
+					return		 this.playerPts[p]!;
 			}
 
-			getNiceString(): string {
-				return this.state.niceString();
-			}
+			// getNiceString(): string {
+			// 	return this.state.niceString();
+			// }
 
 
 		diffP(): number {
@@ -645,7 +648,11 @@ export namespace GameStates {
 
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
-			this.state = state;
+			//this.state = state;
+
+				this.mover = state.moves;
+				//this.maxP =
+				this.playerPts = [state.ofPlayer(0).points, state.ofPlayer(1).points]; 
 
 			this.verifyFinal();
 			this.rateFinal();
@@ -725,10 +732,10 @@ export namespace GameStates {
 
 			if (!trace && desc.isDone()) return [];
 
-
-				const stateObj = desc.state;
+				// TODO: use the one from string
+//				const stateObj = desc.state;
 				const stateObjS = CardState.fromKeyString(this.strings[state]);
-					if (!stateObjS.isSame(stateObj)) throw new Error("Duu pa");
+					//if (!stateObjS.isSame(stateObj)) throw new Error("Duu pa");
 
 			if (trace) {
 				if (desc!.next == undefined) {
@@ -737,7 +744,7 @@ export namespace GameStates {
 			}
 			else {
 				if (desc!.next == undefined) {
-					desc!.next = this.makeIds(stateObj.genNextBU());
+					desc!.next = this.makeIds(stateObjS.genNextBU());
 				}
 			}
 
@@ -866,9 +873,9 @@ export namespace GameStates {
 		pointThreshold = 0;
 
 			save(): void {
-				this.stateBase.descriptors.forEach(x => x.state.checkKeyString());
-					console.log(`"${this.stateBase.descriptors[5700]!.state.keyString()}"`);
-					console.log(Array.from(this.stateBase.descriptors[5700]!.state.keyString(), c => c.charCodeAt(0)).join(','));
+		//		this.stateBase.descriptors.forEach(x => x.state.checkKeyString());
+		//			console.log(`"${this.stateBase.descriptors[5700]!.state.keyString()}"`);
+		//			console.log(Array.from(this.stateBase.descriptors[5700]!.state.keyString(), c => c.charCodeAt(0)).join(','));
 			}
 
 
