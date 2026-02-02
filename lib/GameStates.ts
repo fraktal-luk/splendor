@@ -107,6 +107,20 @@ function compareNumbers(a?: number, b?: number): number {
 }
 
 
+function isConsecutive(arr: number[]): boolean {
+	if (arr.length == 0) return true;
+
+	let latest = arr[0]!;
+	for (let i = 1; i < arr.length; i++) {
+		if (arr[i]! - latest != 1) return false;
+		latest = arr[i]!;
+	}
+
+	return true;
+}
+
+
+
 export namespace GameStates {
 	// For now we assume 2 players, so 44444 token stacks
 	export const MAX_TOKEN_STACKS = "444440";
@@ -323,6 +337,8 @@ export namespace GameStates {
 				}
 			}
 			
+			nextIds.sort((a,b) => a-b);
+
 			return nextIds;
 		}
 
@@ -662,7 +678,7 @@ export namespace GameStates {
 			if (this.maxPoints() < PARAM_TMP_TH) return;
 
 			if (this.moves() == 0) {
-				this.next = [];
+				//this.next = [];
 			}
 		}
 
@@ -788,7 +804,9 @@ export namespace GameStates {
 					nextIds.push(newId)	
 				}
 			}
-			
+
+			nextIds.sort((a,b) => a-b);
+
 			return nextIds;
 		}
 
@@ -876,6 +894,103 @@ export namespace GameStates {
 		//		this.stateBase.descriptors.forEach(x => x.state.checkKeyString());
 		//			console.log(`"${this.stateBase.descriptors[5700]!.state.keyString()}"`);
 		//			console.log(Array.from(this.stateBase.descriptors[5700]!.state.keyString(), c => c.charCodeAt(0)).join(','));
+				const descs = this.stateBase.descriptors;
+
+
+					const consec = descs.filter(d => d.next != undefined && isConsecutive(d.next!));
+					const nonconsec = descs.filter(d => d.next != undefined && !isConsecutive(d.next!));
+
+
+				const lengths = this.stateBase.descriptors.filter(d => d.next != undefined).map(d => d.next!.length).sort((a,b) => a-b);
+				const grouped = Map.groupBy(lengths, x => x);
+
+					const lengthsNC = nonconsec.filter(d => d.next != undefined).map(d => d.next!.length).sort((a,b) => a-b);
+					const groupedNC = Map.groupBy(lengthsNC, x => x);
+
+				const nUndef = descs.length - lengths.length;
+
+
+
+				{
+					const inds = grouped.keys().toArray();
+					const hist = grouped.values().map(x => x.length).toArray();
+					console.log(`Stat: ${lengths.length}/${this.stateBase.descriptors.length}\n${inds}\n${hist}\nundefs: ${nUndef}`);
+
+					let avg = 0, avgA = 0;
+					let sumP = 0, sumPA = 0;
+					let cdf: number[] = [];
+					let cdfA: number[] = [];
+					for (let i = 0; i < grouped.size; i++) {
+						avg += (inds[i]*hist[i]/lengths.length);
+						avgA += (inds[i]*hist[i]/descs.length);
+						sumP += hist[i]/lengths.length;
+						sumPA += hist[i]/descs.length;
+						cdf.push(sumP);
+						cdfA.push(sumPA);
+					}
+
+					console.log(`${cdf}\n${cdfA}\navg = ${avg} / ${avgA}`);
+				}
+
+				const over4 = descs.filter(d =>  d.next != undefined && d.next!.length > 4);
+
+				console.log(`over4: ${over4.length}`);
+
+				{
+					const inds = groupedNC.keys().toArray();
+					const hist = groupedNC.values().map(x => x.length).toArray();
+					console.log(`Stat: ${lengths.length}/${this.stateBase.descriptors.length}\n${inds}\n${hist}\nundefs: ${nUndef}`);					
+
+					let avg = 0, avgA = 0;
+					let sumP = 0, sumPA = 0;
+					let cdf: number[] = [];
+					let cdfA: number[] = [];
+					for (let i = 0; i < grouped.size; i++) {
+						avg += (inds[i]*hist[i]/lengths.length);
+						avgA += (inds[i]*hist[i]/descs.length);
+						sumP += hist[i]/lengths.length;
+						sumPA += hist[i]/descs.length;
+						cdf.push(sumP);
+						cdfA.push(sumPA);
+					}
+
+					console.log(`${cdf}\n${cdfA}\navg = ${avg} / ${avgA}`);
+				}
+
+
+					console.log(`U, C, N: ${[nUndef, consec.length, nonconsec.length]}`);
+
+				console.log(nonconsec[59786].next!.toString());
+				console.log(nonconsec[99786].next!.toString());
+				console.log(nonconsec[19786].next!.toString());
+				console.log(nonconsec[5786].next!.toString());
+				console.log(nonconsec[59].next!.toString());
+				console.log(nonconsec[0].next!.toString());
+				console.log(nonconsec[1].next!.toString());
+				console.log(nonconsec[47459].next!.toString());
+				console.log(nonconsec[59].next!.toString());
+				console.log(nonconsec[509].next!.toString());
+				console.log(nonconsec[5904].next!.toString());
+				console.log(nonconsec[89222].next!.toString());
+				console.log(nonconsec[189222].next!.toString());
+				console.log(nonconsec[190232].next!.toString());
+				console.log(nonconsec[109225].next!.toString());
+				console.log(nonconsec[133222].next!.toString());
+				console.log(nonconsec[159222].next!.toString());
+
+
+				const nDescs = descs.length;
+				const followersArr = new Uint32Array(13*nDescs);
+
+				fs.writeFileSync('followers', followersArr, console.log);
+
+				//rowBase.descriptors.
+
+					console.log(`Rows: ${rowBase.descriptors.length}`);
+
+				//const rowArr = 
+
+				//fs.writeFileSync('rows', rowArr, console.log);
 			}
 
 
