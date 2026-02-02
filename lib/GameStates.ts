@@ -985,7 +985,7 @@ export namespace GameStates {
 			save(): void {
 				const allStr = this.stateBase.strings.join('');
 				const allFollowers = this.stateBase.descriptors.map(d => followersFull(d.next)).flat();
-				const allValues = this.stateBase.descriptors.map(d => valEncode(undef2nan(d.finalDiff)));
+				const allValues = this.stateBase.descriptors.map(d => (undef2nan(d.finalDiff)));
 
 				console.log(allStr.length);
 				console.log(allFollowers.length);
@@ -1002,7 +1002,7 @@ export namespace GameStates {
 				for (let i = 0; i < nRead; i++) {
 					const rFollowers = followersDecode(allFollowers.slice(13*i, 13*i + 13));
 					const rKs = allStr.substring(keyStrSize*i, keyStrSize*i + keyStrSize);
-					const rValue = valDecode(allValues[i]);
+					const rValue = (allValues[i]);
 
 					const bFollowers = this.stateBase.descriptors[i]!.next;
 					const bKs = this.stateBase.strings[i]!;
@@ -1025,21 +1025,30 @@ export namespace GameStates {
 
 						if (this.stateBase.descriptors[i]!.toString() != desc.toString()) throw new Error('Fcck');
 
-					if (i == 17123) {
-						console.log(this.stateBase.descriptors[i]!);
-						console.log(desc)
-
-						if (this.stateBase.descriptors[i]!.toString() != desc.toString()) throw new Error('Fcck');
-					}
-
 						newBase.insert(desc, rKs);
 				}
 
-
+				const stringBuf = Int16Array.from(allStr);
+				const followerBuf = Float32Array.from(allFollowers);
 				//fs.writeFileSync('rows', rowArr, console.log);
 
+				console.log(stringBuf.length);
+				console.log(followerBuf.length);
 
-				//fs.writeFileSync('rows', rowArr, console.log);
+				fs.writeFileSync('stored_strings', stringBuf, console.log);
+				fs.writeFileSync('stored_followers', followerBuf, console.log);
+
+
+				const loadedS = fs.readFileSync('stored_strings', "utf16le");
+				const loadedF = new Uint8Array(fs.readFileSync('stored_followers'));
+				const loadedF32 = new Float32Array(loadedF.buffer);
+
+				console.log(loadedS.length);
+				console.log(loadedF32.length);
+
+				//console.log(followerBuf.slice(0, 10));
+
+				//console.log(loadedF instanceof Buffer);
 			}
 
 
