@@ -51,7 +51,7 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
-const PARAM_TMP_TH = 10;
+const PARAM_TMP_TH = 10 + 1;
 
 
 const PARAM_TRIM_LOW = true;
@@ -1060,28 +1060,59 @@ export namespace GameStates {
 				console.log(followerBuf.length);
 				console.log(valueBuf.length);
 
-				fs.writeFileSync('stored_strings', stringBuf, console.log);
-				fs.writeFileSync('stored_followers', followerBuf, console.log);
-				fs.writeFileSync('stored_values', valueBuf, console.log);
+
+				console.time('loading');
+
+					fs.writeFileSync('stored_strings', allStr, 'utf16le', console.log);
+					fs.writeFileSync('stored_followers', followerBuf, console.log);
+					fs.writeFileSync('stored_values', valueBuf, console.log);
 
 
-				const loadedS = fs.readFileSync('stored_strings', "utf16le");
-				const loadedF = new Uint8Array(fs.readFileSync('stored_followers'));
-				const loadedF32 = new Float32Array(loadedF.buffer);
+					const loadedS = fs.readFileSync('stored_strings', "utf16le");
+					const loadedF = new Uint8Array(fs.readFileSync('stored_followers'));
+					const loadedF32 = new Float32Array(loadedF.buffer);
 
-				const loadedV = new Uint8Array(fs.readFileSync('stored_values'));
-				const loadedV32 = new Float32Array(loadedV.buffer);
+					const loadedV = new Uint8Array(fs.readFileSync('stored_values'));
+					const loadedV32 = new Float32Array(loadedV.buffer);
 
-				console.log(loadedS.length);
-				console.log(loadedF32.length);
-				console.log(loadedV32.length);
+					console.log(loadedS.length);
+					console.log(loadedF32.length);
+					console.log(loadedV32.length);
 
 					const anotherBase = new StateBase();
 					anotherBase.fillFromArrays(loadedS, loadedF32, loadedV32);
 
+				console.timeEnd('loading');
+
+
+						if (loadedS != allStr) {
+							console.log(loadedS.substring(100, 200));
+
+
+							throw new Error('String redwrog');
+						}
 				//console.log(followerBuf.slice(0, 10));
 
 				//console.log(loadedF instanceof Buffer);
+
+					[83, 892, 202, 66387, 202393].forEach(
+						k => {
+							const dref = this.stateBase.getDesc(k);
+							const dt = anotherBase.getDesc(k);
+
+							const kstr = anotherBase.strings[k];
+
+							if (anotherBase.strings[k] != this.stateBase.strings[k]) {
+								console.log(`Another:${anotherBase.strings[k]}, ref:${this.stateBase.strings[k]}`);
+
+								throw new Error('diffrent string')
+							};
+
+							if (this.stateBase.idMap.get(kstr) != k) throw new Error('weuior');
+							if (anotherBase.idMap.get(kstr) != k) throw new Error('weuior');
+						}
+					);
+
 			}
 
 
