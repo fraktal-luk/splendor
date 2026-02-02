@@ -575,13 +575,27 @@ export namespace GameStates {
 	type GameRating = 'U' | '0' | '1' | 'D';
 
 
+
+	function undef2nan(x: number|undefined): number {
+		if (x == undefined) return NaN;
+		return x!;
+	}
+
+
+	function nan2undef(x: number): number|undefined {
+		if (isNaN(x)) return undefined;
+		return x;
+	}
+
+
+
 	// CAREFUL: this function considers 0 better than undefined, so draw rates better than "unknown but don't see a winning move"
 	function bestForPlayer(arr: (number|undefined)[], player: number): number|undefined {
-		const sorted = arr.filter(x => x != undefined).toSorted((a,b) => a-b);
+		const sorted = arr.filter(x => x != undefined && !isNaN(x)).toSorted((a,b) => a! - b!);
 
 		if (sorted.length == 0) return undefined;
 
-		const hasUndef = arr.includes(undefined);
+		const hasUndef = arr.includes(undefined) || arr.includes(NaN);
 
 		const first = sorted.at(0)!;
 		const last = sorted.at(-1)!;
@@ -670,17 +684,17 @@ export namespace GameStates {
 				//this.maxP =
 				this.playerPts = [state.ofPlayer(0).points, state.ofPlayer(1).points]; 
 
-			this.verifyFinal();
+			//this.verifyFinal();
 			this.rateFinal();
 		}
 		
-		verifyFinal(): void {
-			if (this.maxPoints() < PARAM_TMP_TH) return;
+		// verifyFinal(): void {
+		// 	if (this.maxPoints() < PARAM_TMP_TH) return;
 
-			if (this.moves() == 0) {
-				//this.next = [];
-			}
-		}
+		// 	if (this.moves() == 0) {
+		// 		//this.next = [];
+		// 	}
+		// }
 
 		rateFinal(): void {
 			if (!this.isFinal()) return;
@@ -718,7 +732,7 @@ export namespace GameStates {
 	class StateBase {
 		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
 		strings: string[] = [DEFAULT_CARDS.keyString()];
-
+		values: number[] = [NaN];
 
 		//prevSize = 0;
 		//expand = true;
@@ -735,8 +749,14 @@ export namespace GameStates {
 
 		addDescriptor(cs: CardState, ks: string): StateId {
 			const newId = this.descriptors.length;
-			this.descriptors.push(new StateDesc(newId, cs));
-			this.strings.push(cs.keyString());
+
+			const newDesc = new StateDesc(newId, cs);
+
+			this.descriptors.push(newDesc);
+			this.strings.push(ks);
+
+			this.values.push(undef2nan(newDesc.finalDiff));
+
 			this.idMap.set(ks, newId);
 			return newId;
 		}
@@ -866,13 +886,38 @@ export namespace GameStates {
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
 			if (desc.isDone() || desc.isFinal() || desc.next == undefined) return;
-				
+
+			const nextIds = this.descriptors[desc.id]!.next!;
+
 			const fds = this.getFollowerDescs(desc.id);
 			const mover = desc.moves();
 			const fdiffs = fds.map(d => d.finalDiff);
 
+				const fdiffs_N = nextIds.map(x => this.values[x]!);
+
 			const bestResult = bestForPlayer(fdiffs, mover);
 			desc.finalDiff = bestResult;
+
+			const bestResultNum = //bestResult == undefined ? NaN : bestResult;
+														undef2nan(bestResult);
+
+			const bestResult_N = bestForPlayer(fdiffs_N, mover);
+			const bestResultNum_N = //bestResult_N == undefined ? NaN : bestResult_N;
+															undef2nan(bestResult_N);
+
+				if (isNaN(bestResultNum_N) != isNaN(bestResultNum)) {
+						console.log(fdiffs);
+						console.log(fdiffs_N);
+						console.log(mover);
+
+						throw new Error(`nan status: ${bestResultNum_N}, ${bestResultNum}`);
+
+				}
+
+				if (!isNaN(bestResultNum_N) && bestResultNum_N != bestResultNum) throw new Error(`values wrong: ${bestResultNum_N}, ${bestResultNum}`);
+
+
+				this.values[desc.id] = bestResultNum;
 		}
 
 	}
@@ -1117,7 +1162,9 @@ export namespace GameStates {
 							this.stateBase.descriptors.forEach(d => 
 									{ 
 										if (d.falls()) {
-											d.finalDiff = undefined; 
+											d.finalDiff = undefined;
+
+											this.stateBase.values[d.id] = NaN;
 										}
 									}
 								);
