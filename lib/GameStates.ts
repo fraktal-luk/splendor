@@ -587,6 +587,34 @@ export namespace GameStates {
 		return x;
 	}
 
+	// empty - all -1; undefined - -1 followed by 0
+	function followersFull(input: number[]|undefined): number[] {
+		if (input == undefined) return [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+		const res = [...input];
+		res[12] = -1;
+		res.fill(-1, input.length);
+		return res;
+	}
+
+	function followersDecode(input: number[]) {
+		if (input[0] == -1 && input[1] == 0) return undefined;
+
+		const end = input.indexOf(-1);
+		return input.slice(0, end);
+	}
+
+
+	function valEncode(x: number): number {
+		if (isNaN(x)) return 100;
+		else return x;
+	}
+
+	function valDecode(x:number): number {
+		if (x >= 100) return NaN;
+		return x;
+	}
+
 
 
 	// CAREFUL: this function considers 0 better than undefined, so draw rates better than "unknown but don't see a winning move"
@@ -936,104 +964,54 @@ export namespace GameStates {
 		pointThreshold = 0;
 
 			save(): void {
-		//		this.stateBase.descriptors.forEach(x => x.state.checkKeyString());
-		//			console.log(`"${this.stateBase.descriptors[5700]!.state.keyString()}"`);
-		//			console.log(Array.from(this.stateBase.descriptors[5700]!.state.keyString(), c => c.charCodeAt(0)).join(','));
-				const descs = this.stateBase.descriptors;
+				const allStr = this.stateBase.strings.join('');
+				const allFollowers = this.stateBase.descriptors.map(d => followersFull(d.next)).flat();
+				const allValues = this.stateBase.descriptors.map(d => valEncode(undef2nan(d.finalDiff)));
 
+				console.log(allStr.length);
+				console.log(allFollowers.length);
 
-					const consec = descs.filter(d => d.next != undefined && isConsecutive(d.next!));
-					const nonconsec = descs.filter(d => d.next != undefined && !isConsecutive(d.next!));
+				const keyStrSize = DEFAULT_CARDS.keyString().length;
 
+				const nRead = allFollowers.length / 13;
 
-				const lengths = this.stateBase.descriptors.filter(d => d.next != undefined).map(d => d.next!.length).sort((a,b) => a-b);
-				const grouped = Map.groupBy(lengths, x => x);
+				for (let i = 0; i < nRead; i++) {
+					const rFollowers = followersDecode(allFollowers.slice(13*i, 13*i + 13));
+					const rKs = allStr.substring(keyStrSize*i, keyStrSize*i + keyStrSize);
+					const rValue = valDecode(allValues[i]);
 
-					const lengthsNC = nonconsec.filter(d => d.next != undefined).map(d => d.next!.length).sort((a,b) => a-b);
-					const groupedNC = Map.groupBy(lengthsNC, x => x);
+					const bFollowers = this.stateBase.descriptors[i]!.next;
+					const bKs = this.stateBase.strings[i]!;
+					const bValue = undef2nan(this.stateBase.descriptors[i]!.finalDiff);
 
-				const nUndef = descs.length - lengths.length;
-
-
-
-				{
-					const inds = grouped.keys().toArray();
-					const hist = grouped.values().map(x => x.length).toArray();
-					console.log(`Stat: ${lengths.length}/${this.stateBase.descriptors.length}\n${inds}\n${hist}\nundefs: ${nUndef}`);
-
-					let avg = 0, avgA = 0;
-					let sumP = 0, sumPA = 0;
-					let cdf: number[] = [];
-					let cdfA: number[] = [];
-					for (let i = 0; i < grouped.size; i++) {
-						avg += (inds[i]*hist[i]/lengths.length);
-						avgA += (inds[i]*hist[i]/descs.length);
-						sumP += hist[i]/lengths.length;
-						sumPA += hist[i]/descs.length;
-						cdf.push(sumP);
-						cdfA.push(sumPA);
+					if (rKs != bKs) console.log('String wrong');
+					
+					if (bFollowers != undefined || rFollowers != undefined)
+					{
+						if (rFollowers!.toString() != bFollowers!.toString()) console.log('Arr wrong');
 					}
 
-					console.log(`${cdf}\n${cdfA}\navg = ${avg} / ${avgA}`);
-				}
-
-				const over4 = descs.filter(d =>  d.next != undefined && d.next!.length > 4);
-
-				console.log(`over4: ${over4.length}`);
-
-				{
-					const inds = groupedNC.keys().toArray();
-					const hist = groupedNC.values().map(x => x.length).toArray();
-					console.log(`Stat: ${lengths.length}/${this.stateBase.descriptors.length}\n${inds}\n${hist}\nundefs: ${nUndef}`);					
-
-					let avg = 0, avgA = 0;
-					let sumP = 0, sumPA = 0;
-					let cdf: number[] = [];
-					let cdfA: number[] = [];
-					for (let i = 0; i < grouped.size; i++) {
-						avg += (inds[i]*hist[i]/lengths.length);
-						avgA += (inds[i]*hist[i]/descs.length);
-						sumP += hist[i]/lengths.length;
-						sumPA += hist[i]/descs.length;
-						cdf.push(sumP);
-						cdfA.push(sumPA);
+					if (!isNaN(rValue)) {
+						if (rValue != bValue) console.log(`Wrinf value ${rValue}, ${bValue}`);
 					}
 
-					console.log(`${cdf}\n${cdfA}\navg = ${avg} / ${avgA}`);
+					const desc = new StateDesc(i, CardState.fromKeyString(rKs));
+					desc.next = rFollowers;
+					desc.finalDiff = nan2undef(rValue);
+
+						if (this.stateBase.descriptors[i]!.toString() != desc.toString()) throw new Error('Fcck');
+
+					if (i == 17123) {
+						console.log(this.stateBase.descriptors[i]!);
+						console.log(desc)
+
+						if (this.stateBase.descriptors[i]!.toString() != desc.toString()) throw new Error('Fcck');
+					}
 				}
 
 
-					console.log(`U, C, N: ${[nUndef, consec.length, nonconsec.length]}`);
+				//fs.writeFileSync('rows', rowArr, console.log);
 
-				console.log(nonconsec[59786].next!.toString());
-				console.log(nonconsec[99786].next!.toString());
-				console.log(nonconsec[19786].next!.toString());
-				console.log(nonconsec[5786].next!.toString());
-				console.log(nonconsec[59].next!.toString());
-				console.log(nonconsec[0].next!.toString());
-				console.log(nonconsec[1].next!.toString());
-				console.log(nonconsec[47459].next!.toString());
-				console.log(nonconsec[59].next!.toString());
-				console.log(nonconsec[509].next!.toString());
-				console.log(nonconsec[5904].next!.toString());
-				console.log(nonconsec[89222].next!.toString());
-				console.log(nonconsec[189222].next!.toString());
-				console.log(nonconsec[190232].next!.toString());
-				console.log(nonconsec[109225].next!.toString());
-				console.log(nonconsec[133222].next!.toString());
-				console.log(nonconsec[159222].next!.toString());
-
-
-				const nDescs = descs.length;
-				const followersArr = new Uint32Array(13*nDescs);
-
-				fs.writeFileSync('followers', followersArr, console.log);
-
-				//rowBase.descriptors.
-
-					console.log(`Rows: ${rowBase.descriptors.length}`);
-
-				//const rowArr = 
 
 				//fs.writeFileSync('rows', rowArr, console.log);
 			}
@@ -1299,9 +1277,9 @@ export namespace GameStates {
 
 				//currentDesc.state.prospectPoints(mover);
 
-				const chosenDesc = estimate ?
-															fds.find(d => (!visited.includes(d.id) && d.diffP() == bestEdiff))!
-														: fds.find(d => (!visited.includes(d.id) && d.finalDiff == bestFdiff))!;
+				const chosenDesc = //estimate ?
+														//	fds.find(d => (!visited.includes(d.id) && d.diffP() == bestEdiff))!
+														fds.find(d => (!visited.includes(d.id) && d.finalDiff == bestFdiff))!;
 
 				currentDesc = chosenDesc!;
 
