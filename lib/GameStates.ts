@@ -781,6 +781,28 @@ export namespace GameStates {
 			this.idMap.set(s, d.id);
 		}
 
+		fillFromArrays(strings: string, followersT: Float32Array, valuesT: Float32Array): void {
+			this.reset();
+
+			const followers = Array.from(followersT);
+			const values = Array.from(valuesT);
+
+			const nRead = followers.length / 13;
+			const keyStrSize = DEFAULT_CARDS.keyString().length;
+
+			for (let i = 0; i < nRead; i++) {
+				const rFollowers = followersDecode(followers.slice(13*i, 13*i + 13));
+				const rKs = strings.substring(keyStrSize*i, keyStrSize*i + keyStrSize);
+				const rValue = (values[i]);
+
+				const desc = new StateDesc(i, CardState.fromKeyString(rKs));
+				desc.next = rFollowers;
+				desc.finalDiff = nan2undef(rValue);
+
+				this.insert(desc, rKs);
+			}
+		}
+
 
 
 		getDesc(s: StateId) {
@@ -989,6 +1011,7 @@ export namespace GameStates {
 
 				console.log(allStr.length);
 				console.log(allFollowers.length);
+				console.log(allValues.length);
 
 				const keyStrSize = DEFAULT_CARDS.keyString().length;
 
@@ -1030,21 +1053,31 @@ export namespace GameStates {
 
 				const stringBuf = Int16Array.from(allStr);
 				const followerBuf = Float32Array.from(allFollowers);
+				const valueBuf = Float32Array.from(allValues);
 				//fs.writeFileSync('rows', rowArr, console.log);
 
 				console.log(stringBuf.length);
 				console.log(followerBuf.length);
+				console.log(valueBuf.length);
 
 				fs.writeFileSync('stored_strings', stringBuf, console.log);
 				fs.writeFileSync('stored_followers', followerBuf, console.log);
+				fs.writeFileSync('stored_values', valueBuf, console.log);
 
 
 				const loadedS = fs.readFileSync('stored_strings', "utf16le");
 				const loadedF = new Uint8Array(fs.readFileSync('stored_followers'));
 				const loadedF32 = new Float32Array(loadedF.buffer);
 
+				const loadedV = new Uint8Array(fs.readFileSync('stored_values'));
+				const loadedV32 = new Float32Array(loadedV.buffer);
+
 				console.log(loadedS.length);
 				console.log(loadedF32.length);
+				console.log(loadedV32.length);
+
+					const anotherBase = new StateBase();
+					anotherBase.fillFromArrays(loadedS, loadedF32, loadedV32);
 
 				//console.log(followerBuf.slice(0, 10));
 
