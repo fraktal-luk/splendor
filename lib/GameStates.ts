@@ -760,11 +760,28 @@ export namespace GameStates {
 	class StateBase {
 		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
 		strings: string[] = [DEFAULT_CARDS.keyString()];
-		values: number[] = [NaN];
+		//values: number[] = [NaN];
 
 		//prevSize = 0;
 		//expand = true;
 		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
+
+
+		reset(): void {
+			this.descriptors = [];
+			this.strings = [];
+			this.idMap.clear();
+		}
+
+		insert(d: StateDesc, s: string): void {
+			if (d.id != this.descriptors.length) throw new Error("wrng insertion");
+
+			this.descriptors.push(d);
+			this.strings.push(s);
+			this.idMap.set(s, d.id);
+		}
+
+
 
 		getDesc(s: StateId) {
 			if (s >= this.descriptors.length) throw new Error(`non existing StateID #${s}, of ${this.descriptors.length}`); 
@@ -783,7 +800,7 @@ export namespace GameStates {
 			this.descriptors.push(newDesc);
 			this.strings.push(ks);
 
-			this.values.push(undef2nan(newDesc.finalDiff));
+			//this.values.push(undef2nan(newDesc.finalDiff));
 
 			this.idMap.set(ks, newId);
 			return newId;
@@ -921,7 +938,6 @@ export namespace GameStates {
 			const mover = desc.moves();
 			const fdiffs = fds.map(d => d.finalDiff);
 
-				const fdiffs_N = nextIds.map(x => this.values[x]!);
 
 			const bestResult = bestForPlayer(fdiffs, mover);
 			desc.finalDiff = bestResult;
@@ -929,23 +945,26 @@ export namespace GameStates {
 			const bestResultNum = //bestResult == undefined ? NaN : bestResult;
 														undef2nan(bestResult);
 
-			const bestResult_N = bestForPlayer(fdiffs_N, mover);
-			const bestResultNum_N = //bestResult_N == undefined ? NaN : bestResult_N;
-															undef2nan(bestResult_N);
 
-				if (isNaN(bestResultNum_N) != isNaN(bestResultNum)) {
-						console.log(fdiffs);
-						console.log(fdiffs_N);
-						console.log(mover);
+			// const fdiffs_N = nextIds.map(x => this.values[x]!);
 
-						throw new Error(`nan status: ${bestResultNum_N}, ${bestResultNum}`);
+			// const bestResult_N = bestForPlayer(fdiffs_N, mover);
+			// const bestResultNum_N = //bestResult_N == undefined ? NaN : bestResult_N;
+			// 												undef2nan(bestResult_N);
 
-				}
+			// 	if (isNaN(bestResultNum_N) != isNaN(bestResultNum)) {
+			// 			console.log(fdiffs);
+			// 			console.log(fdiffs_N);
+			// 			console.log(mover);
 
-				if (!isNaN(bestResultNum_N) && bestResultNum_N != bestResultNum) throw new Error(`values wrong: ${bestResultNum_N}, ${bestResultNum}`);
+			// 			throw new Error(`nan status: ${bestResultNum_N}, ${bestResultNum}`);
+
+			// 	}
+
+			// 	if (!isNaN(bestResultNum_N) && bestResultNum_N != bestResultNum) throw new Error(`values wrong: ${bestResultNum_N}, ${bestResultNum}`);
 
 
-				this.values[desc.id] = bestResultNum;
+			//	this.values[desc.id] = bestResultNum;
 		}
 
 	}
@@ -974,6 +993,11 @@ export namespace GameStates {
 				const keyStrSize = DEFAULT_CARDS.keyString().length;
 
 				const nRead = allFollowers.length / 13;
+
+
+					const newBase = new StateBase();
+					newBase.reset();
+
 
 				for (let i = 0; i < nRead; i++) {
 					const rFollowers = followersDecode(allFollowers.slice(13*i, 13*i + 13));
@@ -1007,6 +1031,8 @@ export namespace GameStates {
 
 						if (this.stateBase.descriptors[i]!.toString() != desc.toString()) throw new Error('Fcck');
 					}
+
+						newBase.insert(desc, rKs);
 				}
 
 
@@ -1142,7 +1168,7 @@ export namespace GameStates {
 										if (d.falls()) {
 											d.finalDiff = undefined;
 
-											this.stateBase.values[d.id] = NaN;
+											//this.stateBase.values[d.id] = NaN;
 										}
 									}
 								);
