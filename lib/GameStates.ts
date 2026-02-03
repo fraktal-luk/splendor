@@ -1226,15 +1226,15 @@ export namespace GameStates {
 			traceSingle(): void {
 
 							// Clear ratings to fnd out how long it takes to restore them
-							this.stateBase.descriptors.forEach(d => 
-									{ 
-										if (d.falls()) {
-											d.finalDiff = undefined;
+							// this.stateBase.descriptors.forEach(d => 
+							// 		{ 
+							// 			if (d.falls()) {
+							// 				d.finalDiff = undefined;
 
-											//this.stateBase.values[d.id] = NaN;
-										}
-									}
-								);
+							// 				//this.stateBase.values[d.id] = NaN;
+							// 			}
+							// 		}
+							// 	);
 
 					const histories: StateDesc[][] = [];
 

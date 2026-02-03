@@ -17,6 +17,8 @@ waveN.load();
 waveN.stats();
 
 
+waveN.traceGame(false);
+
 // for (let i = 0; i < 1 + 20 + -16 ; i++) {
 // 	waveN.runStep();
 // }
