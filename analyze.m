@@ -39,3 +39,16 @@ end
 xVals = stepValues;
 yVals = relativeIndexVec./(countsPerState+1);
 
+
+
+
+[x, y, u, v] = calcVectors(dataMat, xVals, yVals);
+
+quiver(x(1:6000), y(1:6000), u(1:6000), v(1:6000), 0, '.');
+hold on
+plot(xVals(1:6000), yVals(1:6000), 'ko');
+
+
+
+
+
