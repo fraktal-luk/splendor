@@ -22,9 +22,11 @@ dataMat(dataMat == -1) = nan;
 fclose(fh);
 fclose(fhv);
 
+LIMIT = 100000;
+
   %% !!!! Cutting to 10k for dev because performance
-  dataMat = dataMat(:, 1:2000);
-  valueVector = valueVector(1:2000);
+  dataMat = dataMat(:, 1:LIMIT);
+  valueVector = valueVector(1:LIMIT);
 
 nStates = columns(dataMat);
 
@@ -56,10 +58,11 @@ win1 = valueVector < 0;
 draw = valueVector == 0;
 
 
-[x, y, u, v] = calcVectors(dataMat, xVals, yVals);
+[x, y, u, v] = calcVectors(dataMat, xVals, yVals, valueVector);
 
 quiver(x, y, u, v, 0, 'k.');
 hold on
+plot(xVals, yVals, 'k.')
 plot(xVals(win0), yVals(win0), 'ro', 'MarkerFaceColor','red');
 plot(xVals(win1), yVals(win1), 'bo', 'MarkerFaceColor','blue');
 plot(xVals(draw), yVals(draw), 'gd', 'MarkerFaceColor','greed');
