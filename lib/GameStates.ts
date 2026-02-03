@@ -625,7 +625,7 @@ export namespace GameStates {
 
 	// empty - all -1; undefined - -1 followed by 0
 	function followersFull(input: number[]|undefined): number[] {
-		if (input == undefined) return [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+		if (input == undefined) return [NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN];
 
 		const res = [...input];
 		res[12] = -1;
@@ -634,7 +634,7 @@ export namespace GameStates {
 	}
 
 	function followersDecode(input: number[]) {
-		if (input[0] == -1 && input[1] == 0) return undefined;
+		if (isNaN(input[0]!)) return undefined;
 
 		const end = input.indexOf(-1);
 		return input.slice(0, end);
