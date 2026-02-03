@@ -292,15 +292,54 @@ export namespace GameStates {
 
 	class RowBase {
 		descriptors: RowDesc[] =  [new RowDesc(0, DUMMY_ROW), new RowDesc(1, INITIAL_ROW0), new RowDesc(2,INITIAL_ROW1), new RowDesc(2, INITIAL_ROW2)];
+		strings: string[] = [DUMMY_ROW.keyString(), INITIAL_ROW0.keyString(), INITIAL_ROW1.keyString(), INITIAL_ROW2.keyString()];
+
+
 		idMap: Map<string, RowId> = new Map<string, RowId>([[DUMMY_ROW.keyString(), 0],
 																												[INITIAL_ROW0.keyString(), 1],
 																												[INITIAL_ROW1.keyString(), 2],
 																												[INITIAL_ROW2.keyString(), 3],
 																											]);
 
+		insert(d: RowDesc, s: string): void {
+			if (d.id != this.descriptors.length) throw new Error("wrng insertion");
+
+			this.descriptors.push(d);
+			this.strings.push(s);
+			this.idMap.set(s, d.id);		
+		}
+
+		fillFromArrays(strings: string, followersT: Int32Array): void {
+			this.reset();
+
+			const followers = Array.from(followersT);
+
+			const nRead = followers.length / 4;
+			const keyStrSize = DUMMY_ROW.keyString().length;
+
+			for (let i = 0; i < nRead; i++) {
+				const rFollowers = followersDecode(followers.slice(4*i, 4*i + 4));
+				const rKs = strings.substring(keyStrSize*i, keyStrSize*i + keyStrSize);
+
+				const desc = new RowDesc(i, Row.fromKeyString(rKs));
+				desc.next = rFollowers;
+
+				this.insert(desc, rKs);
+			}
+		}
+
+		reset(): void {
+			this.descriptors = [];
+			this.strings = [];
+			this.idMap.clear();
+		}
+
+
 		addDescriptor(rs: Row, ks: string): StateId {
 			const newId = this.descriptors.length;
 			this.descriptors.push(new RowDesc(newId, rs));
+			this.strings.push(ks);
+
 			this.idMap.set(ks, newId);
 			return newId;
 		}
@@ -617,6 +656,27 @@ export namespace GameStates {
 
 
 
+	// empty - all -1; undefined - -1 followed by 0
+	function rowFollowersFull(input: number[]|undefined): number[] {
+		if (input == undefined) return [-1, 0, 0, 0];
+
+		const res = [...input];
+		res[3] = -1;
+		res.fill(-1, input.length);
+		return res;
+	}
+
+	function rowFollowersDecode(input: number[]) {
+		if (input[0] == -1 && input[1] == 0) return undefined;
+
+		const end = input.indexOf(-1);
+		return input.slice(0, end);
+	}
+
+
+
+
+
 	// CAREFUL: this function considers 0 better than undefined, so draw rates better than "unknown but don't see a winning move"
 	function bestForPlayer(arr: (number|undefined)[], player: number): number|undefined {
 		const sorted = arr.filter(x => x != undefined && !isNaN(x)).toSorted((a,b) => a! - b!);
@@ -791,7 +851,7 @@ export namespace GameStates {
 			const keyStrSize = DEFAULT_CARDS.keyString().length;
 
 			for (let i = 0; i < nRead; i++) {
-				const rFollowers = followersDecode(followers.slice(13*i, 13*i + 13));
+				const rFollowers = rowFollowersDecode(followers.slice(13*i, 13*i + 13));
 				const rKs = strings.substring(keyStrSize*i, keyStrSize*i + keyStrSize);
 				const rValue = (values[i]);
 
@@ -1005,6 +1065,10 @@ export namespace GameStates {
 		pointThreshold = 0;
 
 			save(): void {
+
+				const rowAllStr = rowBase.strings.join('');
+				const rowAllFollowers = rowBase.descriptors.map(d => rowFollowersFull(d.next)).flat();
+
 				const allStr = this.stateBase.strings.join('');
 				const allFollowers = this.stateBase.descriptors.map(d => followersFull(d.next)).flat();
 				const allValues = this.stateBase.descriptors.map(d => (undef2nan(d.finalDiff)));
@@ -1061,18 +1125,26 @@ export namespace GameStates {
 				console.log(valueBuf.length);
 
 
+					fs.writeFileSync('saved_1/rstrings', rowAllStr, 'utf16le', console.log);
+					fs.writeFileSync('saved_1/rfollowers', Int32Array.from(rowAllFollowers));
+
+					fs.writeFileSync('saved_1/strings', allStr, 'utf16le', console.log);
+					fs.writeFileSync('saved_1/followers', followerBuf, console.log);
+					fs.writeFileSync('saved_1/values', valueBuf, console.log);
+
+
+
 				console.time('loading');
 
-					fs.writeFileSync('stored_strings', allStr, 'utf16le', console.log);
-					fs.writeFileSync('stored_followers', followerBuf, console.log);
-					fs.writeFileSync('stored_values', valueBuf, console.log);
+					const loadedRowS = fs.readFileSync('saved_1/rstrings', "utf16le");
+					const loadedRowF = new Uint8Array(fs.readFileSync('saved_1/rfollowers'));
+					const loadedRowF32 = new Int32Array(loadedRowF.buffer);
 
-
-					const loadedS = fs.readFileSync('stored_strings', "utf16le");
-					const loadedF = new Uint8Array(fs.readFileSync('stored_followers'));
+					const loadedS = fs.readFileSync('saved_1/strings', "utf16le");
+					const loadedF = new Uint8Array(fs.readFileSync('saved_1/followers'));
 					const loadedF32 = new Float32Array(loadedF.buffer);
 
-					const loadedV = new Uint8Array(fs.readFileSync('stored_values'));
+					const loadedV = new Uint8Array(fs.readFileSync('saved_1/values'));
 					const loadedV32 = new Float32Array(loadedV.buffer);
 
 					console.log(loadedS.length);
@@ -1082,7 +1154,27 @@ export namespace GameStates {
 					const anotherBase = new StateBase();
 					anotherBase.fillFromArrays(loadedS, loadedF32, loadedV32);
 
+						//console.log(rowBase);
+
+							console.log(rowBase.descriptors[36]!.state);
+
+					rowBase.reset();
+
+											console.log(rowBase);
+
+					rowBase.fillFromArrays(loadedRowS, loadedRowF32);
+
+							console.log(rowBase.descriptors[36]!.state);
+
+						//console.log(rowBase);
+
+
 				console.timeEnd('loading');
+
+					// console.log(before);
+					// console.log(after);
+
+					// 	if (after != before) console.log('Well not');
 
 
 						if (loadedS != allStr) {
@@ -1094,6 +1186,9 @@ export namespace GameStates {
 				//console.log(followerBuf.slice(0, 10));
 
 				//console.log(loadedF instanceof Buffer);
+
+
+						return;
 
 					[83, 892, 202, 66387, 202393].forEach(
 						k => {
