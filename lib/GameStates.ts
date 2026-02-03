@@ -384,9 +384,6 @@ export namespace GameStates {
 	}
 
 
-	const rowBase = new RowBase();
-
-
 	export class TableCardsShort implements StateValue<TableCardsShort> {
 			rows: RowId[];
 
@@ -418,7 +415,7 @@ export namespace GameStates {
 				const col = index & 3;
 				
 				const rows = this.rows;
-				return rowBase.descriptors[rows[row]].state.cards[col];
+				return getRowBase().descriptors[rows[row]].state.cards[col];
 			}
 
 			grabAt(index: number): TableCardsShort {
@@ -427,14 +424,14 @@ export namespace GameStates {
 				const row = index >> 2;
 				const col = index & 3;
 
-				const resultRows = rowBase.getFollowers(row, this.rows[row]);
+				const resultRows = getRowBase().getFollowers(row, this.rows[row]);
 				const newRows = this.rows.with(row, resultRows[col]);
 
 				return new TableCardsShort(newRows);
 			}
 
 				grabAt_ByRow(rowInd: number): TableCardsShort[] {
-					const resultRows = rowBase.getFollowers(rowInd, this.rows[rowInd]);
+					const resultRows = getRowBase().getFollowers(rowInd, this.rows[rowInd]);
 					const newRowsA = resultRows.map(ri => this.rows.with(rowInd, ri));
 					return newRowsA.map(rr => new TableCardsShort(rr));
 				}
@@ -495,8 +492,8 @@ export namespace GameStates {
 
 
 		function CONV_TC(tcs: TableCardsShort): TableCards {
-			const ss = [rowBase.descriptors[tcs.rows[0]].state.stackSize, rowBase.descriptors[tcs.rows[1]].state.stackSize, rowBase.descriptors[tcs.rows[2]].state.stackSize,];
-			const sp = [...rowBase.descriptors[tcs.rows[0]].state.cards, ...rowBase.descriptors[tcs.rows[1]].state.cards, ...rowBase.descriptors[tcs.rows[2]].state.cards,];
+			const ss = [getRowBase().descriptors[tcs.rows[0]].state.stackSize, getRowBase().descriptors[tcs.rows[1]].state.stackSize, getRowBase().descriptors[tcs.rows[2]].state.stackSize,];
+			const sp = [...getRowBase().descriptors[tcs.rows[0]].state.cards, ...getRowBase().descriptors[tcs.rows[1]].state.cards, ...getRowBase().descriptors[tcs.rows[2]].state.cards,];
 
 			return new TableCards(ss, sp);
 		}
@@ -1000,11 +997,6 @@ export namespace GameStates {
 			return this.descriptors.filter(d => d.next == undefined);
 		}
 
-		// showTable(): void {
-		// 	const str = this.descriptors.map(x => `${x.id}, ${x.getNiceString()}`).join('\n');
-		// 	console.log(str);
-		// }
-
 		rateNonfinals(): void {			
 			this.descriptors.forEach(x => this.processNonfinal(x));
 		}
@@ -1024,32 +1016,27 @@ export namespace GameStates {
 			const bestResult = bestForPlayer(fdiffs, mover);
 			desc.finalDiff = bestResult;
 
-			const bestResultNum = //bestResult == undefined ? NaN : bestResult;
-														undef2nan(bestResult);
-
-
-			// const fdiffs_N = nextIds.map(x => this.values[x]!);
-
-			// const bestResult_N = bestForPlayer(fdiffs_N, mover);
-			// const bestResultNum_N = //bestResult_N == undefined ? NaN : bestResult_N;
-			// 												undef2nan(bestResult_N);
-
-			// 	if (isNaN(bestResultNum_N) != isNaN(bestResultNum)) {
-			// 			console.log(fdiffs);
-			// 			console.log(fdiffs_N);
-			// 			console.log(mover);
-
-			// 			throw new Error(`nan status: ${bestResultNum_N}, ${bestResultNum}`);
-
-			// 	}
-
-			// 	if (!isNaN(bestResultNum_N) && bestResultNum_N != bestResultNum) throw new Error(`values wrong: ${bestResultNum_N}, ${bestResultNum}`);
-
-
-			//	this.values[desc.id] = bestResultNum;
+			const bestResultNum = undef2nan(bestResult);
 		}
 
 	}
+
+
+
+	const rowBase = new RowBase();
+	const mainBase = new StateBase();
+
+
+	function getRowBase(): RowBase {
+		return rowBase;
+	}
+
+	function getMainBase(): StateBase {
+		return mainBase;
+	}
+
+
+
 
 
 	export class WavefrontC extends Wavefront {
@@ -1066,148 +1053,56 @@ export namespace GameStates {
 
 			save(): void {
 
-				const rowAllStr = rowBase.strings.join('');
-				const rowAllFollowers = rowBase.descriptors.map(d => rowFollowersFull(d.next)).flat();
+				const rowAllStr = getRowBase().strings.join('');
+				const rowAllFollowers = getRowBase().descriptors.map(d => rowFollowersFull(d.next)).flat();
 
 				const allStr = this.stateBase.strings.join('');
 				const allFollowers = this.stateBase.descriptors.map(d => followersFull(d.next)).flat();
 				const allValues = this.stateBase.descriptors.map(d => (undef2nan(d.finalDiff)));
 
-				console.log(allStr.length);
-				console.log(allFollowers.length);
-				console.log(allValues.length);
-
 				const keyStrSize = DEFAULT_CARDS.keyString().length;
-
 				const nRead = allFollowers.length / 13;
 
-
-					const newBase = new StateBase();
-					newBase.reset();
-
-
-				for (let i = 0; i < nRead; i++) {
-					const rFollowers = followersDecode(allFollowers.slice(13*i, 13*i + 13));
-					const rKs = allStr.substring(keyStrSize*i, keyStrSize*i + keyStrSize);
-					const rValue = (allValues[i]);
-
-					const bFollowers = this.stateBase.descriptors[i]!.next;
-					const bKs = this.stateBase.strings[i]!;
-					const bValue = undef2nan(this.stateBase.descriptors[i]!.finalDiff);
-
-					if (rKs != bKs) console.log('String wrong');
-					
-					if (bFollowers != undefined || rFollowers != undefined)
-					{
-						if (rFollowers!.toString() != bFollowers!.toString()) console.log('Arr wrong');
-					}
-
-					if (!isNaN(rValue)) {
-						if (rValue != bValue) console.log(`Wrinf value ${rValue}, ${bValue}`);
-					}
-
-					const desc = new StateDesc(i, CardState.fromKeyString(rKs));
-					desc.next = rFollowers;
-					desc.finalDiff = nan2undef(rValue);
-
-						if (this.stateBase.descriptors[i]!.toString() != desc.toString()) throw new Error('Fcck');
-
-						newBase.insert(desc, rKs);
-				}
 
 				const stringBuf = Int16Array.from(allStr);
 				const followerBuf = Float32Array.from(allFollowers);
 				const valueBuf = Float32Array.from(allValues);
-				//fs.writeFileSync('rows', rowArr, console.log);
 
-				console.log(stringBuf.length);
-				console.log(followerBuf.length);
-				console.log(valueBuf.length);
+				fs.writeFileSync('saved_1/rstrings', rowAllStr, 'utf16le', console.log);
+				fs.writeFileSync('saved_1/rfollowers', Int32Array.from(rowAllFollowers));
 
+				fs.writeFileSync('saved_1/strings', allStr, 'utf16le', console.log);
+				fs.writeFileSync('saved_1/followers', followerBuf, console.log);
+				fs.writeFileSync('saved_1/values', valueBuf, console.log);
 
-					fs.writeFileSync('saved_1/rstrings', rowAllStr, 'utf16le', console.log);
-					fs.writeFileSync('saved_1/rfollowers', Int32Array.from(rowAllFollowers));
-
-					fs.writeFileSync('saved_1/strings', allStr, 'utf16le', console.log);
-					fs.writeFileSync('saved_1/followers', followerBuf, console.log);
-					fs.writeFileSync('saved_1/values', valueBuf, console.log);
+			}
 
 
-
+			load(): void {
 				console.time('loading');
 
-					const loadedRowS = fs.readFileSync('saved_1/rstrings', "utf16le");
-					const loadedRowF = new Uint8Array(fs.readFileSync('saved_1/rfollowers'));
-					const loadedRowF32 = new Int32Array(loadedRowF.buffer);
+				const loadedRowS = fs.readFileSync('saved_1/rstrings', "utf16le");
+				const loadedRowF = new Uint8Array(fs.readFileSync('saved_1/rfollowers'));
+				const loadedRowF32 = new Int32Array(loadedRowF.buffer);
 
-					const loadedS = fs.readFileSync('saved_1/strings', "utf16le");
-					const loadedF = new Uint8Array(fs.readFileSync('saved_1/followers'));
-					const loadedF32 = new Float32Array(loadedF.buffer);
+				const loadedS = fs.readFileSync('saved_1/strings', "utf16le");
+				const loadedF = new Uint8Array(fs.readFileSync('saved_1/followers'));
+				const loadedF32 = new Float32Array(loadedF.buffer);
 
-					const loadedV = new Uint8Array(fs.readFileSync('saved_1/values'));
-					const loadedV32 = new Float32Array(loadedV.buffer);
+				const loadedV = new Uint8Array(fs.readFileSync('saved_1/values'));
+				const loadedV32 = new Float32Array(loadedV.buffer);
 
-					console.log(loadedS.length);
-					console.log(loadedF32.length);
-					console.log(loadedV32.length);
+				getMainBase().fillFromArrays(loadedS, loadedF32, loadedV32);
 
-					const anotherBase = new StateBase();
-					anotherBase.fillFromArrays(loadedS, loadedF32, loadedV32);
+//					console.log(getRowBase().descriptors[36]!.state);
 
-						//console.log(rowBase);
+				getRowBase().fillFromArrays(loadedRowS, loadedRowF32);
 
-							console.log(rowBase.descriptors[36]!.state);
-
-					rowBase.reset();
-
-											console.log(rowBase);
-
-					rowBase.fillFromArrays(loadedRowS, loadedRowF32);
-
-							console.log(rowBase.descriptors[36]!.state);
-
-						//console.log(rowBase);
-
+				//	console.log(getRowBase().descriptors[36]!.state);
 
 				console.timeEnd('loading');
 
-					// console.log(before);
-					// console.log(after);
-
-					// 	if (after != before) console.log('Well not');
-
-
-						if (loadedS != allStr) {
-							console.log(loadedS.substring(100, 200));
-
-
-							throw new Error('String redwrog');
-						}
-				//console.log(followerBuf.slice(0, 10));
-
-				//console.log(loadedF instanceof Buffer);
-
-
-						return;
-
-					[83, 892, 202, 66387, 202393].forEach(
-						k => {
-							const dref = this.stateBase.getDesc(k);
-							const dt = anotherBase.getDesc(k);
-
-							const kstr = anotherBase.strings[k];
-
-							if (anotherBase.strings[k] != this.stateBase.strings[k]) {
-								console.log(`Another:${anotherBase.strings[k]}, ref:${this.stateBase.strings[k]}`);
-
-								throw new Error('diffrent string')
-							};
-
-							if (this.stateBase.idMap.get(kstr) != k) throw new Error('weuior');
-							if (anotherBase.idMap.get(kstr) != k) throw new Error('weuior');
-						}
-					);
-
+				this.stateBase = getMainBase();
 			}
 
 

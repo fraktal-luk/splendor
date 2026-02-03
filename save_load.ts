@@ -12,10 +12,15 @@ import {GameStates} from './lib/GameStates.ts'
 
 let waveN = new GameStates.WavefrontC();
 
-for (let i = 0; i < 1 + 20 + -16 ; i++) {
-	waveN.runStep();
-}
+waveN.load();
 
-waveN.save();
+waveN.stats();
 
+
+// for (let i = 0; i < 1 + 20 + -16 ; i++) {
+// 	waveN.runStep();
+// }
+
+// waveN.save();
+// waveN.load();
 
