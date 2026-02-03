@@ -11,7 +11,7 @@ v = nan(13, len);
 
 for i = 1:len
   followers = followerMat(:, i);
-  followers = followers(~isnan(followers));
+  followers = followers(~isnan(followers) & followers <= len);
 
   yf = yv(followers);
 

@@ -1,23 +1,33 @@
+pkg load image
 
 fh = fopen('saved_1/followers');
 data = fread(fh, 'float32');
+
+fhv = fopen('saved_1/values');
+valueVector = fread(fhv, 'float32');
+
 
 dataMat = reshape(data, 13, []);
 
 
 dataMat(:,1) = []; # remove column 0 to make column 1 appear at index 1 (no big loss)
+valueVector(1) = [];
+
 # So, state 0 is absent here
 
-nStates = columns(dataMat);
 
 
 dataMat(dataMat == -1) = nan;
 
 fclose(fh);
+fclose(fhv);
 
+  %% !!!! Cutting to 10k for dev because performance
+  dataMat = dataMat(:, 1:2000);
+  valueVector = valueVector(1:2000);
 
-# Lets try for first 1000 states
-first1000 = dataMat(:, 1:1000);
+nStates = columns(dataMat);
+
 
 stepValues = countSteps(dataMat);
 
@@ -41,13 +51,18 @@ yVals = relativeIndexVec./(countsPerState+1);
 
 
 
+win0 = valueVector > 0;
+win1 = valueVector < 0;
+draw = valueVector == 0;
+
 
 [x, y, u, v] = calcVectors(dataMat, xVals, yVals);
 
-quiver(x(1:6000), y(1:6000), u(1:6000), v(1:6000), 0, '.');
+quiver(x, y, u, v, 0, 'k.');
 hold on
-plot(xVals(1:6000), yVals(1:6000), 'ko');
-
+plot(xVals(win0), yVals(win0), 'ro', 'MarkerFaceColor','red');
+plot(xVals(win1), yVals(win1), 'bo', 'MarkerFaceColor','blue');
+plot(xVals(draw), yVals(draw), 'gd', 'MarkerFaceColor','greed');
 
 
 
