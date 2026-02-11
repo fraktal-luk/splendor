@@ -10,7 +10,7 @@ u = nan(13, len);
 v = nan(13, len);
 
 for i = 1:len
-  if isnan(values(i)); continue; end
+    %if isnan(values(i)); continue; end
 
   followers = followerMat(:, i);
   followers = followers(~isnan(followers) & followers <= len);
@@ -18,8 +18,6 @@ for i = 1:len
   yf = yv(followers);
 
   for j = 1:numel(followers)
-      % if isnan(values(followers(j))); continue; end
-
       v(j, i) = yf(j) - yv(i);
       u(j, i) = 1;
   end

@@ -1,18 +1,20 @@
 pkg load image
 
-fh = fopen('saved_1/followers');
+fh = fopen('../saved_1/followers');
 data = fread(fh, 'float32');
 
-fhv = fopen('saved_1/values');
+fhv = fopen('../saved_1/values');
 valueVector = fread(fhv, 'float32');
 
-fhs = fopen('saved_1/strings');
+fhs = fopen('../saved_1/strings');
 stringVector = fread(fhs, 'uint16');
 
 
 
-dataMat = reshape(data, 13, []);
-stringMat = reshape(stringVector, 20, []);
+dataMat = single(reshape(data, 13, []));
+stringMat = uint16(reshape(stringVector, 20, []));
+
+clear data stringVector
 
 dataMat(:,1) = []; # remove column 0 to make column 1 appear at index 1 (no big loss)
 valueVector(1) = [];
@@ -27,7 +29,7 @@ fclose(fh);
 fclose(fhv);
 fclose(fhs);
 
-LIMIT = 10000; %numel(valueVector);% 100000;
+LIMIT = 50000;
 
   %% !!!! Cutting to 10k for dev because performance
   dataMat = dataMat(:, 1:LIMIT);
@@ -53,10 +55,10 @@ stepValues = countSteps(dataMat);
 
 countsPerState = counts(stepValues);
 
-yValues = ((1:nStates)./countsPerState);
+%yValues = single((1:nStates)./countsPerState);
 
 
-relativeIndexVec = nan(1, nStates); % index of each state among those with equal step value
+relativeIndexVec = nan(1, nStates, 'single'); % index of each state among those with equal step value
 
 for s = 1:max(stepValues)
     levelStates = find(stepValues == s);
@@ -68,9 +70,11 @@ for s = 1:max(stepValues)
     relativeIndexVec(levelStates(flipud(order))) = indices;
 end
 
+clear levelStates indices
+
+
 xVals = stepValues;
 yVals = relativeIndexVec./(countsPerState+1);
-
 
 
 win0 = valueVector > 0;
@@ -80,22 +84,42 @@ draw = valueVector == 0;
 
 [x, y, u, v] = calcVectors(dataMat, xVals, yVals, valueVector);
 
-quiver(x, y, u, v, 0, 'k.');
-hold on
-plot(xVals, yVals, 'k.')
-plot(xVals(win0), yVals(win0), 'ro', 'MarkerFaceColor','red');
-plot(xVals(win1), yVals(win1), 'bo', 'MarkerFaceColor','blue');
-plot(xVals(draw), yVals(draw), 'gd', 'MarkerFaceColor','greed');
+optimals = markOptimalMoves(valueVector, dataMat, states);
 
+xN = x(~optimals);
+yN = y(~optimals);
+uN = u(~optimals);
+vN = v(~optimals);
+
+xO = x(optimals);
+yO = y(optimals);
+uO = u(optimals);
+vO = v(optimals);
+
+visualize = true;
+if visualize
+  semilogx(xVals, yVals, 'k.'); % Setting x to log for more clarity
+
+  hold on
+
+  quiver(xN, yN, uN, vN, 0, 'k.');
+  quiver(xO, yO, uO, vO, 0, 'g.');
+
+  %plot(xVals, yVals, 'k.')
+  plot(xVals(win0), yVals(win0), 'ro', 'MarkerFaceColor','red');
+  plot(xVals(win1), yVals(win1), 'bo', 'MarkerFaceColor','blue');
+  plot(xVals(draw), yVals(draw), 'gd', 'MarkerFaceColor','greed');
+end
 
 points0 = cellfun(@(x) x.players(1).points, states);
 points1 = cellfun(@(x) x.players(2).points, states);
-
 moves = cellfun(@(x) x.moves, states);
 
+##stem3(xVals, yVals, points1/1000, 'b')
+##stem3(xVals, yVals, points0/1000, 'r')
 
-stem3(xVals, yVals, points1/1000, 'b')
-stem3(xVals, yVals, points0/1000, 'r')
+diffVector = points0 - points1;
 
+diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
 
 
