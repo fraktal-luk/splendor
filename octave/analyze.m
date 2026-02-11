@@ -29,7 +29,7 @@ fclose(fh);
 fclose(fhv);
 fclose(fhs);
 
-LIMIT = 50000;
+LIMIT = 100000; %columns(dataMat); % 50000;
 
   %% !!!! Cutting to 10k for dev because performance
   dataMat = dataMat(:, 1:LIMIT);
@@ -67,7 +67,7 @@ for s = 1:max(stepValues)
       % sort by value
       [~, order] = (sortScores(valueVector(levelStates))); % sort(-valueVector(levelStates));
 
-    relativeIndexVec(levelStates(flipud(order))) = indices;
+    relativeIndexVec(levelStates((order))) = indices;
 end
 
 clear levelStates indices
@@ -85,6 +85,8 @@ draw = valueVector == 0;
 [x, y, u, v] = calcVectors(dataMat, xVals, yVals, valueVector);
 
 optimals = markOptimalMoves(valueVector, dataMat, states);
+
+reached = findReachable(dataMat, optimals, states);
 
 xN = x(~optimals);
 yN = y(~optimals);
@@ -106,9 +108,11 @@ if visualize
   quiver(xO, yO, uO, vO, 0, 'g.');
 
   %plot(xVals, yVals, 'k.')
-  plot(xVals(win0), yVals(win0), 'ro', 'MarkerFaceColor','red');
-  plot(xVals(win1), yVals(win1), 'bo', 'MarkerFaceColor','blue');
-  plot(xVals(draw), yVals(draw), 'gd', 'MarkerFaceColor','greed');
+  plot(xVals(win0 & reached'), yVals(win0 & reached'), 'ro', 'MarkerFaceColor','red');
+  plot(xVals(win1 & reached'), yVals(win1 & reached'), 'bo', 'MarkerFaceColor','blue');
+  plot(xVals(draw & reached'), yVals(draw & reached'), 'gd', 'MarkerFaceColor','green');
+
+  plot(xVals(reached), yVals(reached), 'kx', 'MarkerFaceColor','black');
 end
 
 points0 = cellfun(@(x) x.players(1).points, states);
