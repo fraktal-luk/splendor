@@ -7,18 +7,20 @@ nStates = columns(mat);
 steps = inf(1, nStates);
 steps(1) = 1;
 
-for i = 1:nStates #n
-  value = steps(i);
-  following = mat(:, i);
-  for f = 1:numel(following)
-    this = following(f);
-    if isnan(this) || this > nStates; continue; end
-    steps(this) = min(steps(this), value+1);
-  endfor
+retval = countStepsGeneral(mat, steps);
 
-end
-
-retval = steps;
+##for i = 1:nStates #n
+##  value = steps(i);
+##  following = mat(:, i);
+##  for f = 1:numel(following)
+##    this = following(f);
+##    if isnan(this) || this > nStates; continue; end
+##    steps(this) = min(steps(this), value+1);
+##  endfor
+##
+##end
+##
+##retval = steps;
 
 endfunction
 

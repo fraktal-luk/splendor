@@ -29,7 +29,7 @@ fclose(fh);
 fclose(fhv);
 fclose(fhs);
 
-LIMIT = 100000; %columns(dataMat); % 50000;
+LIMIT = 120000; %columns(dataMat); % 50000;
 
   %% !!!! Cutting to 10k for dev because performance
   dataMat = dataMat(:, 1:LIMIT);
@@ -88,6 +88,25 @@ optimals = markOptimalMoves(valueVector, dataMat, states);
 
 reached = findReachable(dataMat, optimals, states);
 
+
+points0 = cellfun(@(x) x.players(1).points, states);
+points1 = cellfun(@(x) x.players(2).points, states);
+moves = cellfun(@(x) x.moves, states);
+
+##stem3(xVals, yVals, points1/1000, 'b')
+##stem3(xVals, yVals, points0/1000, 'r')
+
+diffVector = points0 - points1;
+
+diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
+
+initialStepsGeneral = inf(1, numel(reached));
+initialStepsGeneral(reached) = 0;
+
+stepsGeneral = countStepsGeneral(dataMat, initialStepsGeneral);
+
+
+
 xN = x(~optimals);
 yN = y(~optimals);
 uN = u(~optimals);
@@ -97,6 +116,8 @@ xO = x(optimals);
 yO = y(optimals);
 uO = u(optimals);
 vO = v(optimals);
+
+in4steps = stepsGeneral <= 4;
 
 visualize = true;
 if visualize
@@ -112,18 +133,7 @@ if visualize
   plot(xVals(win1 & reached'), yVals(win1 & reached'), 'bo', 'MarkerFaceColor','blue');
   plot(xVals(draw & reached'), yVals(draw & reached'), 'gd', 'MarkerFaceColor','green');
 
-  plot(xVals(reached), yVals(reached), 'kx', 'MarkerFaceColor','black');
+  plot(xVals(in4steps), yVals(in4steps), 'gp', 'MarkerFaceColor','black');
 end
-
-points0 = cellfun(@(x) x.players(1).points, states);
-points1 = cellfun(@(x) x.players(2).points, states);
-moves = cellfun(@(x) x.moves, states);
-
-##stem3(xVals, yVals, points1/1000, 'b')
-##stem3(xVals, yVals, points0/1000, 'r')
-
-diffVector = points0 - points1;
-
-diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
 
 

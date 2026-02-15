@@ -1,11 +1,14 @@
 
-function retval = countStepsGeneral(mat)
+function retval = countStepsGeneral(mat, initialSteps)
 
 nStates = columns(mat);
 
+assert(numel(initialSteps) == columns(mat), 'Wrong dimensions');
+
 % rank each state by number of steps
-steps = inf(1, nStates);
-steps(1) = 1;
+##steps = inf(1, nStates);
+##steps(1) = 1;
+steps = single(initialSteps);
 
 for i = 1:nStates #n
   value = steps(i);
