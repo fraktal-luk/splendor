@@ -1,5 +1,5 @@
 
-function [x, y, u, v] = calcVectors(followerMat, xv, yv, values)
+function [x, y, u, v] = calcVectors(followerMat, xv, yv)
 
 len = numel(xv);
 
@@ -10,8 +10,6 @@ u = nan(13, len);
 v = nan(13, len);
 
 for i = 1:len
-    %if isnan(values(i)); continue; end
-
   followers = followerMat(:, i);
   followers = followers(~isnan(followers) & followers <= len);
 

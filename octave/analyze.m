@@ -55,34 +55,29 @@ stepValues = countSteps(dataMat);
 
 countsPerState = counts(stepValues);
 
-%yValues = single((1:nStates)./countsPerState);
+
+##relativeIndexVec = nan(1, nStates, 'single'); % index of each state among those with equal step value
+##
+##for s = 1:max(stepValues)
+##    levelStates = find(stepValues == s);
+##    indices = 1:numel(levelStates);
+##
+##      % sort by value
+##      [~, order] = (sortScores(valueVector(levelStates))); % sort(-valueVector(levelStates));
+##
+##    relativeIndexVec(levelStates((order))) = indices;
+##end
 
 
-relativeIndexVec = nan(1, nStates, 'single'); % index of each state among those with equal step value
-
-for s = 1:max(stepValues)
-    levelStates = find(stepValues == s);
-    indices = 1:numel(levelStates);
-
-      % sort by value
-      [~, order] = (sortScores(valueVector(levelStates))); % sort(-valueVector(levelStates));
-
-    relativeIndexVec(levelStates((order))) = indices;
-end
-
-clear levelStates indices
+%clear levelStates indices
 
 
-xVals = stepValues;
-yVals = relativeIndexVec./(countsPerState+1);
 
 
 win0 = valueVector > 0;
 win1 = valueVector < 0;
 draw = valueVector == 0;
 
-
-[x, y, u, v] = calcVectors(dataMat, xVals, yVals, valueVector);
 
 optimals = markOptimalMoves(valueVector, dataMat, states);
 
@@ -105,6 +100,14 @@ initialStepsGeneral(reached) = 0;
 
 stepsGeneral = countStepsGeneral(dataMat, initialStepsGeneral);
 
+% CAREFUL: here we'll plot height according to present point difference, not oracle value
+relativeIndexVec = getRelativeInds(stepValues, valueVector);
+                   % getRelativeInds(stepValues, diffVector);
+
+xVals = stepValues;
+yVals = relativeIndexVec./(countsPerState+1);
+
+[x, y, u, v] = calcVectors(dataMat, xVals, yVals);
 
 
 xN = x(~optimals);
@@ -133,7 +136,7 @@ if visualize
   plot(xVals(win1 & reached'), yVals(win1 & reached'), 'bo', 'MarkerFaceColor','blue');
   plot(xVals(draw & reached'), yVals(draw & reached'), 'gd', 'MarkerFaceColor','green');
 
-  plot(xVals(in4steps), yVals(in4steps), 'gp', 'MarkerFaceColor','black');
+  %plot(xVals(in4steps), yVals(in4steps), 'gp', 'MarkerFaceColor','black');
 end
 
 
