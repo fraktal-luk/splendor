@@ -51,7 +51,7 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
-const PARAM_TMP_TH = 10 + 1;
+const PARAM_TMP_TH = 10 + -0;
 
 
 const PARAM_TRIM_LOW = true;
@@ -1114,7 +1114,22 @@ export namespace GameStates {
 		}
 
 		runStep(): void {
-			if (this.finished) return;
+			if (this.finished) {
+				const firstU = this.stateBase.values.findIndex(x => isNaN(x));
+
+				// const uSet = makeStateList([firstU]);
+				// this.runDepth(uSet, 16);
+
+				// this.propagateStates();
+
+				// const firstUnew = this.stateBase.values.findIndex(x => isNaN(x));
+
+				// this.stats();
+
+				// console.log(`${firstU} -> ${firstUnew}`);
+
+				return;
+			}
 
 			console.log('> Step ' + this.stepNum);
 
@@ -1124,6 +1139,7 @@ export namespace GameStates {
 
 			if (this.stateBase.FALLS(this.stateBase.descriptors[0]!)) {//  this.stateBase.descriptors[0]!.falls()) {
 				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.RATING(this.stateBase.descriptors[0]!)}`);
+				//this.finished = true;
 			}
 
 			this.stepNum++;

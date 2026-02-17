@@ -1,6 +1,6 @@
 pkg load image
 
-prefix = '../saved_2/';
+prefix = '../saved_3/';
 
 fh = fopen([prefix, 'followers']);
 data = fread(fh, 'float32');
