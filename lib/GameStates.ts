@@ -1042,20 +1042,25 @@ export namespace GameStates {
 					const STRLEN = this.stateBase.strings[0].length;
 
 				//const allStr = this.stateBase.strings.join('');
-				const allFollowers = this.stateBase.descriptors.map(d => followersFull(d.next)).flat();
+				//const allFollowers = this.stateBase.descriptors.map(d => followersFull(d.next)).flat();
 				const allValues = this.stateBase.values;
 					// for (let i = 0; i < this.stateBase.descriptors.length; i++) {
 					// 		if ((this.stateBase.descriptors[i].finalDiff) != nan2undef(this.stateBase.values[i])) throw new Error("Fck! udef, NAN?");
 					// }
 
 				const keyStrSize = DEFAULT_CARDS.keyString().length;
-				const nRead = allFollowers.length / 13;
+				//const nRead = allFollowers.length / 13;
 
 
 					const strBuf = new Int16Array(nStr * STRLEN);
+					const follBuf = new Float32Array(nStr * 13);
 
 					this.stateBase.strings.forEach( (s, ind)  => {
 						strBuf.set(Array.from(s, x => x.charCodeAt(0)), STRLEN * ind);
+					});
+
+					this.stateBase.descriptors.forEach( (d, ind)  => {
+						follBuf.set(followersFull(d.next), 13 * ind);
 					});
 
 				//const stringBuf = Int16Array.from(allStr);
@@ -1064,7 +1069,7 @@ export namespace GameStates {
 					//	console.log(`B ${stringBuf.length}: ` + stringBuf.slice(0, 20));
 
 
-				const followerBuf = Float32Array.from(allFollowers);
+				//const followerBuf = Float32Array.from(allFollowers);
 				const valueBuf = Float32Array.from(allValues);
 
 				fs.writeFileSync('saved_2/rstrings', rowAllStr, 'utf16le', console.log);
@@ -1072,7 +1077,8 @@ export namespace GameStates {
 
 				//fs.writeFileSync('saved_2/strings', allStr, 'utf16le', console.log);
 				fs.writeFileSync('saved_2/strings', strBuf, console.log);
-				fs.writeFileSync('saved_2/followers', followerBuf, console.log);
+				//fs.writeFileSync('saved_2/followers', followerBuf, console.log);
+				fs.writeFileSync('saved_2/followers', follBuf, console.log);
 				fs.writeFileSync('saved_2/values', valueBuf, console.log);
 
 			}
