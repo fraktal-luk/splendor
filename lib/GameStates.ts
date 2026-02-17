@@ -711,9 +711,10 @@ export namespace GameStates {
 
 
 		rating(): GameRating {
-			if (this.finalDiff == undefined) return 'U';
-			else if (this.finalDiff! > 0) return '0'; 
-			else if (this.finalDiff! < 0) return '1'; 
+			const diff = this.finalDiff;
+			if (diff == undefined) return 'U';
+			else if (diff! > 0) return '0'; 
+			else if (diff! < 0) return '1'; 
 			else return 'D';
 		}
 
@@ -756,10 +757,10 @@ export namespace GameStates {
 			return isChecked;
 		}
 
-		falls(): boolean {
-			//return this.category == 'falls';
-			return this.finalDiff != undefined && !this.isFinal();
-		}
+		// falls(): boolean {
+		// 	//return this.category == 'falls';
+		// 	return this.isDone() && !this.isFinal();
+		// }
 
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
@@ -851,6 +852,25 @@ export namespace GameStates {
 		}
 
 
+			IS_DONE(d: StateDesc): boolean {
+					const res = !isNaN(this.values[d.id]!);
+
+						// if (res != d.isDone())
+						// {
+						// 	throw new Error("DONE != Done");
+						// }
+					
+					return res;
+			}
+
+			FALLS(d: StateDesc): boolean {
+					return this.IS_DONE(d) && !d.isFinal();
+			}
+
+			RATING(d: StateDesc): GameRating {
+					return d.rating();
+			}
+
 
 		getDesc(s: StateId) {
 			if (s >= this.descriptors.length) throw new Error(`non existing StateID #${s}, of ${this.descriptors.length}`); 
@@ -866,9 +886,11 @@ export namespace GameStates {
 
 			const newDesc = new StateDesc(newId, cs);
 
+			const value = newDesc.isFinal() ? newDesc.diffP() : NaN;
+
 			this.descriptors.push(newDesc);
 			this.strings.push(ks);
-			this.values.push(undef2nan(newDesc.finalDiff));
+			this.values.push(value);//undef2nan(newDesc.finalDiff));
 
 			this.idMap.set(ks, newId);
 			return newId;
@@ -879,13 +901,13 @@ export namespace GameStates {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
 
-			if (!trace && desc.isDone()) return [];
+			if (!trace && this.IS_DONE(desc)/*.isDone()*/) return [];
 
 			const stateObjS = CardState.fromKeyString(this.strings[state]);
 
 			if (trace) {
 				if (desc!.next == undefined) {
-					return [];				
+					return [];
 				}
 			}
 			else {
@@ -897,22 +919,22 @@ export namespace GameStates {
 			return desc!.next!;
 		}
 
-		// This mode is trace always
-		getInterestingFollowers(state: StateId, trace__: boolean = true): StateId[] {
-			const trace = true;
-			const desc = this.descriptors[state];
-			if (desc == undefined) throw new Error("State not existing");
+		// // This mode is trace always
+		// getInterestingFollowers(state: StateId, trace__: boolean = true): StateId[] {
+		// 	const trace = true;
+		// 	const desc = this.descriptors[state];
+		// 	if (desc == undefined) throw new Error("State not existing");
 
-			if (!desc.isDone()) return [];
+		// 	if (!this.IS_DONE(desc)) return [];
 
-			if (desc!.next == undefined) {
-				return [];				
-			}
+		// 	if (desc!.next == undefined) {
+		// 		return [];				
+		// 	}
 
-			const fds = this.getFollowerDescs(state).filter(d => d.rating() == desc.rating());
+		// 	const fds = this.getFollowerDescs(state).filter(d => d.rating() == desc.rating());
 
-			return fds.map(d => d.id);
-		}
+		// 	return fds.map(d => d.id);
+		// }
 
 
 		makeIds(states: (CardState|undefined)[]): StateId[] {
@@ -946,7 +968,7 @@ export namespace GameStates {
 		}
 
 		followersRatings(state: StateId): GameRating[] {
-			return this.getFollowerDescs(state).map(x => x.rating());
+			return this.getFollowerDescs(state).map(x => this.RATING(x));
 		}
 
 		genBatchFollowers(input: StateList, trace: boolean = false): StateList {
@@ -963,12 +985,12 @@ export namespace GameStates {
 				return Array.from(theSet);
 			}
 
-		genInterestingFollowers(input: StateList, trace: boolean = false): StateList {
-			const flatArr = input.values().map(x => this.getInterestingFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
-			const stateSet = new Set<StateId>(flatArr); 
-			const result = stateSet;
-			return result;
-		}
+		// genInterestingFollowers(input: StateList, trace: boolean = false): StateList {
+		// 	const flatArr = input.values().map(x => this.getInterestingFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
+		// 	const stateSet = new Set<StateId>(flatArr); 
+		// 	const result = stateSet;
+		// 	return result;
+		// }
 
 		// states that are meant to grow - their followers are not known yet
 		getTips(): StateList {
@@ -990,14 +1012,14 @@ export namespace GameStates {
 
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
-			if (desc.isDone() || desc.isFinal() || desc.next == undefined) return;
+			if (this.IS_DONE(desc) || desc.isFinal() || desc.next == undefined) return;
 
 			const nextIds = this.descriptors[desc.id]!.next!;
 
 			const fds = this.getFollowerDescs(desc.id);
 			const mover = desc.moves();
-			const fdiffs = fds.map(d => d.finalDiff);
-																  //this.values[d.id]!);
+			const fdiffs = fds.map(d => //d.finalDiff);
+																  this.values[d.id]!);
 
 
 			const bestResult = bestForPlayer(fdiffs, mover);
@@ -1047,11 +1069,10 @@ export namespace GameStates {
 
 				const allStr = this.stateBase.strings.join('');
 				const allFollowers = this.stateBase.descriptors.map(d => followersFull(d.next)).flat();
-				const allValues = this.stateBase.descriptors.map(d => (undef2nan(d.finalDiff)));
-
+				const allValues = //this.stateBase.descriptors.map(d => (undef2nan(d.finalDiff)));
+													this.stateBase.values;
 					for (let i = 0; i < this.stateBase.descriptors.length; i++) {
 							if ((this.stateBase.descriptors[i].finalDiff) != nan2undef(this.stateBase.values[i])) throw new Error("Fck! udef, NAN?");
-							///if ((this.stateBase.descriptors[i] != undefined) && (this.stateBase.descriptors[i].finalDiff != this.stateBase.values[i]) ) throw new Error("Fck! unequal");
 					}
 
 				const keyStrSize = DEFAULT_CARDS.keyString().length;
@@ -1110,8 +1131,8 @@ export namespace GameStates {
 			this.propagateStates();
 			this.stats();
 
-			if (this.stateBase.descriptors[0]!.falls()) {
-				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.descriptors[0]!.rating()}`);
+			if (this.stateBase.FALLS(this.stateBase.descriptors[0]!)) {//  this.stateBase.descriptors[0]!.falls()) {
+				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.RATING(this.stateBase.descriptors[0]!)}`);
 				//this.finished = true;
 			}
 
@@ -1151,7 +1172,7 @@ export namespace GameStates {
 				const PARAM_REJECT_KNOWN = false;
 
 				if (PARAM_REJECT_KNOWN) {
-					const filteredList = stateArr(currentStates).filter(x => this.stateBase.getDesc(x).rating() == 'U');
+					const filteredList = stateArr(currentStates).filter(x => this.stateBase.RATING(this.stateBase.getDesc(x)) == 'U');
 					currentStates = makeStateList(filteredList);
 				}
 			}
@@ -1170,7 +1191,7 @@ export namespace GameStates {
 			while (true) {
 				ct++;
 				this.stateBase.rateNonfinals();
-				const newDone =	this.stateBase.descriptors.filter(x => x.isDone()).length;
+				const newDone =	this.stateBase.descriptors.filter(x => this.stateBase.IS_DONE(x)).length;
 				if (newDone == nDone) break;
 				nDone = newDone;
 			}
@@ -1190,7 +1211,7 @@ export namespace GameStates {
 
 			const latestDescs = this.stateBase.descriptors;
 			const nFinal = latestDescs.filter(x => x.isFinal()).length;
-			const nFalls = latestDescs.filter(x => x.falls()).length;
+			const nFalls = latestDescs.filter(x => this.stateBase.FALLS(x)).length;
 
 			const nAll = this.stateBase.descriptors.length;
 
@@ -1199,11 +1220,11 @@ export namespace GameStates {
 
 			console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${maxPts} (tip ${maxTipPts})`);
 
-			const nDone = this.stateBase.descriptors.filter(x => x.isDone()).length;
-			const n0 = this.stateBase.descriptors.filter(x => x.rating() == '0').length;
-			const n1 = this.stateBase.descriptors.filter(x => x.rating() == '1').length;
-			const nD = this.stateBase.descriptors.filter(x => x.rating() == 'D').length;
-			const nU = this.stateBase.descriptors.filter(x => x.rating() == 'U').length;
+			const nDone = this.stateBase.descriptors.filter(x => this.stateBase.IS_DONE(x)).length;
+			const n0 = this.stateBase.descriptors.filter(x => this.stateBase.RATING(x) == '0').length;
+			const n1 = this.stateBase.descriptors.filter(x => this.stateBase.RATING(x) == '1').length;
+			const nD = this.stateBase.descriptors.filter(x => this.stateBase.RATING(x) == 'D').length;
+			const nU = this.stateBase.descriptors.filter(x => this.stateBase.RATING(x) == 'U').length;
 			console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 
 			console.log(process.memoryUsage());
@@ -1248,11 +1269,11 @@ export namespace GameStates {
 						histories.push([...pathHistory]);
 
 						const propagationIters = this.propagateStates();
-						const lastUnk = pathHistory.findLast(x => x.rating() == 'U')!;
-						const lastUnknownIndex = pathHistory.findLastIndex(x => x.rating() == 'U')!;
+						const lastUnk = pathHistory.findLast(x => this.stateBase.RATING(x) == 'U')!;
+						const lastUnknownIndex = pathHistory.findLastIndex(x => this.stateBase.RATING(x) == 'U')!;
 
 								console.log(`cut: ${pathHistory.length - 1 - lastUnknownIndex}, Len: ${newTrack.length}, prop: ${propagationIters}`);
-								console.log(`Wins: ${newTrack.at(-1)!.rating()}, last U moves: ${lastUnk.moves()}\n`);
+								console.log(`Wins: ${this.stateBase.RATING(newTrack.at(-1)!)}, last U moves: ${lastUnk.moves()}\n`);
 
 							if (lastUnknownIndex == -1) {
 									console.log('ok, all known!');
@@ -1263,7 +1284,7 @@ export namespace GameStates {
 						this.stateBase.genBatchFollowers(desc2sl(lastUnk));
 						const fds = this.stateBase.getFollowerDescs(lastUnk.id);
 						// one which is undefined too
-						pivot = fds.find(d => d.rating() == 'U')!;
+						pivot = fds.find(d => this.stateBase.RATING(d) == 'U')!;
 
 						pathHistory = pathHistory.slice(0, lastUnknownIndex+1); // Cut what's after the lastUnk
 					}
@@ -1307,59 +1328,59 @@ export namespace GameStates {
 
 
 		// follow the winning sequence of moves
-		traceGame(estimate: boolean): void {
-			const visited: StateId[] = [];
+		// traceGame(estimate: boolean): void {
+		// 	const visited: StateId[] = [];
 
-			const winner = this.stateBase.descriptors[0].rating();
-			const initialDesc = this.stateBase.descriptors[0]!;
+		// 	const winner = this.stateBase.descriptors[0].rating();
+		// 	const initialDesc = this.stateBase.descriptors[0]!;
 
-			let currentDesc = initialDesc;
+		// 	let currentDesc = initialDesc;
 
-			visited.push(currentDesc.id);
+		// 	visited.push(currentDesc.id);
 
-			while (true) {
-				const img = //currentDesc.getNiceString();
-										this.stateBase.getNiceString(currentDesc.id);
-				const mover = currentDesc.moves();
+		// 	while (true) {
+		// 		const img = //currentDesc.getNiceString();
+		// 								this.stateBase.getNiceString(currentDesc.id);
+		// 		const mover = currentDesc.moves();
 
-				console.log(`${currentDesc.id}: ` + img);
-				console.log(currentDesc);
+		// 		console.log(`${currentDesc.id}: ` + img);
+		// 		console.log(currentDesc);
 
-				const fnums = currentDesc.next!;
-				const fds = fnums.map(n => this.stateBase.getDesc(n));
+		// 		const fnums = currentDesc.next!;
+		// 		const fds = fnums.map(n => this.stateBase.getDesc(n));
 
-				fds.sort((da,db) => compareNumbers(da.finalDiff, db.finalDiff));
+		// 		fds.sort((da,db) => compareNumbers(da.finalDiff, db.finalDiff));
 
-				console.log("  C " + fds.map(d => d.rating()).join(', '));
-				console.log("  d " + fds.map(d => d.diffP()).join(', '));
-				console.log("  f " + fds.map(d => d.finalDiff).join(', '));
-				//console.log("  s " + fds.map(d => d.futureScore).join(', '));
+		// 		console.log("  C " + fds.map(d => d.rating()).join(', '));
+		// 		console.log("  d " + fds.map(d => d.diffP()).join(', '));
+		// 		console.log("  f " + fds.map(d => d.finalDiff).join(', '));
+		// 		//console.log("  s " + fds.map(d => d.futureScore).join(', '));
 
-				const fdiffs = fds.map(d => d.finalDiff);
-				const ediffs = fds.map(d => d.diffP());
+		// 		const fdiffs = fds.map(d => d.finalDiff);
+		// 		const ediffs = fds.map(d => d.diffP());
 
-				const bestEdiff = bestForPlayer(ediffs, mover);
-				const bestFdiff = bestForPlayer(fdiffs, mover);
+		// 		const bestEdiff = bestForPlayer(ediffs, mover);
+		// 		const bestFdiff = bestForPlayer(fdiffs, mover);
 
-				console.log(`bestdiff = (${bestEdiff}, ${bestFdiff})`);
+		// 		console.log(`bestdiff = (${bestEdiff}, ${bestFdiff})`);
 
-				const chosenDesc = fds.find(d => (!visited.includes(d.id) && d.finalDiff == bestFdiff))!;
+		// 		const chosenDesc = fds.find(d => (!visited.includes(d.id) && d.finalDiff == bestFdiff))!;
 
-				currentDesc = chosenDesc!;
+		// 		currentDesc = chosenDesc!;
 
-				visited.push(currentDesc.id);
+		// 		visited.push(currentDesc.id);
 
-				console.log('\n\n');
+		// 		console.log('\n\n');
 
-				if (currentDesc.isFinal()) break;
-			}
+		// 		if (currentDesc.isFinal()) break;
+		// 	}
 
-			const img = //currentDesc.getNiceString();
-									this.stateBase.getNiceString(currentDesc.id);
+		// 	const img = //currentDesc.getNiceString();
+		// 							this.stateBase.getNiceString(currentDesc.id);
 
-			console.log(`${currentDesc.id}: ` + img);
-			console.log(currentDesc)
-		}
+		// 	console.log(`${currentDesc.id}: ` + img);
+		// 	console.log(currentDesc)
+		// }
 
 		// traceHot(): void {
 		// 	console.time('TraceHot');
