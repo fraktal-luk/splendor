@@ -140,3 +140,10 @@ if visualize
 end
 
 
+##
+##fh2 = fopen('../saved_2/strings');
+##sv2 = fread(fh2, 'uint16');
+##
+##fh2n = fopen('../saved_2/strings_N');
+##sv2n = fread(fh2n, 'uint16');
+
