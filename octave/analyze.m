@@ -1,12 +1,14 @@
 pkg load image
 
-fh = fopen('../saved_1/followers');
+prefix = '../saved_2/';
+
+fh = fopen([prefix, 'followers']);
 data = fread(fh, 'float32');
 
-fhv = fopen('../saved_1/values');
+fhv = fopen([prefix, 'values']);
 valueVector = fread(fhv, 'float32');
 
-fhs = fopen('../saved_1/strings');
+fhs = fopen([prefix, 'strings']);
 stringVector = fread(fhs, 'uint16');
 
 
