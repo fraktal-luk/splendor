@@ -31,7 +31,7 @@ fclose(fh);
 fclose(fhv);
 fclose(fhs);
 
-LIMIT = 120000; %columns(dataMat); % 50000;
+LIMIT = 100000; %columns(dataMat); % 50000;
 
   %% !!!! Cutting to 10k for dev because performance
   dataMat = dataMat(:, 1:LIMIT);
@@ -102,30 +102,32 @@ initialStepsGeneral(reached) = 0;
 
 stepsGeneral = countStepsGeneral(dataMat, initialStepsGeneral);
 
-% CAREFUL: here we'll plot height according to present point difference, not oracle value
-relativeIndexVec = getRelativeInds(stepValues, valueVector);
-                   % getRelativeInds(stepValues, diffVector);
 
-xVals = stepValues;
-yVals = relativeIndexVec./(countsPerState+1);
-
-[x, y, u, v] = calcVectors(dataMat, xVals, yVals);
-
-
-xN = x(~optimals);
-yN = y(~optimals);
-uN = u(~optimals);
-vN = v(~optimals);
-
-xO = x(optimals);
-yO = y(optimals);
-uO = u(optimals);
-vO = v(optimals);
 
 in4steps = stepsGeneral <= 4;
 
-visualize = true;
+visualize = false;%true;
 if visualize
+  % CAREFUL: here we'll plot height according to present point difference, not oracle value
+  relativeIndexVec = getRelativeInds(stepValues, valueVector);
+                     % getRelativeInds(stepValues, diffVector);
+
+  xVals = stepValues;
+  yVals = relativeIndexVec./(countsPerState+1);
+
+  [x, y, u, v] = calcVectors(dataMat, xVals, yVals);
+
+
+  xN = x(~optimals);
+  yN = y(~optimals);
+  uN = u(~optimals);
+  vN = v(~optimals);
+
+  xO = x(optimals);
+  yO = y(optimals);
+  uO = u(optimals);
+  vO = v(optimals);
+
   semilogx(xVals, yVals, 'k.'); % Setting x to log for more clarity
 
   hold on
