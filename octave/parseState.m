@@ -17,10 +17,10 @@ player0 = struct('points', p0pts, 'sum', p0all, 'cards', p0owned);
 player1 = struct('points', p1pts, 'sum', p1all, 'cards', p1owned);
 
 
-retval = struct(
-  'rowIds', table(1:3)',
-  'moves', table(4),
-  'players', [player0, player1]
+retval = struct( ...
+  'rowIds', table(1:3)',        ...
+  'moves', table(4),            ...
+  'players', [player0, player1] ...
 );
 
-endfunction
+end

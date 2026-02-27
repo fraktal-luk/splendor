@@ -13,4 +13,4 @@ for s = 1:max(stepValues)
     retval(levelStates((order))) = indices;
 end
 
-endfunction
+end

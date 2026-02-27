@@ -36,8 +36,11 @@ iplus = find(nonnegative);
 [vminus, ominus] = sort(values(~nonnegative));
 [vplus, oplus] = sort(values(nonnegative));
 
+im = iminus(ominus);
+ip = iplus(oplus);
+
 sorted = [vminus(:); vplus(:)];
-order = [iminus(ominus)(:); iplus(oplus)(:)];
+order = [im(:); ip(:)];
 
 2;
 

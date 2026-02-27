@@ -1,27 +1,27 @@
 
 function retval = countStepsGeneral(mat, initialSteps)
 
-nStates = columns(mat);
+nStates = width(mat);
 
-assert(numel(initialSteps) == columns(mat), 'Wrong dimensions');
+assert(numel(initialSteps) == width(mat), 'Wrong dimensions');
 
 % rank each state by number of steps
-##steps = inf(1, nStates);
-##steps(1) = 1;
+% steps = inf(1, nStates);
+% steps(1) = 1;
 steps = single(initialSteps);
 
-for i = 1:nStates #n
+for i = 1:nStates %#n
   value = steps(i);
   following = mat(:, i);
   for f = 1:numel(following)
     this = following(f);
     if isnan(this) || this > nStates; continue; end
     steps(this) = min(steps(this), value+1);
-  endfor
+  end
 
 end
 
 retval = steps;
 
-endfunction
+end
 

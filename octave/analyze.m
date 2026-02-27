@@ -1,4 +1,4 @@
-pkg load image
+%pkg load image
 
 prefix = '../saved_3/';
 
@@ -18,10 +18,10 @@ stringMat = uint16(reshape(stringVector, 20, []));
 
 clear data stringVector
 
-dataMat(:,1) = []; # remove column 0 to make column 1 appear at index 1 (no big loss)
+dataMat(:,1) = []; % remove column 0 to make column 1 appear at index 1 (no big loss)
 valueVector(1) = [];
 stringMat(:,1) = [];
-# So, state 0 is absent here
+% So, state 0 is absent here
 
 
 
@@ -31,15 +31,15 @@ fclose(fh);
 fclose(fhv);
 fclose(fhs);
 
-LIMIT = 100000; %columns(dataMat); % 50000;
+LIMIT = 100000; %width(dataMat); % 50000;
 
-  %% !!!! Cutting to 10k for dev because performance
+  % !!!! Cutting to 10k for dev because performance
   dataMat = dataMat(:, 1:LIMIT);
   valueVector = valueVector(1:LIMIT);
   stringMat = stringMat(:, 1:LIMIT);
 
 
-nStates = columns(dataMat);
+nStates = width(dataMat);
 
 
 states = cell(1, nStates);
@@ -58,17 +58,17 @@ stepValues = countSteps(dataMat);
 countsPerState = counts(stepValues);
 
 
-##relativeIndexVec = nan(1, nStates, 'single'); % index of each state among those with equal step value
-##
-##for s = 1:max(stepValues)
-##    levelStates = find(stepValues == s);
-##    indices = 1:numel(levelStates);
-##
-##      % sort by value
-##      [~, order] = (sortScores(valueVector(levelStates))); % sort(-valueVector(levelStates));
-##
-##    relativeIndexVec(levelStates((order))) = indices;
-##end
+% relativeIndexVec = nan(1, nStates, 'single'); % index of each state among those with equal step value
+% 
+% for s = 1:max(stepValues)
+%     levelStates = find(stepValues == s);
+%     indices = 1:numel(levelStates);
+% 
+%       % sort by value
+%       [~, order] = (sortScores(valueVector(levelStates))); % sort(-valueVector(levelStates));
+% 
+%     relativeIndexVec(levelStates((order))) = indices;
+% end
 
 
 %clear levelStates indices
@@ -90,8 +90,8 @@ points0 = cellfun(@(x) x.players(1).points, states);
 points1 = cellfun(@(x) x.players(2).points, states);
 moves = cellfun(@(x) x.moves, states);
 
-##stem3(xVals, yVals, points1/1000, 'b')
-##stem3(xVals, yVals, points0/1000, 'r')
+% stem3(xVals, yVals, points1/1000, 'b')
+% stem3(xVals, yVals, points0/1000, 'r')
 
 diffVector = points0 - points1;
 
@@ -144,10 +144,10 @@ if visualize
 end
 
 
-##
-##fh2 = fopen('../saved_2/strings');
-##sv2 = fread(fh2, 'uint16');
-##
-##fh2n = fopen('../saved_2/strings_N');
-##sv2n = fread(fh2n, 'uint16');
+% 
+% fh2 = fopen('../saved_2/strings');
+% sv2 = fread(fh2, 'uint16');
+% 
+% fh2n = fopen('../saved_2/strings_N');
+% sv2n = fread(fh2n, 'uint16');
 

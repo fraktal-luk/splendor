@@ -12,7 +12,7 @@ for i = 1:numel(retval)
   currentV = newV;
 end
 
-endfunction
+end
 
 
 
@@ -30,19 +30,19 @@ for i = 1:numel(vec)
   if i == 332
     1;
 
-  endif
+  end
 
 
   if mover == 0
     sorted = sortScores(follValues);
   else
     sorted = -sortScores(-follValues);
-  endif
+  end
 
   if ~isempty(sorted)
     out(i) = sorted(end);
   end
 end
 
-endfunction
+end
 

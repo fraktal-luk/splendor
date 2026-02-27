@@ -11,15 +11,16 @@ for i = 1:numel(reached)
 
   mover = states{i}.moves;
   if mover == 1
-    next = followerMat(:, i)(optimals(:, i));
+    nextAll = followerMat(:, i);
+    next = nextAll(optimals(:, i));
   else
 
     next = followerMat(:, i);
-  endif
+  end
 
   next = next(next <= numel(states) & next > 0);
 
   reached(next) = true;
 end
 
-endfunction
+end
