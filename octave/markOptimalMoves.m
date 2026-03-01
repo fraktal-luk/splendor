@@ -1,5 +1,5 @@
 
-function retval = markOptimalMoves(values, followersMat, states)
+function retval = markOptimalMoves(values, followersMat)
 
 retval = false(height(followersMat), width(followersMat));
 

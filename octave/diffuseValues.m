@@ -1,4 +1,6 @@
 
+% diffusion: for degree steps find best move value with lookahead of 1;
+%            equiv. to finding best future with lookahead of degree?
 function retval = diffuseValues(values, followersMat, states, degree)
 
 retval = cell(1, degree);
@@ -32,7 +34,9 @@ for i = 1:numel(vec)
 
   end
 
-
+   % TODO: dont do sorting, just find max/min (hadling of NaNs
+   % properly...)!
+   error('Never use this functin before solving comment above!!!')
   if mover == 0
     sorted = sortScores(follValues);
   else

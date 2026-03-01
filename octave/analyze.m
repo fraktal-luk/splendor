@@ -31,7 +31,9 @@ fclose(fh);
 fclose(fhv);
 fclose(fhs);
 
-LIMIT = 100000; %width(dataMat); % 50000;
+LIMIT = 200000; %width(dataMat); % 50000;
+
+if LIMIT > 200000; error('WTF!'); end
 
   % !!!! Cutting to 10k for dev because performance
   dataMat = dataMat(:, 1:LIMIT);
@@ -42,12 +44,13 @@ LIMIT = 100000; %width(dataMat); % 50000;
 nStates = width(dataMat);
 
 
-states = cell(1, nStates);
-
-for i = 1:nStates
-    states{i} = parseState(stringMat(:,i));
+if false % Parsing states into structs is costly 
+    states = cell(1, nStates);
+    
+    for i = 1:nStates
+        states{i} = parseState(stringMat(:,i));
+    end
 end
-
 
 
 
@@ -81,21 +84,32 @@ win1 = valueVector < 0;
 draw = valueVector == 0;
 
 
-optimals = markOptimalMoves(valueVector, dataMat, states);
+% points0 = cellfun(@(x) x.players(1).points, states);
+% points1 = cellfun(@(x) x.players(2).points, states);
+% moves = cellfun(@(x) x.moves, states);
 
-reached = findReachable(dataMat, optimals, states);
+    [moves, points0, points1] = parsePoints(stringMat); 
+
+    % 
+    % isequaln(mn, moves)
+    % isequaln(p0n, points0)
+    % isequaln(p1n, points1)
+
+diffVector = points0 - points1;
 
 
-points0 = cellfun(@(x) x.players(1).points, states);
-points1 = cellfun(@(x) x.players(2).points, states);
-moves = cellfun(@(x) x.moves, states);
+
+
+optimals = markOptimalMoves(valueVector, dataMat);
+
+reached = findReachable(dataMat, optimals, moves);
+
 
 % stem3(xVals, yVals, points1/1000, 'b')
 % stem3(xVals, yVals, points0/1000, 'r')
 
-diffVector = points0 - points1;
 
-diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
+%diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
 
 initialStepsGeneral = inf(1, numel(reached));
 initialStepsGeneral(reached) = 0;
@@ -106,7 +120,7 @@ stepsGeneral = countStepsGeneral(dataMat, initialStepsGeneral);
 
 in4steps = stepsGeneral <= 4;
 
-visualize = false;%true;
+visualize = false;  true;
 if visualize
   % CAREFUL: here we'll plot height according to present point difference, not oracle value
   relativeIndexVec = getRelativeInds(stepValues, valueVector);
