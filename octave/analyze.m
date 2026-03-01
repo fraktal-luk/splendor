@@ -12,7 +12,6 @@ fhs = fopen([prefix, 'strings']);
 stringVector = fread(fhs, 'uint16');
 
 
-
 dataMat = single(reshape(data, 13, []));
 stringMat = uint16(reshape(stringVector, 20, []));
 
@@ -24,16 +23,15 @@ stringMat(:,1) = [];
 % So, state 0 is absent here
 
 
-
 dataMat(dataMat == -1) = nan;
 
 fclose(fh);
 fclose(fhv);
 fclose(fhs);
 
-LIMIT = 200000; %width(dataMat); % 50000;
+LIMIT = 1000000; %width(dataMat); % 50000;
 
-if LIMIT > 200000; error('WTF!'); end
+if LIMIT > 1000000; error('WTF!'); end
 
   % !!!! Cutting to 10k for dev because performance
   dataMat = dataMat(:, 1:LIMIT);
@@ -42,7 +40,6 @@ if LIMIT > 200000; error('WTF!'); end
 
 
 nStates = width(dataMat);
-
 
 if false % Parsing states into structs is costly 
     states = cell(1, nStates);
@@ -53,30 +50,12 @@ if false % Parsing states into structs is costly
 end
 
 
-
 stepValues = countSteps(dataMat);
 
-[counts, ~] = hist(stepValues, 0.5:max(stepValues));
+%[counts, ~] = histcounts(stepValues, 0.5:(max(stepValues) + 0.5));
+counts = accumarray(stepValues', ones(nStates, 1));
 
 countsPerState = counts(stepValues);
-
-
-% relativeIndexVec = nan(1, nStates, 'single'); % index of each state among those with equal step value
-% 
-% for s = 1:max(stepValues)
-%     levelStates = find(stepValues == s);
-%     indices = 1:numel(levelStates);
-% 
-%       % sort by value
-%       [~, order] = (sortScores(valueVector(levelStates))); % sort(-valueVector(levelStates));
-% 
-%     relativeIndexVec(levelStates((order))) = indices;
-% end
-
-
-%clear levelStates indices
-
-
 
 
 win0 = valueVector > 0;
@@ -84,29 +63,14 @@ win1 = valueVector < 0;
 draw = valueVector == 0;
 
 
-% points0 = cellfun(@(x) x.players(1).points, states);
-% points1 = cellfun(@(x) x.players(2).points, states);
-% moves = cellfun(@(x) x.moves, states);
-
-    [moves, points0, points1] = parsePoints(stringMat); 
-
-    % 
-    % isequaln(mn, moves)
-    % isequaln(p0n, points0)
-    % isequaln(p1n, points1)
-
+[moves, points0, points1] = parsePoints(stringMat); 
 diffVector = points0 - points1;
-
-
 
 
 optimals = markOptimalMoves(valueVector, dataMat);
 
 reached = findReachable(dataMat, optimals, moves);
 
-
-% stem3(xVals, yVals, points1/1000, 'b')
-% stem3(xVals, yVals, points0/1000, 'r')
 
 
 %diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
@@ -117,17 +81,16 @@ initialStepsGeneral(reached) = 0;
 stepsGeneral = countStepsGeneral(dataMat, initialStepsGeneral);
 
 
-
 in4steps = stepsGeneral <= 4;
 
-visualize = false;  true;
+visualize =  false; true;
 if visualize
   % CAREFUL: here we'll plot height according to present point difference, not oracle value
   relativeIndexVec = getRelativeInds(stepValues, valueVector);
                      % getRelativeInds(stepValues, diffVector);
 
   xVals = stepValues;
-  yVals = relativeIndexVec./(countsPerState+1);
+  yVals = relativeIndexVec(:)./(countsPerState(:)+1);
 
   [x, y, u, v] = calcVectors(dataMat, xVals, yVals);
 
@@ -156,12 +119,3 @@ if visualize
 
   %plot(xVals(in4steps), yVals(in4steps), 'gp', 'MarkerFaceColor','black');
 end
-
-
-% 
-% fh2 = fopen('../saved_2/strings');
-% sv2 = fread(fh2, 'uint16');
-% 
-% fh2n = fopen('../saved_2/strings_N');
-% sv2n = fread(fh2n, 'uint16');
-
