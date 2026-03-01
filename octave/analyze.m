@@ -35,9 +35,9 @@ if LIMIT > 1000000; error('WTF!'); end
 
   % !!!! Cutting to 10k for dev because performance
   dataMat = dataMat(:, 1:LIMIT);
+    valueVectorAll = valueVector;
   valueVector = valueVector(1:LIMIT);
   stringMat = stringMat(:, 1:LIMIT);
-
 
 nStates = width(dataMat);
 
@@ -67,21 +67,42 @@ draw = valueVector == 0;
 diffVector = points0 - points1;
 
 
+% All edges (except 0-1)
+[statesRep, ~] = meshgrid(1:nStates, 1:13);
+edgesFrom = statesRep(~isnan(dataMat));
+edgesTo = dataMat(~isnan(dataMat));
+
+valuesFrom = valueVector(edgesFrom);
+valuesTo = valueVectorAll(edgesTo); % some destinations may be outside LIMIT
+groupsFrom = stepValues(edgesFrom); % groups are defined by steps from 0
+
 optimals = markOptimalMoves(valueVector, dataMat);
 
 reached = findReachable(dataMat, optimals, moves);
 
 
+    %diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
 
-%diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
+    initialStepsGeneral = inf(1, numel(reached));
+    initialStepsGeneral(reached) = 0;
+    
+    stepsGeneral = countStepsGeneral(dataMat, initialStepsGeneral);
+    
+    in4steps = stepsGeneral <= 4;
 
-initialStepsGeneral = inf(1, numel(reached));
-initialStepsGeneral(reached) = 0;
 
-stepsGeneral = countStepsGeneral(dataMat, initialStepsGeneral);
+classes = char(size(valueVectorAll));
+classes(isnan(valueVectorAll)) = 'U';
+classes((valueVectorAll) > 0) = '0';
+classes((valueVectorAll) < 0) = '1';
+classes((valueVectorAll) == 0) = 'D';
 
+classCounts = classifyPerGroup(classes, stepValues);
 
-in4steps = stepsGeneral <= 4;
+% table to store numbers of edges by from/to
+
+trTable = makeTransitionHist(edgesFrom, edgesTo, classes);
+trTablesG = makeTransitionHistPerGroup(edgesFrom, edgesTo, classes, groupsFrom);
 
 visualize =  false; true;
 if visualize
