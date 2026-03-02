@@ -31,7 +31,7 @@ fclose(fhs);
 
 LIMIT = 1000000; %width(dataMat); % 50000;
 
-if LIMIT > 1000000; error('WTF!'); end
+if LIMIT > 2000000; error('WTF!'); end
 
   % !!!! Cutting to 10k for dev because performance
   dataMat = dataMat(:, 1:LIMIT);
@@ -103,6 +103,9 @@ classCounts = classifyPerGroup(classes, stepValues);
 
 trTable = makeTransitionHist(edgesFrom, edgesTo, classes);
 trTablesG = makeTransitionHistPerGroup(edgesFrom, edgesTo, classes, groupsFrom);
+
+
+[finals, tips, branching] = getCategs(points0, points1, valueVector, moves, dataMat);
 
 visualize =  false; true;
 if visualize
