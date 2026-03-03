@@ -29,14 +29,16 @@ fclose(fh);
 fclose(fhv);
 fclose(fhs);
 
-LIMIT = 1000000; %width(dataMat); % 50000;
+LIMIT = 2000000; %width(dataMat); % 50000;
 
 if LIMIT > 2000000; error('WTF!'); end
 
   % !!!! Cutting to 10k for dev because performance
+    dataMatAll = dataMat;
   dataMat = dataMat(:, 1:LIMIT);
     valueVectorAll = valueVector;
   valueVector = valueVector(1:LIMIT);
+    stringMatAll = stringMat;
   stringMat = stringMat(:, 1:LIMIT);
 
 nStates = width(dataMat);
@@ -50,12 +52,12 @@ if false % Parsing states into structs is costly
 end
 
 
-stepValues = countSteps(dataMat);
+stepValues = countSteps(dataMatAll);
 
 %[counts, ~] = histcounts(stepValues, 0.5:(max(stepValues) + 0.5));
-counts = accumarray(stepValues', ones(nStates, 1));
-
-countsPerState = counts(stepValues);
+% counts = accumarray(stepValues', ones(nStates, 1));
+% 
+% countsPerState = counts(stepValues);
 
 
 win0 = valueVector > 0;
@@ -63,7 +65,7 @@ win1 = valueVector < 0;
 draw = valueVector == 0;
 
 
-[moves, points0, points1] = parsePoints(stringMat); 
+[moves, points0, points1] = parsePoints(stringMatAll); 
 diffVector = points0 - points1;
 
 
@@ -78,17 +80,17 @@ groupsFrom = stepValues(edgesFrom); % groups are defined by steps from 0
 
 optimals = markOptimalMoves(valueVector, dataMat);
 
-reached = findReachable(dataMat, optimals, moves);
-
-
-    %diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
-
-    initialStepsGeneral = inf(1, numel(reached));
-    initialStepsGeneral(reached) = 0;
-    
-    stepsGeneral = countStepsGeneral(dataMat, initialStepsGeneral);
-    
-    in4steps = stepsGeneral <= 4;
+% reached = findReachable(dataMat, optimals, moves);
+% 
+% 
+%     %diffused = diffuseValues(diffVector, dataMat, states, max(stepValues));
+% 
+%     initialStepsGeneral = inf(1, numel(reached));
+%     initialStepsGeneral(reached) = 0;
+% 
+%     stepsGeneral = countStepsGeneral(dataMat, initialStepsGeneral);
+% 
+%     in4steps = stepsGeneral <= 4;
 
 
 classes = char(size(valueVectorAll));
@@ -105,7 +107,7 @@ trTable = makeTransitionHist(edgesFrom, edgesTo, classes);
 trTablesG = makeTransitionHistPerGroup(edgesFrom, edgesTo, classes, groupsFrom);
 
 
-[finals, tips, branching] = getCategs(points0, points1, valueVector, moves, dataMat);
+[finals, tips, branching] = getCategs(points0, points1, valueVectorAll, moves, dataMatAll);
 
 visualize =  false; true;
 if visualize
