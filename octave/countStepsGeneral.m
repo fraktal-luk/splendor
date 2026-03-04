@@ -5,17 +5,14 @@ nStates = width(mat);
 
 assert(numel(initialSteps) == width(mat), 'Wrong dimensions');
 
-% rank each state by number of steps
-% steps = inf(1, nStates);
-% steps(1) = 1;
 steps = single(initialSteps);
 
-for i = 1:nStates %#n
+for i = 1:nStates
   value = steps(i);
-  following = mat(:, i);
-  for f = 1:numel(following)
-    this = following(f);
-    if isnan(this) || this > nStates; continue; end
+  for f = 1:height(mat)
+    this = mat(f, i);
+    if isnan(this); break; end
+    if this > nStates; continue; end
     steps(this) = min(steps(this), value+1);
   end
 

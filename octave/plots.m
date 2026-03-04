@@ -1,6 +1,6 @@
 
 
-plotValues = makeDisplayValues(valueVectorAll);
+plotValues = makeDisplayValues(valueVector);
 
 
   % Columns 1 through 9
@@ -37,7 +37,7 @@ vFrom = valuesFrom(edgeSel);
 vTo = valuesTo(edgeSel);
 
 dChosen = diffVector(chosenNodes);
-vChosen = valueVectorAll(chosenNodes);
+vChosen = valueVector(chosenNodes);
 
 vx = ones(size(chFrom));%stepValues(chTo) - stepValues(chFrom);
 vy = chTo - chFrom;
