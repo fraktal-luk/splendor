@@ -1,5 +1,5 @@
 
-prefix = '../saved_3/';
+prefix = '../saved_0/';
 
 fh = fopen([prefix, 'followers']);
 followerData = fread(fh, 'float32');
@@ -24,7 +24,7 @@ valueVector(1) = [];
 stringMat(:,1) = [];
 % So, state 0 is absent here
 
-followerMat(followerMat == -1) = nan;
+followerMat(followerMat < 1) = nan;
 
 
 nStates = width(followerMat);

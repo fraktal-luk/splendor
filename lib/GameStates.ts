@@ -628,7 +628,7 @@ export namespace GameStates {
 		if (input == undefined) return [NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN];
 
 		const res = [...input];
-		res[12] = -1;
+		//res[12] = -1;
 		res.fill(-1, input.length);
 		return res;
 	}
