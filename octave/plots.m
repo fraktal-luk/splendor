@@ -1,6 +1,10 @@
 
+
+
 plotValues = makeDisplayValues(valueVector);
 
+
+%% Selected subgraph
 
 chosenState = 143632;
 followersRaw = followerMat(:, chosenState);
@@ -51,3 +55,44 @@ quiver3(stepValues(chFrom)', chFrom, plotValues(chFrom), vx, vy, vz,  0, 'k', 'S
 view(90, -10)
 %dg = graph(string(chFrom), string(chTo));
 
+
+%% States by type?
+
+% Lets limit steps for now because of perf
+stepLimit = 16 + 4;
+
+boundaries = cell(stepLimit, 1);
+
+figure
+hold on
+
+
+for s = 1:stepLimit
+    stepStates = gt{s};
+    pv = plotValues(stepStates);
+    num = numel(pv);
+    zs = (1:num)/(num+1);
+
+    pvSorted = sort(pv);
+    firstNaN = find(pvSorted >= makeDisplayValues(nan), 1);
+    firstZ = find(pvSorted >= makeDisplayValues(0), 1);
+    firstP = find(pvSorted >= makeDisplayValues(1), 1);
+
+        if isempty(firstNaN); firstNaN = nan; end
+        if isempty(firstZ); firstZ = nan; end
+        if isempty(firstP); firstP = nan; end
+
+    scatter3(repmat(s, 1, num), pvSorted, zs, 'bo')
+
+    scatter3(repmat(s, 1, 3), zeros(1,3), ([firstNaN, firstZ, firstP]-0.5)/(num+1), 'ro')
+
+    boundaries{s} = ([firstNaN, firstZ, firstP]-0.5)/(num+1);
+end
+
+blines = cell2mat(boundaries);
+
+plot3((1:stepLimit)', zeros(stepLimit, 1), blines(:,1), 'k')
+plot3((1:stepLimit)', zeros(stepLimit, 1), blines(:,2), 'k')
+plot3((1:stepLimit)', zeros(stepLimit, 1), blines(:,3), 'k')
+
+view(0, 0)

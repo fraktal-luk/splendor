@@ -1,52 +1,35 @@
-% 
-% % diffusion: for degree steps find best move value with lookahead of 1;
-% %            equiv. to finding best future with lookahead of degree?
-% function retval = diffuseValues(values, followersMat, movers, degree)
-% 
-% retval = cell(1, degree);
-% 
-% currentV = values;
-% movers = cellfun(@(x) x.moves, states);
-% 
-% for i = 1:numel(retval)
-%   newV = diffuseOnce(currentV, followersMat, movers);
-%   retval{i} = newV;
-%   currentV = newV;
-% end
-% 
-% end
-% 
-% 
-% 
-% function out = diffuseOnce(vec, followersMat, movers)
-% 
-% out = nan(1, numel(vec));
-% 
-% for i = 1:numel(vec)
-%   mover = movers(i);
-%   followers = followersMat(:, i);
-%   followers = followers((followers <= numel(vec)) & (followers >= 1));
-% 
-%   follValues = vec(followers);
-% 
-%   if i == 332
-%     1;
-% 
-%   end
-% 
-%    % TODO: dont do sorting, just find max/min (hadling of NaNs
-%    % properly...)!
-%    error('Never use this functin before solving comment above!!!')
-%   if mover == 0
-%     sorted = sortScores(follValues);
-%   else
-%     sorted = -sortScores(-follValues);
-%   end
-% 
-%   if ~isempty(sorted)
-%     out(i) = sorted(end);
-%   end
-% end
-% 
-% end
-% 
+
+function [retval, revSteps] = diffuseValues(inValues, followerMat, moves, finals)
+
+
+recValues = inValues;
+% How many sepsof backtracking form finals to set the value?
+reverseSteps = nan(size(finals));
+reverseSteps(finals) = 0; 
+
+
+nDone = nnz(finals);
+loopCount = 0;
+
+vv = recValues;
+
+while loopCount <= 26 % safety limit
+    if loopCount == 26; warning 'Reached max iterations'; end
+    
+    loopCount = loopCount + 1;
+    nDonePrev = nDone;
+
+    [vv, foundNow] = diffuseValuesOnce(vv, followerMat, moves);
+    reverseSteps(foundNow) = loopCount;
+
+    nDone = nnz(~isnan(vv));
+    disp(nDone)
+
+    if nDone == nDonePrev
+        disp 'Stop backtracking'
+        break
+    end
+end
+
+retval = vv';
+revSteps = reverseSteps;
