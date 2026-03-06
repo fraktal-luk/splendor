@@ -15,6 +15,7 @@ fclose(fhv);
 fclose(fhs);
 
 followerMat = single(reshape(followerData, 13, []));
+valueVectorJS = reshape(valueVectorJS, 1, []);
 stringMat = uint16(reshape(stringVector, 20, []));
 
 clear followerData stringVector
@@ -43,35 +44,42 @@ diffVector = points0 - points1;
 
 
 % All edges (except 0-1)
-[statesRep, ~] = meshgrid(1:nStates, 1:13);
-edgesFrom = statesRep(~isnan(followerMat));
-edgesTo = followerMat(~isnan(followerMat));
+    % [statesRep, ~] = meshgrid(1:nStates, 1:13);
+    % edgesFrom = statesRep(~isnan(followerMat));
+    % edgesTo = followerMat(~isnan(followerMat));
 
     clear statesRep
 
     load gameValues % use this vector calculated with recreateScoring.m
-valueVector = gameValues;
+valueVector = gameValues';
 %valueVector = valueVectorJS; % if we use the original file input
 
-valuesFrom = valueVector(edgesFrom);
-valuesTo = valueVector(edgesTo); % some destinations may be outside LIMIT
-groupsFrom = stepValues(edgesFrom); % groups are defined by steps from 0
-groupsTo = stepValues(edgesTo); % should be groupsFrom + 1?, but be careful
+    clear gameValues valueVectorJS
+
+    % valuesFrom = valueVector(edgesFrom);
+    % valuesTo = valueVector(edgesTo); % some destinations may be outside LIMIT
+    % groupsFrom = stepValues(edgesFrom); % groups are defined by steps from 0
+    % groupsTo = stepValues(edgesTo); % should be groupsFrom + 1?, but be careful
 
 
 
-optimals = markOptimalMoves(valueVector, followerMat);
+    % optimals = markOptimalMoves(valueVector, followerMat);
 
-classes = char(size(valueVector));
-classes(isnan(valueVector)) = 'U';
-classes((valueVector) > 0) = '0';
-classes((valueVector) < 0) = '1';
-classes((valueVector) == 0) = 'D';
+    % classes = char(size(valueVector));
+    % classes(isnan(valueVector)) = 'U';
+    % classes((valueVector) > 0) = '0';
+    % classes((valueVector) < 0) = '1';
+    % classes((valueVector) == 0) = 'D';
 
-classCounts = classifyPerGroup(classes, stepValues);
+    % classCounts = classifyPerGroup(classes, stepValues);
 
 % table to store numbers of edges by from/to
-trTable = makeTransitionHist(edgesFrom, edgesTo, classes);
-trTablesG = makeTransitionHistPerGroup(edgesFrom, edgesTo, classes, groupsFrom);
+    % trTable = makeTransitionHist(edgesFrom, edgesTo, classes);
+    % trTablesG = makeTransitionHistPerGroup(edgesFrom, edgesTo, classes, groupsFrom);
 
-[finals, tips, branching] = getCategs(points0, points1, valueVector, moves, followerMat);
+[finals, tips, ~] = getCategs(points0, points1, valueVector, moves, followerMat);
+
+plotValues = makeDisplayValues(valueVector);
+
+gt = groupSteps(stepValues);
+
