@@ -2,7 +2,7 @@
 stats = makeStatsPerStep(gt, valueVector, finals, tips);
 
 % doing this is very costly, leave it aside
-if false
+if true
     finals18 = finals & stepValues <= 18;
         finals20 = finals & stepValues <= 20;
         finals22 = finals & stepValues <= 22;
