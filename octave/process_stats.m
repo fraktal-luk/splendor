@@ -2,7 +2,7 @@
 stats = makeStatsPerStep(gt, valueVector, finals, tips);
 
 % doing this is very costly, leave it aside
-if true
+if false
     finals18 = finals & stepValues <= 18;
         finals20 = finals & stepValues <= 20;
         finals22 = finals & stepValues <= 22;
@@ -35,5 +35,8 @@ if true
     stats20 = makeStatsPerStep(gt, gv20, finals20, tips);
     stats22 = makeStatsPerStep(gt, gv22, finals22, tips);
     stats24 = makeStatsPerStep(gt, gv24, finals24, tips);
-
+    
+    save gvData gv18 gv20 gv22 gv24 revS18 revS20 revS22 revS24
+else
+    load gvData
 end

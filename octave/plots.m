@@ -69,3 +69,14 @@ plotOverview(gt, makeDisplayValues(gv22)', finals22);
 plotOverview(gt, makeDisplayValues(gv24)', finals24);
 
 discoveredAt20 = isnan(gv18) & ~isnan(gv20);
+
+knownAt18 = ~isnan(gv18);
+
+% Which moves are from something in discoveredAt20 to something discovered
+% earlier?
+statesFromD20 = edgesFrom(discoveredAt20(edgesFrom));
+
+    wantedEdgesSelector = (discoveredAt20(edgesFrom) & knownAt18(edgesTo));
+    begins = unique(edgesFrom(wantedEdgesSelector));
+
+    numel(begins)

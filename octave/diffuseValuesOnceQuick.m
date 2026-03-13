@@ -1,10 +1,10 @@
-function [res, found] = diffuseValuesOnce(inValues, followerMat, movers)
+function [res, found] = diffuseValuesOnceQuick(inValues, followerMat, movers)
 
 res = inValues;
 found = false(size(res));
 
-for i = 1:numel(inValues)
-%for i = numel(inValues):-1:1
+%for i = 1:numel(inValues)
+for i = numel(inValues):-1:1
     if ~isnan(inValues(i)); continue; end % node already known
 
     followers = followerMat(:, i);
@@ -12,7 +12,7 @@ for i = 1:numel(inValues)
 
     if isempty(followersOK); continue; end
 
-    fValues = inValues(followersOK);
+    fValues = res(followersOK);
     fMax = max(fValues);
     fMin = min(fValues);
     hasNaN = any(isnan(fValues));

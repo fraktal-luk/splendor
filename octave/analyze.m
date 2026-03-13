@@ -44,9 +44,9 @@ diffVector = points0 - points1;
 
 
 % All edges (except 0-1)
-    % [statesRep, ~] = meshgrid(1:nStates, 1:13);
-    % edgesFrom = statesRep(~isnan(followerMat));
-    % edgesTo = followerMat(~isnan(followerMat));
+    [statesRep, ~] = meshgrid(1:nStates, 1:13);
+    edgesFrom = statesRep(~isnan(followerMat));
+    edgesTo = followerMat(~isnan(followerMat));
 
     clear statesRep
 

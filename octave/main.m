@@ -5,3 +5,5 @@ analyze
 
 process_stats
 
+plots
+
