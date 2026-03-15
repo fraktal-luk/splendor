@@ -1,11 +1,11 @@
 
-function [retval] = diffuseValuesRange(inValues, followerMat, moves, finals)
+function [retval] = diffuseValuesRange(inValues, followerMat, moves, finals, uval)
 
 assert (isequal(size(inValues), [1, width(followerMat)]))
 
 loopCount = 0;
 
-vv = repmat([-inf; inf], 1, width(inValues));
+vv = repmat(uval, 1, width(inValues));
 vv(1, finals) = inValues(finals);
 vv(2, finals) = inValues(finals);
 
@@ -16,7 +16,7 @@ while loopCount <= 26 % safety limit
     
     loopCount = loopCount + 1;
 
-    [vv, foundNow] = diffuseValuesOnceRange(vv, followerMat, moves);
+    [vv, foundNow] = diffuseValuesOnceRange(vv, followerMat, moves, uval);
     nFound = nnz(foundNow);
     nFoundAll = nFoundAll + nFound;
     disp(nFoundAll)

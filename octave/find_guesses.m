@@ -13,25 +13,39 @@ diffRanges22 = diffuseValuesRange(gv22', followerMat, moves, finals22);
 toc
 
 tic
-diffRanges24 = diffuseValuesRange(gv24', followerMat, moves, finals24);
+diffRanges24 = diffuseValuesRange(gv24', followerMat, moves, finals24, [-inf; inf]);
 toc
 
 plotRanges24 = min(30, max(-30, diffRanges24));
 
+
 % 0 wins: lower bound > 0
 % 1 wins: higher bound < 0
 % draw: range == [0; 0]
-% 
-
 haveUpper = diffRanges24(2,:) < inf;
 haveLower = diffRanges24(1,:) > -inf;
+    
+    onlyUpper = haveUpper & ~haveLower; % 
+    onlyLower = haveLower & ~haveUpper;
+    haveAny = haveUpper | haveLower;
+    haveBoth = haveUpper & haveLower;
+    haveNone = ~haveUpper & ~haveLower;
+
 draws = all(diffRanges24 == 0);
+
 wins0 = diffRanges24(1,:) > 0;
+    wins0bound = wins0 & haveUpper;
+    wins0unbound = wins0 & ~haveUpper;
+
 wins1 = diffRanges24(2,:) < 0;
-swing = haveUpper & haveLower & ~wins0 & ~wins1 & ~draws;
-dark = ~haveUpper & ~haveLower;
+    wins1bound = wins1 & haveLower;
+    wins1unbound = wins1 & ~haveLower;
+
+swing = haveBoth & ~wins0 & ~wins1 & ~draws;
+dark = haveNone;
+
+suspect = (unknown & haveAny); % unknown but a limit
 
 
 
-
-
+% 

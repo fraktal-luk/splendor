@@ -1,4 +1,4 @@
-function [res, found] = diffuseValuesOnceRange(inValues, followerMat, movers)
+function [res, found] = diffuseValuesOnceRange(inValues, followerMat, movers, uval)
 
 assert(isequal(size(inValues), [2, width(followerMat)]))
 
@@ -6,7 +6,7 @@ res = inValues;
 found = false(1, width(res));
 
 for i = width(inValues):-1:1
-    if ~isequal(res(:, i), [-inf; inf]); continue; end % U nodes only
+    if ~isequal(res(:, i), uval); continue; end % U nodes only
 
     followers = followerMat(:, i);
     followersOK = followers(~isnan(followers));
@@ -23,7 +23,7 @@ for i = width(inValues):-1:1
         newVal = fMin;
     end
 
-    if ~isequal(newVal, [-inf; inf])
+    if ~isequal(newVal, uval)
         res(:, i) = newVal;
         found(i) = true;
     end

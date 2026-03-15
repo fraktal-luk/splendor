@@ -78,6 +78,7 @@ valueVector = gameValues';
     % trTablesG = makeTransitionHistPerGroup(edgesFrom, edgesTo, classes, groupsFrom);
 
 [finals, tips, ~] = getCategs(points0, points1, valueVector, moves, followerMat);
+unknown = isnan(valueVector);
 
 plotValues = makeDisplayValues(valueVector);
 
