@@ -37,15 +37,25 @@ wins0 = diffRanges24(1,:) > 0;
     wins0bound = wins0 & haveUpper;
     wins0unbound = wins0 & ~haveUpper;
 
-wins1 = diffRanges24(2,:) < 0;
+negBound = haveLower & ~wins0; 
+
+wins1 = diffRanges24(2,:) <= 0;
     wins1bound = wins1 & haveLower;
     wins1unbound = wins1 & ~haveLower;
+
+posBound = haveUpper & ~wins1;
+
+% negBound and posBound can overlap!
 
 swing = haveBoth & ~wins0 & ~wins1 & ~draws;
 dark = haveNone;
 
 suspect = (unknown & haveAny); % unknown but a limit
 
+% which nodes don't have non-NaN followers?
+diffOnce = diffuseValuesOnce(valueVector, followerMat, moves);
+hardU = isnan(diffOnce); % these nodes don't have any 0/D/1 direct followers
 
+% # hardU doesn't mean that range is [-inf; inf]
+% # range [-inf; inf] doesn't mean that everything in forward cone is U
 
-% 
