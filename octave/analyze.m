@@ -56,10 +56,10 @@ valueVector = gameValues';
 
     clear gameValues valueVectorJS
 
-    % valuesFrom = valueVector(edgesFrom);
-    % valuesTo = valueVector(edgesTo); % some destinations may be outside LIMIT
-    % groupsFrom = stepValues(edgesFrom); % groups are defined by steps from 0
-    % groupsTo = stepValues(edgesTo); % should be groupsFrom + 1?, but be careful
+    valuesFrom = valueVector(edgesFrom);
+    valuesTo = valueVector(edgesTo); % some destinations may be outside LIMIT
+    groupsFrom = stepValues(edgesFrom); % groups are defined by steps from 0
+    groupsTo = stepValues(edgesTo); % should be groupsFrom + 1?, but be careful
 
 
 
