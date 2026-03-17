@@ -2,7 +2,7 @@
 % Lets look at a number of first steps, maybe up to 10
 % Plot the whole graph of it!
 
-    % upToStepK = stepValues <= 8;
+upToStepK = stepValues <= 8;
     % stepsK = stepValues(upToStepK);
     % statesK = find(upToStepK);
     % 
@@ -20,6 +20,12 @@
 
 plotSubset(edgesFrom, edgesTo, stepValues, upToStepK, 'ko')
 plotSubset(edgesFrom, edgesTo, stepValues, upToStepK & wins0, 'rx')
+
+plotSubset(edgesFrom, edgesTo, stepValues, upToStepK & wins1, 'bx')
+
+plotSubset(edgesFrom, edgesTo, stepValues, upToStepK & negBound, 'go')
+plotSubset(edgesFrom, edgesTo, stepValues, upToStepK & posBound, 'yo')
+
 
 
 % going from 5 to 7, how much convergence?

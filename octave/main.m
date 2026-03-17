@@ -5,8 +5,8 @@ analyze
 
 process_stats
 
-plots
+%plots
 
-find_guesses
+%find_guesses
 
-browse_beginning
+%browse_beginning
