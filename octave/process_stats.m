@@ -36,7 +36,7 @@ if false
     stats22 = makeStatsPerStep(gt, gv22, finals22, tips);
     stats24 = makeStatsPerStep(gt, gv24, finals24, tips);
     
-    save gvData gv18 gv20 gv22 gv24 revS18 revS20 revS22 revS24
+    save gvData gv18 gv20 gv22 gv24 revS18 revS20 revS22 revS24 finals18 finals20 finals22 finals24
 else
     load gvData
 end

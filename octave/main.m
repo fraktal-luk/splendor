@@ -1,12 +1,12 @@
 
 analyze
 
-% recreateScoring % may be needed to fix incorrect valueVector
+ recreateScoring % may be needed to fix incorrect valueVector
 
 process_stats
 
-%plots
+plots
 
-%find_guesses
+find_guesses
 
 %browse_beginning

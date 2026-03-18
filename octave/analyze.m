@@ -56,22 +56,12 @@ valueVector = gameValues';
 
     clear gameValues valueVectorJS
 
-    valuesFrom = valueVector(edgesFrom);
-    valuesTo = valueVector(edgesTo); % some destinations may be outside LIMIT
-    groupsFrom = stepValues(edgesFrom); % groups are defined by steps from 0
-    groupsTo = stepValues(edgesTo); % should be groupsFrom + 1?, but be careful
-
-
+    % valuesFrom = valueVector(edgesFrom);
+    % valuesTo = valueVector(edgesTo); % some destinations may be outside LIMIT
+    % groupsFrom = stepValues(edgesFrom); % groups are defined by steps from 0
+    % groupsTo = stepValues(edgesTo); % should be groupsFrom + 1?, but be careful
 
     % optimals = markOptimalMoves(valueVector, followerMat);
-
-    % classes = char(size(valueVector));
-    % classes(isnan(valueVector)) = 'U';
-    % classes((valueVector) > 0) = '0';
-    % classes((valueVector) < 0) = '1';
-    % classes((valueVector) == 0) = 'D';
-
-    % classCounts = classifyPerGroup(classes, stepValues);
 
 % table to store numbers of edges by from/to
     % trTable = makeTransitionHist(edgesFrom, edgesTo, classes);
@@ -82,5 +72,5 @@ unknown = isnan(valueVector);
 
 plotValues = makeDisplayValues(valueVector);
 
-gt = groupSteps(stepValues);
+[gt, LABELS] = groupSteps(stepValues, valueVector);
 

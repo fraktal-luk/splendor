@@ -1,15 +1,15 @@
 
 % Make simple predictions for unknown nodes
 tic
-diffRanges18 = diffuseValuesRange(gv18', followerMat, moves, finals18);
+diffRanges18 = diffuseValuesRange(gv18', followerMat, moves, finals18, [-inf; inf]);
 toc
 
 tic
-diffRanges20 = diffuseValuesRange(gv20', followerMat, moves, finals20);
+diffRanges20 = diffuseValuesRange(gv20', followerMat, moves, finals20, [-inf; inf]);
 toc
 
 tic
-diffRanges22 = diffuseValuesRange(gv22', followerMat, moves, finals22);
+diffRanges22 = diffuseValuesRange(gv22', followerMat, moves, finals22, [-inf; inf]);
 toc
 
 tic
