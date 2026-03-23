@@ -1,16 +1,16 @@
 
 % Make simple predictions for unknown nodes
-tic
-diffRanges18 = diffuseValuesRange(gv18', followerMat, moves, finals18, [-inf; inf]);
-toc
-
-tic
-diffRanges20 = diffuseValuesRange(gv20', followerMat, moves, finals20, [-inf; inf]);
-toc
-
-tic
-diffRanges22 = diffuseValuesRange(gv22', followerMat, moves, finals22, [-inf; inf]);
-toc
+% tic
+% diffRanges18 = diffuseValuesRange(gv18', followerMat, moves, finals18, [-inf; inf]);
+% toc
+% 
+% tic
+% diffRanges20 = diffuseValuesRange(gv20', followerMat, moves, finals20, [-inf; inf]);
+% toc
+% 
+% tic
+% diffRanges22 = diffuseValuesRange(gv22', followerMat, moves, finals22, [-inf; inf]);
+% toc
 
 tic
 diffRanges24 = diffuseValuesRange(gv24', followerMat, moves, finals24, [-inf; inf]);
@@ -59,3 +59,22 @@ hardU = isnan(diffOnce); % these nodes don't have any 0/D/1 direct followers
 % # hardU doesn't mean that range is [-inf; inf]
 % # range [-inf; inf] doesn't mean that everything in forward cone is U
 
+% Sort ranges in a given step by max and min:
+prOrig = plotRanges24(:, stepValues == 12);
+pr = [prOrig; 1:width(prOrig)]'; % append index vector to get sorted order easily
+
+ps1 = sortrows(pr, 1);
+ps2 = sortrows(ps1, 2);
+
+pv2 = ps2(:,1:2);
+ord = ps2(:, 3);
+pv2_comp = prOrig(:, ord)';
+
+[gtR, LABELS_R] = groupSteps(stepValues, makeDisplayValues(valueVector), plotRanges24);
+
+rangesSortedByStep(:, LABELS_R) = plotRanges24;
+%rangesVSortedByStep(:, LABELS) = plotRanges24;
+valuesByLABELS(LABELS_R) = valueVector;
+
+categs = categorizeOnce(valueVector, followerMat, moves);
+categsByLABELS(LABELS_R) = categs;

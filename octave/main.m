@@ -5,7 +5,7 @@ analyze
 
 process_stats
 
-plots
+% plots
 
 find_guesses
 

@@ -1,4 +1,4 @@
-function plotNewGraph(edgesFrom, edgesTo, values, stepValues, LABELS)
+function plotNewGraph(edgesFrom, edgesTo, values, ranges, stepValues, LABELS)
     
     oddSteps = mod(stepValues, 2);
     evenSteps = ~oddSteps;
@@ -8,7 +8,7 @@ function plotNewGraph(edgesFrom, edgesTo, values, stepValues, LABELS)
     
     optEdges = valuesFrom == valuesTo;
     
-    before12 = stepValues < 12; % TODO - change back to 12
+    before12 = stepValues < 11;
     
     os = oddSteps & before12;
     es = evenSteps & before12;
@@ -23,28 +23,35 @@ function plotNewGraph(edgesFrom, edgesTo, values, stepValues, LABELS)
     eFrom = edgesFrom;
     eTo = edgesTo;
 
-        eFrom = LABELS(edgesFrom);
-        eTo = LABELS(edgesTo);
+         eFrom = LABELS(edgesFrom);
+         eTo = LABELS(edgesTo);
     
     hold on
+    % quiverEven(eFrom, eTo, evenStarts & ~isnan(valuesTo), '.k')
+    % quiverOdd(eFrom, eTo, oddStarts & ~isnan(valuesTo), '.k')
     quiverEven(eFrom, eTo, evenStarts, '.k')
     quiverOdd(eFrom, eTo, oddStarts, '.k')
-    
+
     % Optimal moves - those where valuesFrom == valuesTo
     
-    quiverEven(eFrom, eTo, evenStartsOpt, 'g')
-    quiverOdd(eFrom, eTo, oddStartsOpt, 'g')
-    
+    % quiverEven(eFrom, eTo, evenStartsOpt, 'g')
+    % quiverOdd(eFrom, eTo, oddStartsOpt, 'g')
+    % 
     
     % TODO: find strictly optimal - optimal moves but only from nodes on the best
     % path(s)
     
-    
-    scatterSelected(eFrom, eTo, evenStarts, 'r')
-    scatterSelected(eTo, eFrom, oddStarts, 'b')
-    
-    scatterSelected(eFrom, eTo, evenStartsOpt, 'ro', 'filled')
-    scatterSelected(eTo, eFrom, oddStartsOpt, 'bo', 'filled')
+   
+  % All edges:
+
+  % scatterSelected(eFrom, eTo, evenStarts, 'g')
+  % scatterSelected(eTo, eFrom, oddStarts, 'g')
+
+        scatterSelected(eFrom, eTo, evenStarts & valuesTo > 0, 'ro', 'filled')
+        scatterSelected(eFrom, eTo, evenStarts & valuesTo <= 0, 'bo', 'filled')
+        % 
+        scatterSelected(eTo, eFrom, oddStarts & valuesTo > 0, 'ro', 'filled')
+        scatterSelected(eTo, eFrom, oddStarts & valuesTo <= 0, 'bo', 'filled')
 
 end
 

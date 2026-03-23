@@ -72,5 +72,6 @@ unknown = isnan(valueVector);
 
 plotValues = makeDisplayValues(valueVector);
 
-[gt, LABELS] = groupSteps(stepValues, valueVector);
+% Group states by steps to reach; LABELS is calculated as states sortd first by step, then by value 
+[gt, LABELS] = groupSteps(stepValues, makeDisplayValues(valueVector));
 
