@@ -10,7 +10,7 @@ for i = 1:numel(reached)
   if (~reached(i)); continue; end     % for player0 only those paths that adversary allows
 
   mover = moves(i);
-  if mover == 1
+  if true % mover == 1
     nextAll = followerMat(:, i);
     next = nextAll(optimals(:, i));
   else

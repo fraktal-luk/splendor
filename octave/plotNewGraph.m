@@ -1,22 +1,30 @@
-function plotNewGraph(edgesFrom, edgesTo, values, ranges, stepValues, LABELS)
+function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS)
     
+    plotVals = makeDisplayValues(values);
+
     oddSteps = mod(stepValues, 2);
     evenSteps = ~oddSteps;
     
+    optNodes = stepsOpt == 0;
+        optNodes4 = stepsOpt <= 4-1;
+
     valuesFrom = values(edgesFrom);
     valuesTo = values(edgesTo);
     
-    optEdges = valuesFrom == valuesTo;
+    optEdges = optNodes(edgesFrom) & optNodes(edgesTo) ;% valuesFrom == valuesTo;
+        optEdges4 = optNodes4(edgesFrom) & optNodes4(edgesTo) ;% valuesFrom == valuesTo;
     
-    before12 = stepValues < 11;
+    chosenSteps = stepValues >= 0 & stepValues <= 24;
     
-    os = oddSteps & before12;
-    es = evenSteps & before12;
+    os = oddSteps & chosenSteps;
+    es = evenSteps & chosenSteps;
     
     evenStarts = es(edgesFrom);
     evenStartsOpt = es(edgesFrom) & optEdges;
+    evenStartsOpt4 = es(edgesFrom) & optEdges4;
     oddStarts = os(edgesFrom);
     oddStartsOpt = os(edgesFrom) & optEdges;
+    oddStartsOpt4 = os(edgesFrom) & optEdges4;
     
     
     
@@ -26,32 +34,47 @@ function plotNewGraph(edgesFrom, edgesTo, values, ranges, stepValues, LABELS)
          eFrom = LABELS(edgesFrom);
          eTo = LABELS(edgesTo);
     
+
+    oddLabels = LABELS(os);
+    evenLabels = LABELS(es);
+
+
+
+
+
+    subplot(2, 2, 2)
+
+    plot([0, max(eTo(evenStarts)) ], [0, max(eTo(evenStarts))], 'k')
     hold on
-    % quiverEven(eFrom, eTo, evenStarts & ~isnan(valuesTo), '.k')
-    % quiverOdd(eFrom, eTo, oddStarts & ~isnan(valuesTo), '.k')
-    quiverEven(eFrom, eTo, evenStarts, '.k')
-    quiverOdd(eFrom, eTo, oddStarts, '.k')
 
-    % Optimal moves - those where valuesFrom == valuesTo
-    
-    % quiverEven(eFrom, eTo, evenStartsOpt, 'g')
-    % quiverOdd(eFrom, eTo, oddStartsOpt, 'g')
+    % quiverEven(eFrom, eTo, evenStarts, '.k')
+    % quiverOdd(eFrom, eTo, oddStarts, '.k')
     % 
-    
-    % TODO: find strictly optimal - optimal moves but only from nodes on the best
-    % path(s)
-    
-   
-  % All edges:
+    % quiverEven(eFrom, eTo, evenStartsOpt, '.g')
+    % quiverOdd(eFrom, eTo, oddStartsOpt, '.g')
 
-  % scatterSelected(eFrom, eTo, evenStarts, 'g')
-  % scatterSelected(eTo, eFrom, oddStarts, 'g')
+    
+    % All edges:
+    scatterSelected(eFrom, eTo, evenStarts, 'k.')
+    scatterSelected(eTo, eFrom, oddStarts, 'k.')
 
-        scatterSelected(eFrom, eTo, evenStarts & valuesTo > 0, 'ro', 'filled')
-        scatterSelected(eFrom, eTo, evenStarts & valuesTo <= 0, 'bo', 'filled')
-        % 
-        scatterSelected(eTo, eFrom, oddStarts & valuesTo > 0, 'ro', 'filled')
-        scatterSelected(eTo, eFrom, oddStarts & valuesTo <= 0, 'bo', 'filled')
+    scatterSelected(eFrom, eTo, evenStarts & valuesTo > 0, 'rd', 'filled')
+    scatterSelected(eFrom, eTo, evenStarts & valuesTo <= 0, 'bd', 'filled')
+    % 
+    scatterSelected(eTo, eFrom, oddStarts & valuesTo > 0, 'ro', 'filled')
+    scatterSelected(eTo, eFrom, oddStarts & valuesTo <= 0, 'bo', 'filled')
+
+    xlimits = xlim();
+    ylimits = ylim();
+    
+    subplot(2, 2, 1)
+    plot(plotVals(os), LABELS(os), 'k.')
+    ylim(ylimits)
+
+    subplot(2, 2, 4)
+    plot(LABELS(es), plotVals(es), 'k.')
+    xlim(xlimits)
+
 
 end
 
