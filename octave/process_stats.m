@@ -8,7 +8,6 @@ stats = makeStatsPerStep(gt, valueVector, finals, tips);
 
 % doing this is very costly, leave it aside
 if false
-
     
     % See what happens if we don't know finals beyond some step
     recValues18 = nan(1, nStates);

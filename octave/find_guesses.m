@@ -12,9 +12,9 @@
 % diffRanges22 = diffuseValuesRange(gv22', followerMat, moves, finals22, [-inf; inf]);
 % toc
 
-tic
+
 diffRanges24 = diffuseValuesRange(gv24', followerMat, moves, finals24, [-inf; inf]);
-toc
+
 
 plotRanges24 = min(30, max(-30, diffRanges24));
 
@@ -53,8 +53,8 @@ wins1 = diffRanges24(2,:) <= 0;
 %suspect = (unknown & haveAny); % unknown but a limit
 
 % which nodes don't have non-NaN followers?
-diffOnce = diffuseValuesOnce(valueVector, followerMat, moves);
-hardU = isnan(diffOnce); % these nodes don't have any 0/D/1 direct followers
+% diffOnce = diffuseValuesOnceQuick(valueVector, followerMat, moves);
+% hardU = isnan(diffOnce); % these nodes don't have any 0/D/1 direct followers
 
 % # hardU doesn't mean that range is [-inf; inf]
 % # range [-inf; inf] doesn't mean that everything in forward cone is U

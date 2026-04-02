@@ -1,5 +1,5 @@
 
-function [retval, revSteps] = diffuseValues(inValues, followerMat, moves, finals)
+function [retval, mf, revSteps] = diffuseValuesQuick_Src(inValues, followerMat, moves, finals)
 
 
 recValues = inValues;
@@ -7,11 +7,16 @@ recValues = inValues;
 reverseSteps = nan(size(finals));
 reverseSteps(finals) = 0; 
 
+mfInitial = nan(size(finals));
+mfInitial(finals) = find(finals);
+
+mf = mfInitial;
 
 nDone = nnz(finals);
 loopCount = 0;
 
-vv = recValues;
+vv = nan(size(finals));
+vv(finals) = recValues(finals);
 
 while loopCount <= 26 % safety limit
     if loopCount == 26; warning 'Reached max iterations'; end
@@ -19,7 +24,7 @@ while loopCount <= 26 % safety limit
     loopCount = loopCount + 1;
     nDonePrev = nDone;
 
-    [vv, foundNow] = diffuseValuesOnce(vv, followerMat, moves);
+    [vv, mf, foundNow] = diffuseValuesOnceQuick_Src(vv, mf, followerMat, moves);
     reverseSteps(foundNow) = loopCount;
 
     nDone = nnz(~isnan(vv));
@@ -31,5 +36,5 @@ while loopCount <= 26 % safety limit
     end
 end
 
-retval = vv';
+retval = vv;
 revSteps = reverseSteps;
