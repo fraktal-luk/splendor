@@ -1,4 +1,4 @@
-function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS)
+function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS, dominants)
     
     plotVals = makeDisplayValues(values);
 
@@ -14,7 +14,7 @@ function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS)
     optEdges = optNodes(edgesFrom) & optNodes(edgesTo) ;% valuesFrom == valuesTo;
         optEdges4 = optNodes4(edgesFrom) & optNodes4(edgesTo) ;% valuesFrom == valuesTo;
     
-    chosenSteps = stepValues >= 0 & stepValues <= 24;
+    chosenSteps = stepValues >= 0 & stepValues <= 24; %24;
     
     os = oddSteps & chosenSteps;
     es = evenSteps & chosenSteps;
@@ -22,18 +22,22 @@ function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS)
     evenStarts = es(edgesFrom);
     evenStartsOpt = es(edgesFrom) & optEdges;
     evenStartsOpt4 = es(edgesFrom) & optEdges4;
+        evenStartsDominated = es(edgesFrom) & ~isnan(dominants(edgesFrom));
+
     oddStarts = os(edgesFrom);
     oddStartsOpt = os(edgesFrom) & optEdges;
     oddStartsOpt4 = os(edgesFrom) & optEdges4;
-    
-    
+        oddStartsDominated = os(edgesFrom) & ~isnan(dominants(edgesFrom));
+
     
     eFrom = edgesFrom;
     eTo = edgesTo;
 
          eFrom = LABELS(edgesFrom);
          eTo = LABELS(edgesTo);
-    
+         eDomsTo = indexOrNaN(LABELS, dominants(edgesTo)); % LABELS(dominants(edgesTo));
+
+         %dominantsByLABEL = LABELS(dominants);
 
     oddLabels = LABELS(os);
     evenLabels = LABELS(es);
@@ -55,8 +59,12 @@ function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS)
 
     
     % All edges:
+            % scatterSelected(eFrom, eDomsTo, evenStartsDominated, 'g.')
+            % scatterSelected(eDomsTo, eFrom, oddStartsDominated, 'g.')
+
     scatterSelected(eFrom, eTo, evenStarts, 'k.')
     scatterSelected(eTo, eFrom, oddStarts, 'k.')
+
 
     scatterSelected(eFrom, eTo, evenStarts & valuesTo > 0, 'rd', 'filled')
     scatterSelected(eFrom, eTo, evenStarts & valuesTo <= 0, 'bd', 'filled')
@@ -93,4 +101,10 @@ function quiverOdd(eFrom, eTo, select, spec)
     quiver(0*eFrom(select), eFrom(select),...
            eTo(select), 0*eFrom(select),... - edgesFrom(evenStarts),...
            0, spec, 'ShowArrowHead', 'off')
+end
+
+
+function res = indexOrNaN(from, by)
+    res = nan(size(by));
+    res(~isnan(by)) = from(by(~isnan(by)));
 end
