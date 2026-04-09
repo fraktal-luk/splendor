@@ -55,7 +55,7 @@ const PARAM_TMP_TH = 10 + -0;
 
 
 const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 3;
+const PARAM_TIP_SUB = 3 - 1;
 
 const PARAM_COLUMN_WALL = 4;
 
@@ -1072,14 +1072,14 @@ export namespace GameStates {
 				//const followerBuf = Float32Array.from(allFollowers);
 				const valueBuf = Float32Array.from(allValues);
 
-				fs.writeFileSync('saved_0/rstrings', rowAllStr, 'utf16le', console.log);
-				fs.writeFileSync('saved_0/rfollowers', Int32Array.from(rowAllFollowers));
+				fs.writeFileSync('saved_9/rstrings', rowAllStr, 'utf16le', console.log);
+				fs.writeFileSync('saved_9/rfollowers', Int32Array.from(rowAllFollowers));
 
 				//fs.writeFileSync('saved_2/strings', allStr, 'utf16le', console.log);
-				fs.writeFileSync('saved_0/strings', strBuf, console.log);
+				fs.writeFileSync('saved_9/strings', strBuf, console.log);
 				//fs.writeFileSync('saved_2/followers', followerBuf, console.log);
-				fs.writeFileSync('saved_0/followers', follBuf, console.log);
-				fs.writeFileSync('saved_0/values', valueBuf, console.log);
+				fs.writeFileSync('saved_9/followers', follBuf, console.log);
+				fs.writeFileSync('saved_9/values', valueBuf, console.log);
 
 			}
 

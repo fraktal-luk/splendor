@@ -1,4 +1,4 @@
-function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS, dominants)
+function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS, dominants, isSkel)
     
     plotVals = makeDisplayValues(values);
 
@@ -11,10 +11,11 @@ function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS, 
     valuesFrom = values(edgesFrom);
     valuesTo = values(edgesTo);
     
+    skelEdges = isSkel(edgesFrom) & isSkel(edgesTo);
     optEdges = optNodes(edgesFrom) & optNodes(edgesTo) ;% valuesFrom == valuesTo;
         optEdges4 = optNodes4(edgesFrom) & optNodes4(edgesTo) ;% valuesFrom == valuesTo;
     
-    chosenSteps = stepValues >= 0 & stepValues <= 24; %24;
+    chosenSteps = stepValues >= 0 & stepValues <= 10;  %24;
     
     os = oddSteps & chosenSteps;
     es = evenSteps & chosenSteps;
@@ -65,12 +66,16 @@ function plotNewGraph(edgesFrom, edgesTo, values, stepsOpt, stepValues, LABELS, 
     scatterSelected(eFrom, eTo, evenStarts, 'k.')
     scatterSelected(eTo, eFrom, oddStarts, 'k.')
 
-
     scatterSelected(eFrom, eTo, evenStarts & valuesTo > 0, 'rd', 'filled')
     scatterSelected(eFrom, eTo, evenStarts & valuesTo <= 0, 'bd', 'filled')
     % 
     scatterSelected(eTo, eFrom, oddStarts & valuesTo > 0, 'ro', 'filled')
     scatterSelected(eTo, eFrom, oddStarts & valuesTo <= 0, 'bo', 'filled')
+
+
+            scatterSelected(eFrom, eTo, evenStarts & skelEdges, 'g.')
+            scatterSelected(eTo, eFrom, oddStarts & skelEdges, 'g.')
+
 
     xlimits = xlim();
     ylimits = ylim();

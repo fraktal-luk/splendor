@@ -28,3 +28,7 @@ end
 
 skel = findSkeleton(followerMat, valueVector, moves);
 
+% 
+isSkel = false(1, nStates);
+isSkel(skel) = true;
+approxSkelPerStep = diff(find(diff(sort(stepValues(isSkel)))));
