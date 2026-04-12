@@ -22,20 +22,12 @@ console.timeEnd('main');
 
 console.log(process.memoryUsage());
 
-	
 	waveN.save();
 
-
-	//waveN.traceGame(false);
-
 	process.exit(0);
-
-
-
 
 	console.log('\n\n\nTrace single');
 
 console.time('ts');
-	waveN.traceSingle();
 console.timeEnd('ts');
 

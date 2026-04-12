@@ -55,7 +55,7 @@ const PARAM_TMP_TH = 10 + -0;
 
 
 const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 3 - 1;
+const PARAM_TIP_SUB = 3 - 0;
 
 const PARAM_COLUMN_WALL = 4;
 
@@ -130,12 +130,10 @@ export namespace GameStates {
 	export class PlayerCards implements StateValue<PlayerCards> {
 		readonly bonuses: TokenVec;
 		readonly points: number;
-		//readonly reserved: Card[];
 		
 		constructor(b: TokenVec, p: number, r: Card[]) {
 			this.bonuses = b;
 			this.points = p;
-			//this.reserved = r;
 		}
 		
 		keyString(): string { return encodeNum2(this.points) + this.bonuses.str; }
@@ -490,14 +488,12 @@ export namespace GameStates {
 		
 	const DEFAULT_TABLE_CARDS = new TableCards(INITIAL_STACK_SIZES, INITIAL_TABLE_NUMS.flat());
 
-
 		function CONV_TC(tcs: TableCardsShort): TableCards {
 			const ss = [getRowBase().descriptors[tcs.rows[0]].state.stackSize, getRowBase().descriptors[tcs.rows[1]].state.stackSize, getRowBase().descriptors[tcs.rows[2]].state.stackSize,];
 			const sp = [...getRowBase().descriptors[tcs.rows[0]].state.cards, ...getRowBase().descriptors[tcs.rows[1]].state.cards, ...getRowBase().descriptors[tcs.rows[2]].state.cards,];
 
 			return new TableCards(ss, sp);
 		}
-
 
 	export class CardState implements StateValue<CardState> {
 		readonly tableCards_S: TableCardsShort;
@@ -576,14 +572,12 @@ export namespace GameStates {
 		// In other words - converting tokens to points
 		prospectPoints(player: number): number {
 			const pc = this.mpc.ofPlayer(player);
-			//const gold = parseInt(this.bonuses.str[5]!, 16);				
 
 			const inds = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].filter(n => n % 4 < PARAM_COLUMN_WALL);
 			const tableCards = inds.map(n => this.tableCards_S.cardAt(n));
 			const evals = tableCards.map(c => pc.evaluateCard(c));
 
 			// Now we need to find largest sum of points that can be bought with our gold
-
 				console.log(pc.bonuses);
 				console.log(evals.map(a => `(${a})`).join(', '));
 
@@ -592,13 +586,11 @@ export namespace GameStates {
 
 	}
 
-
 	export const DEFAULT_CARDS = new CardState(
 										new ManyPlayerCards([DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS, DEFAULT_PLAYER_CARDS,].slice(0, N_PLAYERS)),
 										0,
 											DEFAULT_TABLE_CARDS_SHORT
 										);
-
 
 	//////////////////////////////////////////////////////////
 
@@ -628,7 +620,6 @@ export namespace GameStates {
 		if (input == undefined) return [NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN];
 
 		const res = [...input];
-		//res[12] = -1;
 		res.fill(-1, input.length);
 		return res;
 	}
@@ -652,7 +643,6 @@ export namespace GameStates {
 	}
 
 
-
 	// empty - all -1; undefined - -1 followed by 0
 	function rowFollowersFull(input: number[]|undefined): number[] {
 		if (input == undefined) return [-1, 0, 0, 0];
@@ -669,8 +659,6 @@ export namespace GameStates {
 		const end = input.indexOf(-1);
 		return input.slice(0, end);
 	}
-
-
 
 
 
@@ -701,23 +689,11 @@ export namespace GameStates {
 
 	class StateDesc {
 		id: StateId;
-		//state: CardState;
 		next?: StateId[];
-		//finalDiff?: number = undefined;
 
 			mover = -1;
 			maxP = -1;
 			playerPts = [-1, -1];
-
-
-		// rating(): GameRating {
-		// 	const diff = this.finalDiff;
-		// 	if (diff == undefined) return 'U';
-		// 	else if (diff! > 0) return '0'; 
-		// 	else if (diff! < 0) return '1'; 
-		// 	else return 'D';
-		// }
-
 
 			moves(): number {
 				return this.mover;
@@ -735,10 +711,6 @@ export namespace GameStates {
 			return this.playerPoints(0) - this.playerPoints(1);
 		}
 
-		// isDone(): boolean {
-		// 	return this.finalDiff != undefined;
-		// }
-		
 		isFinal(): boolean {
 			const isChecked = this.maxPoints() >= PARAM_TMP_TH && this.moves() == 0;
 			return isChecked;
@@ -751,7 +723,6 @@ export namespace GameStates {
 
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
-
 			this.mover = state.moves;
 			this.playerPts = [state.ofPlayer(0).points, state.ofPlayer(1).points]; 
 
@@ -761,8 +732,6 @@ export namespace GameStates {
 
 		rateFinal(): void {
 			if (!this.isFinal()) return;
-
-			//this.finalDiff = this.diffP();
 		}
 
 	}
@@ -832,7 +801,6 @@ export namespace GameStates {
 
 				const desc = new StateDesc(i, CardState.fromKeyString(rKs));
 				desc.next = rFollowers;
-			//	desc.finalDiff = nan2undef(rValue);
 
 				this.insert(desc, rKs, rValue);
 			}
@@ -849,14 +817,8 @@ export namespace GameStates {
 			}
 
 			RATING(d: StateDesc): GameRating {
-				//	return d.rating();
-
-					const v = this.values[d.id];
-
+				const v = this.values[d.id];
 				const diff = v;//d.finalDiff;
-
-
-				//	if (diff != undefined && diff != v) throw new Error("value wrong?");
 
 				if (diff == undefined) return 'U';
 				else if (diff! > 0) return '0'; 
@@ -985,15 +947,11 @@ export namespace GameStates {
 			if (this.IS_DONE(desc) || desc.isFinal() || desc.next == undefined) return;
 
 			const nextIds = this.descriptors[desc.id]!.next!;
-
 			const fds = this.getFollowerDescs(desc.id);
 			const mover = desc.moves();
-			const fdiffs = fds.map(d => //d.finalDiff);
-																  this.values[d.id]!);
-
+			const fdiffs = fds.map(d => this.values[d.id]!);
 
 			const bestResult = bestForPlayer(fdiffs, mover);
-			//desc.finalDiff = bestResult;
 
 			this.values[desc.id] = undef2nan(bestResult);
 
@@ -1133,13 +1091,18 @@ export namespace GameStates {
 
 			console.log('> Step ' + this.stepNum);
 
+				if (this.stateBase.descriptors.length >= 3000000) {
+					console.log("Not going on, states 3M states reached");
+					return;
+				}
+
 			this.expand();
 			this.propagateStates();
 			this.stats();
 
 			if (this.stateBase.FALLS(this.stateBase.descriptors[0]!)) {//  this.stateBase.descriptors[0]!.falls()) {
 				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.RATING(this.stateBase.descriptors[0]!)}`);
-				//this.finished = true;
+				this.finished = true;
 			}
 
 			this.stepNum++;
@@ -1149,15 +1112,14 @@ export namespace GameStates {
 			const thr = this.pointThreshold;
 			const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
 
-				console.log(`starting with size ${getStateListSize(startStates)}`);
+			console.log(`starting with size ${getStateListSize(startStates)}`);
 
 			const nextStates = this.runDepth(startStates, PARAM_RUN_DEPTH);
 
 			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 
-
-			this.pointThreshold = PARAM_TRIM_LOW ? currentMaxTipP - PARAM_TIP_SUB : 0;
+			this.pointThreshold = (PARAM_TRIM_LOW) ? currentMaxTipP - PARAM_TIP_SUB : 0;
 			this.latestList = nextStates;
 
 			console.log(`  max ${currentMaxP}, (tip ${currentMaxTipP}) thr ${this.pointThreshold}`);
@@ -1238,99 +1200,6 @@ export namespace GameStates {
 		}
 
 
-
-			traceSingle(): void {
-
-					const histories: StateDesc[][] = [];
-
-					let pathHistory: StateDesc[] = [];
-					let pivot = this.stateBase.descriptors[0]!;
-
-					let ct = 0;
-					while (ct < 1000) {
-						ct++;
-
-						const newTrack = this.expandSinglePath([pivot]);
-
-						{
-							const last = newTrack.at(-1)!;
-							console.log(`Tracing path (${ct}),  points ${last.playerPoints(0)}:${last.playerPoints(1)}`);
-							console.log(pathHistory.map(d => d.id).join(', ') + "...");
-							console.log(newTrack.map(d => d.id).join(', '));
-
-								//const ns = //d.getNiceString();
-									//					this.stateBase.getNiceString(d.id);
-									console.log(pathHistory.map(d => `${d.id}: ` + this.stateBase.getNiceString(d.id)).join('\n') + "\n...");
-									console.log(newTrack.map(d => `${d.id}: ` + this.stateBase.getNiceString(d.id)).join('\n'));
-
-							if (ct > 2800 && ct < 2820) {
-								console.log('Points:')
-								console.log(pathHistory.map(d => `(${d.playerPoints(0)}:${d.playerPoints(1)})`).join(' ') + '...');
-							}
-						}
-
-						pathHistory = pathHistory.concat(newTrack);
-						histories.push([...pathHistory]);
-
-						const propagationIters = this.propagateStates();
-						const lastUnk = pathHistory.findLast(x => this.stateBase.RATING(x) == 'U')!;
-						const lastUnknownIndex = pathHistory.findLastIndex(x => this.stateBase.RATING(x) == 'U')!;
-
-								console.log(`cut: ${pathHistory.length - 1 - lastUnknownIndex}, Len: ${newTrack.length}, prop: ${propagationIters}`);
-								console.log(`Wins: ${this.stateBase.RATING(newTrack.at(-1)!)}, last U moves: ${lastUnk.moves()}\n`);
-
-							if (lastUnknownIndex == -1) {
-									console.log('ok, all known!');
-									break;
-							}
-
-						// now look at followers of lastUnk
-						this.stateBase.genBatchFollowers(desc2sl(lastUnk));
-						const fds = this.stateBase.getFollowerDescs(lastUnk.id);
-						// one which is undefined too
-						pivot = fds.find(d => this.stateBase.RATING(d) == 'U')!;
-
-						pathHistory = pathHistory.slice(0, lastUnknownIndex+1); // Cut what's after the lastUnk
-					}
-
-					pathHistory.forEach(d => console.log(d));
-			}
-
-
-		expandSinglePath(input: StateDesc[]): StateDesc[] {
-				console.time('singlepath');
-
-				const res: StateDesc[] = [];
-
-				const tips = input;
-				tips.sort((a,b) => Math.abs(a.diffP()) - Math.abs(b.diffP()));
-
-				let currentTip = tips.at(-1)!;
-				let ct = 0;
-
-				while (ct < 150) {//currentTip.category != 'final') {
-						res.push(currentTip);
-					ct++;
-
-					const mover = currentTip.moves();
-					this.stateBase.genBatchFollowers(makeStateList([currentTip.id]));
-					const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
-
-					fds.sort((a,b) => (a.diffP()) - (b.diffP()));
-
-					if (currentTip.isFinal()) break;
-					if (fds.length == 0) {
-						console.log('\n>>>> no followers! State is');
-						console.log(currentTip);
-					}
-
-					currentTip = mover == 0 ? fds.at(-1)! : fds.at(0)!;
-				}
-				console.timeEnd('singlepath');
-				return res;
-		}
-
-
 		TMP_print(currentTip: StateDesc): void {
 				const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
 				fds.sort((a,b) => (a.diffP()) - (b.diffP()));
@@ -1339,9 +1208,6 @@ export namespace GameStates {
 		}
 
 	}
-
-
-
 
 
 

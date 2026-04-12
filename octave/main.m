@@ -18,5 +18,7 @@ find_dominants
     % hold on
     % plot(1:nStates, earliestSteps, 'k')
 
-new_graph
+new_dev
+
+% new_graph
 
