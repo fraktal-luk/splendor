@@ -1,5 +1,5 @@
 
-prefix = '../saved_0/';
+prefix = '../saved_9/';
 
 fh = fopen([prefix, 'followers']);
 followerData = fread(fh, 'float32');
@@ -27,10 +27,6 @@ stringMat(:,1) = [];
 
 followerMat(followerMat < 1) = nan;
 
-
-nStates = width(followerMat);
-
-
 [moves, points0, points1] = parsePoints(stringMat);
 
 %% Basic info is ready now 
@@ -38,6 +34,8 @@ nStates = width(followerMat);
     clear stringMat
 
 stepValues = countSteps(followerMat);
+
+nStates = width(followerMat);
 
 
 diffVector = points0 - points1;
@@ -50,9 +48,9 @@ diffVector = points0 - points1;
 
     clear statesRep
 
-    load gameValues % use this vector calculated with recreateScoring.m
-valueVector = gameValues';
-%valueVector = valueVectorJS; % if we use the original file input
+   % load gameValues % use this vector calculated with recreateScoring.m
+%valueVector = gameValues';
+    valueVector = valueVectorJS; % if we use the original file input
 
     clear gameValues valueVectorJS
 
