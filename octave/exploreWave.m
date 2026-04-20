@@ -1,5 +1,5 @@
-function exploreWave(followerMat, finals, ignored)
-    LIMIT = 400;
+function exploreWave(followerMat, values, moves, finals, ignored)
+    LIMIT = 400 * 2 * 3;
 
     active = false(1, width(followerMat));
     visited = false(1, width(followerMat));
@@ -38,12 +38,34 @@ function exploreWave(followerMat, finals, ignored)
             break
         end
 
-        % if i < 10
-        %     disp([visited(1:50); active(1:50)])
-        % end
+        nActiveFinals = nnz(active & finals);
+        
+        if nActiveFinals == 0
+            continue
+        end    
 
-            disp(nnz(visited & finals))
+        % Diffuse known values
+        % ...
+        initVals = nan(1, width(followerMat));
+        initVals(active & finals) = values(active & finals);
+        
+        [diffusedVals] = diffuseValuesQuick(initVals, followerMat, moves, active & finals);
 
+        nKnownVals = nnz(~isnan(diffusedVals));
+            % disp([nActiveFinals, nKnownVals])
+
+
+        % Propagate forward from solved nodes (only visited!), eliminate reached
+        % ...
+        solvedNew = subgraphFrom(find(~isnan(diffusedVals)), followerMat);
+
+            nActivePre = nnz(active);
+
+        active(solvedNew) = 0;
+
+            nActiveNew = nnz(active);
+
+        fprintf('active prev: %d, known %d, active new %d\n', [nActivePre, nKnownVals, nActiveNew])
     end
 
         disp(nums)

@@ -3,7 +3,7 @@ function [retval, revSteps] = diffuseValuesQuick(inValues, followerMat, moves, f
 
 
 recValues = inValues;
-% How many sepsof backtracking form finals to set the value?
+% How many steps of backtracking form finals to set the value?
 reverseSteps = nan(size(finals));
 reverseSteps(finals) = 0; 
 
