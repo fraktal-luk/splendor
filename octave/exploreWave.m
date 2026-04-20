@@ -1,5 +1,5 @@
 function exploreWave(followerMat, values, moves, finals, ignored)
-    LIMIT = 400 * 2 * 3;
+    LIMIT = 1000000; %400 * 2 * 3;
 
     active = false(1, width(followerMat));
     visited = false(1, width(followerMat));
@@ -34,9 +34,11 @@ function exploreWave(followerMat, values, moves, finals, ignored)
         nums(i) = numel(wave);
 
         if nums(i) == 0
-            disp('exhausted wave')
+            fprintf('exhausted wave; active: %d\n', nnz(active))
             break
         end
+
+        fprintf('active: %d\n', nnz(active))
 
         nActiveFinals = nnz(active & finals);
         

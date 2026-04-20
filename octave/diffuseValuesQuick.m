@@ -23,10 +23,10 @@ while loopCount <= 26 % safety limit
     reverseSteps(foundNow) = loopCount;
 
     nDone = nnz(~isnan(vv));
-    disp(nDone)
+        %disp(nDone)
 
     if nDone == nDonePrev
-        disp 'Stop backtracking'
+        %disp 'Stop backtracking'
         break
     end
 end

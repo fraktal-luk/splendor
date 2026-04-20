@@ -19,10 +19,10 @@ while loopCount <= 26 % safety limit
     [vv, foundNow] = diffuseValuesOnceRange(vv, followerMat, moves, uval);
     nFound = nnz(foundNow);
     nFoundAll = nFoundAll + nFound;
-    disp(nFoundAll)
+        %disp(nFoundAll)
 
     if nFound == 0
-        disp 'Stop backtracking'
+        %disp 'Stop backtracking'
         break
     end
 end
