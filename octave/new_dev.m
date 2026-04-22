@@ -1,10 +1,37 @@
 
-% What we need to develop:
-% * viewing small subgraphs:
-%   given a state, find its followers and display the resulting subgraph
-%   with values
+
+explorationInput.valueVector = valueVector;
+explorationInput.moves = moves;
+explorationInput.finals = finals;
+explorationInput.tips = tips;
+
+% 
+% stats_n{1} = exploreWave(followerMat, explorationInput, 1000000, false);
+% stats_n{2} = exploreWave(followerMat, explorationInput, 100000, false);
+% stats_n{3} = exploreWave(followerMat, explorationInput, 50000, false);
+% stats_n{4} = exploreWave(followerMat, explorationInput, 20000, false);
+% stats_n{5} = exploreWave(followerMat, explorationInput, 15000, false);
+% stats_n{6} = exploreWave(followerMat, explorationInput, 10000, false);
+% 
+% figure; plotExploration(stats_n{1})
+% figure; plotExploration(stats_n{2})
+% figure; plotExploration(stats_n{3})
+% figure; plotExploration(stats_n{4})
+% figure; plotExploration(stats_n{5})
+% figure; plotExploration(stats_n{6})
 
 
+    tic;  stats_a = exploreWave(followerMat, explorationInput, 100000, false, 'oldest'); time_a = toc;
+    tic;  stats_b = exploreWave(followerMat, explorationInput, 100000, true, 'newest');  time_b = toc;
+    tic;  stats_c = exploreWave(followerMat, explorationInput, 100000, true, 'highV');  time_c = toc;
+
+    time_a, time_b, time_c
+
+    figure; plotExploration(stats_a)
+    figure; plotExploration(stats_b)
+    figure; plotExploration(stats_c)
+
+%%
 resolved18 = ~isnan(gv18);
 fm18 = followerMat;
 fm18(:, resolved18) = nan; % cut of edges that are not needed
