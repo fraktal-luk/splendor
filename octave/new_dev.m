@@ -21,15 +21,25 @@ explorationInput.tips = tips;
 % figure; plotExploration(stats_n{6})
 
 
-    tic;  stats_a = exploreWave(followerMat, explorationInput, 100000, false, 'oldest'); time_a = toc;
-    tic;  stats_b = exploreWave(followerMat, explorationInput, 100000, true, 'newest');  time_b = toc;
-    tic;  stats_c = exploreWave(followerMat, explorationInput, 100000, true, 'highV');  time_c = toc;
+    tic;  stats_a = exploreWave(followerMat, explorationInput, 100000, 'oldest'); time_a = toc;
+    tic;  stats_b = exploreWave(followerMat, explorationInput, 100000, 'newest');  time_b = toc;
+    tic;  stats_c = exploreWave(followerMat, explorationInput, 100000, 'highV');  time_c = toc;
 
     time_a, time_b, time_c
 
     figure; plotExploration(stats_a)
     figure; plotExploration(stats_b)
     figure; plotExploration(stats_c)
+
+
+
+    % find crown - which final states are necessary for solution
+    crownFM = followerMat;
+    fmValues = indexN(followerMat, valueVector);
+    crownFM(fmValues < 0 | isnan(fmValues)) = nan;
+    crownGraph = subgraphFrom(1, crownFM);
+
+
 
 %%
 resolved18 = ~isnan(gv18);

@@ -1,4 +1,4 @@
-function stats = exploreWave(followerMat, expInput, thr, USE_NEWEST, mode)
+function stats = exploreWave(followerMat, expInput, thr, mode)
     LIMIT = thr; %400 * 2 * 3;
 
         values = expInput.valueVector;
@@ -41,7 +41,8 @@ function stats = exploreWave(followerMat, expInput, thr, USE_NEWEST, mode)
                 case 'highV'
                     vals = values(selected);
                     [~, inds] = sort(-vals);
-                    selected = selected(inds);
+                    selected = selected(inds(1:LIMIT));
+                        1;
                 otherwise
                     selected = selected(1:LIMIT);
             end
