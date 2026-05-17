@@ -1,5 +1,5 @@
-function stats = exploreWave(followerMat, expInput, thr, mode)
-    LIMIT = thr; %400 * 2 * 3;
+function stats = exploreWaveSingle(followerMat, expInput, cg)
+    LIMIT = 1; %400 * 2 * 3;
 
         values = expInput.valueVector;
         moves = expInput.moves;
@@ -7,7 +7,7 @@ function stats = exploreWave(followerMat, expInput, thr, mode)
         ignored = expInput.tips;
 
 
-    nIters = 100;
+    nIters = numel(expInput.valueVector);
 
     active = false(1, width(followerMat));
     visited = false(1, width(followerMat));
@@ -26,30 +26,19 @@ function stats = exploreWave(followerMat, expInput, thr, mode)
         vSelected = nan(1, nIters);
         vExpanded = nan(1, nIters);
 
+    tic
 
     for i = 1:nIters
-        selected = find(active);
 
-        nActive = numel(selected);
-            vActive(i) = nActive;
-
-        % Selection process
-        if nActive > LIMIT
-            switch mode
-                case 'newest'
-                    selected = selected(end-LIMIT+1:end);
-                case 'highV'
-                    vals = values(selected);
-                    [~, inds] = sort(-vals);
-                    selected = selected(inds(1:LIMIT));
-                        1;
-                otherwise
-                    selected = selected(1:LIMIT);
+            if mod(i, 10000) == 0
+                disp("Iter " +  i);
+                toc
             end
-        end
 
-        nSelected = numel(selected);
-            vSelected(i) = nSelected;
+        selected = find(active & cg, 1, 'last');
+
+        nActive = nnz(active);
+            vActive(i) = nActive;
 
         % Move from selected tips: switch then from active to visited
         visited(selected) = 1;
@@ -72,11 +61,10 @@ function stats = exploreWave(followerMat, expInput, thr, mode)
             vNextActive(i) = nActivePre;
 
         if waveSizes(i) == 0
-            fprintf('exhausted wave; active: %d\n', nnz(active))
-            break
+          %  fprintf('exhausted wave; active: %d\n', nnz(active))
         end
 
-        fprintf('active: %d\n', nnz(active))
+      %  fprintf('active: %d\n', nnz(active))
 
         nActiveFinals = nnz(active & finals);
         
