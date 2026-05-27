@@ -184,3 +184,16 @@ if false
     figure; plotExploration(stats_b)
     figure; plotExploration(stats_c)
 end
+
+if false
+    optimals = markOptimalMoves(valueVector, followerMat);
+ 
+    reached = findReachable(followerMat, optimals, moves);
+
+    initialStepsOpt = inf(1, numel(reached));
+    initialStepsOpt(reached) = 0;
+
+    % How many steps away from optimal path
+    stepsOpt = countStepsGeneral(followerMat, initialStepsOpt);
+    in4steps = stepsOpt <= 4;
+end

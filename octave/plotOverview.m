@@ -1,7 +1,7 @@
 function plotOverview(gt, plotValues, finals)
 
 % Lets limit steps for now because of perf
-stepLimit = 24;
+stepLimit = numel(gt);
 
 boundaries = cell(stepLimit, 1);
 ranges = cell(stepLimit, 1);

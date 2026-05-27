@@ -1,9 +1,6 @@
 
 analyze
 
-%process_stats
-
-% plots
 
 find_guesses
 

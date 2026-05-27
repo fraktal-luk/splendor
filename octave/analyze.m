@@ -52,35 +52,19 @@ diffVector = points0 - points1;
 
    % load gameValues % use this vector calculated with recreateScoring.m
 %valueVector = gameValues';
-    valueVector = valueVectorJS; % if we use the original file input
+valueVector = valueVectorJS; % if we use the original file input
 
     clear gameValues valueVectorJS
 
-    % valuesFrom = valueVector(edgesFrom);
-    % valuesTo = valueVector(edgesTo); % some destinations may be outside LIMIT
-    % groupsFrom = stepValues(edgesFrom); % groups are defined by steps from 0
-    % groupsTo = stepValues(edgesTo); % should be groupsFrom + 1?, but be careful
+% valuesFrom = valueVector(edgesFrom);
+% valuesTo = valueVector(edgesTo); % some destinations may be outside LIMIT
 
-    % optimals = markOptimalMoves(valueVector, followerMat);
-
-% table to store numbers of edges by from/to
-    % trTable = makeTransitionHist(edgesFrom, edgesTo, classes);
-    % trTablesG = makeTransitionHistPerGroup(edgesFrom, edgesTo, classes, groupsFrom);
-
-[finals, tips, ~] = getCategs(points0, points1, valueVector, moves, followerMat);
-unknown = isnan(valueVector);
+[finals, tips, unknown, ~] = getCategs(points0, points1, valueVector, moves, followerMat);
+%unknown = isnan(valueVector);
 
 plotValues = makeDisplayValues(valueVector);
 
 % Group states by steps to reach; LABELS is calculated as states sortd first by step, then by value 
 [gt, LABELS] = groupSteps(stepValues, makeDisplayValues(valueVector));
 
-
 stats = makeStatsPerStep(gt, valueVector, finals, tips);
-
-        finals18 = finals & stepValues <= 18;
-        finals20 = finals & stepValues <= 20;
-        finals22 = finals & stepValues <= 22;
-        finals24 = finals & stepValues <= 24;
-
-
