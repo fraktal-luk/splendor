@@ -1,22 +1,4 @@
 
-%% A few example runs
-if true
-    explorationInput.valueVector = valueVector;
-    explorationInput.moves = moves;
-    explorationInput.finals = finals;
-    explorationInput.tips = tips;
-    
-    
-    tic;  stats_a = exploreWave(followerMat, explorationInput, 100000, 'oldest'); time_a = toc;
-    tic;  stats_b = exploreWave(followerMat, explorationInput, 100000, 'newest');  time_b = toc;
-    tic;  stats_c = exploreWave(followerMat, explorationInput, 100000, 'highV');  time_c = toc;
-    
-    time_a, time_b, time_c
-    
-    figure; plotExploration(stats_a)
-    figure; plotExploration(stats_b)
-    figure; plotExploration(stats_c)
-end
 
 %%
     % find crown - which final states are necessary for solution
@@ -70,14 +52,34 @@ end
         reverseMat(1:(eind-inow), ets(inow)) = efs(inow:eind-1);
     end
 
-    infCrown = nan(1, nStates);
-    infCrown(~areCrownGraph) = -1;
-    infCrown(crownFinals) = 0;
-    infNonCrown = nan(1, nStates);
-    infNonCrown(areCrownGraph) = 0;
+    initCrown = nan(1, nStates);
+    initCrown(~areCrownGraph) = -1;
+    initCrown(crownFinals) = 0;
+    initOutside = nan(1, nStates);
+    initOutside(areCrownGraph) = 0;
 
-    stepsOutside = countStepsGeneral(followerMat, infNonCrown);
-    stepsInside = countStepsGeneral(reverseMat, infCrown, true);
+    stepsOutside = countStepsGeneral(followerMat, initOutside);
+    stepsInside = countStepsGeneral(reverseMat, initCrown, true);
+
+    stepsMerged = -stepsOutside;
+    stepsMerged(areCrownGraph) = stepsInside(areCrownGraph);
+
+
+commonUnnormalized = [
+            points0', points1', max(points0, points1)', min(points0, points1)', stepValues',...
+            double(areCrownGraph'), stepsOutside', stepsInside', stepsMerged'
+           ];
+commonNormalized = normalize(commonUnnormalized);
+
+corrMat = commonNormalized' * commonNormalized / nStates;
+
+nStates15 = nnz(stepValues < 15);
+
+commonU15 = commonUnnormalized(stepValues < 15, :);
+commonN15 = normalize(commonU15);
+
+corrMat15 = commonN15' * commonN15 / nStates15;
+
 
 %%
 
@@ -162,4 +164,23 @@ if false
     bar(pRange, max_h24, 'k')
     hold on
     bar(pRange, max_h24r20, 'r')
+end
+
+%% A few example runs
+if false
+    explorationInput.valueVector = valueVector;
+    explorationInput.moves = moves;
+    explorationInput.finals = finals;
+    explorationInput.tips = tips;
+    
+    
+    tic;  stats_a = exploreWave(followerMat, explorationInput, 100000, 'oldest'); time_a = toc;
+    tic;  stats_b = exploreWave(followerMat, explorationInput, 100000, 'newest');  time_b = toc;
+    tic;  stats_c = exploreWave(followerMat, explorationInput, 100000, 'highV');  time_c = toc;
+    
+    time_a, time_b, time_c
+    
+    figure; plotExploration(stats_a)
+    figure; plotExploration(stats_b)
+    figure; plotExploration(stats_c)
 end

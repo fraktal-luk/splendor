@@ -1,13 +1,6 @@
 
-stats = makeStatsPerStep(gt, valueVector, finals, tips);
-
-        finals18 = finals & stepValues <= 18;
-        finals20 = finals & stepValues <= 20;
-        finals22 = finals & stepValues <= 22;
-        finals24 = finals & stepValues <= 24;
-
 % doing this is very costly, leave it aside
-if true
+if false
     
     % See what happens if we don't know finals beyond some step
     recValues18 = nan(1, nStates);

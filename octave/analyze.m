@@ -75,3 +75,12 @@ plotValues = makeDisplayValues(valueVector);
 % Group states by steps to reach; LABELS is calculated as states sortd first by step, then by value 
 [gt, LABELS] = groupSteps(stepValues, makeDisplayValues(valueVector));
 
+
+stats = makeStatsPerStep(gt, valueVector, finals, tips);
+
+        finals18 = finals & stepValues <= 18;
+        finals20 = finals & stepValues <= 20;
+        finals22 = finals & stepValues <= 22;
+        finals24 = finals & stepValues <= 24;
+
+

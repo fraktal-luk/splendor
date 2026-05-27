@@ -3,7 +3,6 @@
 % valueVector(dominant(s)) == valueVector(s) by definition
 [dv, dominants] = diffuseValuesQuick_Src(valueVector, followerMat, moves, finals);
 
-
 % Calculate per state: how influential is it - the higher influence, the
 % earlier step has it as the dominant
 earliestSteps = nan(1, nStates);
