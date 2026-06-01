@@ -9,6 +9,9 @@
     % crown - subset of finals which are needed to derive total solution
     % crown graph - continuous graph from 1 to crown
 
+    % Crown graph probably includes the skeleton graph (findSkeleton)! 
+
+
     % verificaion of crownness: if all values outside crown are chnged to
     % nan, final solution doesn't change
     % - using diffuseValuesQuick?

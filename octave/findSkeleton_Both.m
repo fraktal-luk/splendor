@@ -1,15 +1,15 @@
 % Lets for now assume that 0 is the winner
-function [res, skeletonMat] = findSkeleton(followerMat, values, moves)
+function [res, skeletonMat] = findSkeleton_Both(followerMat, values, moves)
     skeletonMat = followerMat;
 
     for i = 1:numel(values)
-        if moves(i) == 0
+        %if moves(i) == 0
             followers = followerMat(:, i);
             followersOK = followers(~isnan(followers));
             fValues = values(followersOK);
 
 
-            goodFollowers = followersOK(fValues == values(i));
+            goodFollowers = followersOK(sign(fValues) == sign(values(i)));
 
             % fValues_N = indexN(followerMat(:, i), values);
             % goodFollowers_N = followers(fValues_N == values(i));
@@ -18,7 +18,7 @@ function [res, skeletonMat] = findSkeleton(followerMat, values, moves)
 
             skeletonMat(:, i) = nan;
             skeletonMat(1:numel(goodFollowers), i) = goodFollowers;
-        end
+        %end
     end
 
 

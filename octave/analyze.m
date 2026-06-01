@@ -13,6 +13,7 @@ nStates = width(followerMat);
 stepValues = countSteps(followerMat);
 
 [edgesFrom, edgesTo] = getEdges(followerMat);
+edgesByStep = getEdgesByStep(followerMat, stepValues);
 
 [finals, tips, unknown, ~] = getCategs(points0, points1, valueVector, moves, followerMat);
 
@@ -25,6 +26,24 @@ stats = makeStatsPerStep(gt, valueVector, finals, tips);
 
 diffVector = points0 - points1;
 
+
+% Find reverse graph to facilitate backtracking
+reverseMat = getReverseGraph(edgesFrom, edgesTo, nStates);
+
+
+% rank each state by number of steps
+initRevSteps = inf(1, nStates);
+initRevSteps(finals) = 0;
+
+revStepValues = countStepsGeneral(reverseMat, initRevSteps);
+%
+% [edgesRevFrom, edgesRevTo] = getEdges(reverseMat);
+% revEdgesByStep = getEdgesByStep(reverseMat, revStepValues);
+
+
+
+branching = sum(~isnan(followerMat));
+branchingRev = sum(~isnan(reverseMat));
 
 mainTable = table;
 
@@ -47,8 +66,6 @@ plotRanges24 = min(30, max(-30, diffRanges24));
 [~, LABELS_R] = groupSteps(stepValues, makeDisplayValues(valueVector), plotRanges24);
 
 
-% Find reverse graph to facilitate backtracking
-reverseMat = getReverseGraph(edgesFrom, edgesTo, nStates);
 
 % Skeleton: remove nodes so that the overall result is unchanged
 % So, because player 0 is winning:
@@ -56,8 +73,12 @@ reverseMat = getReverseGraph(edgesFrom, edgesTo, nStates);
 % - for mover 1, all moves are chosen because if it loses, any following '1' change would
 %   make it '1' and 'U' would turn it to 'U'
 % Apply this to followerMat, removing unneeded links
-skel = findSkeleton(followerMat, valueVector, moves);
+[skel, skelMat] = findSkeleton(followerMat, valueVector, moves);
 isSkel = ismember(1:nStates, skel);
+
+[skel_Both, skelMat_Both] = findSkeleton_Both(followerMat, valueVector, moves);
+isSkel_Both = ismember(1:nStates, skel_Both);
+
 
 approxSkelPerStep = diff(find(diff(sort(stepValues(isSkel)))));
 

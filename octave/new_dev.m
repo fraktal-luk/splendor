@@ -1,4 +1,24 @@
 
+
+
+    % skelFromStep10 = subgraphFrom(find(stepValues == 10), skelMat_Both);
+    % 
+    % 
+    % initSteps = inf(1, nStates); 
+    % initSteps(1) = 1;
+    % 
+    % valsPF = propForward(initSteps, followerMat, @(y,x) min(y, x+1), 1);
+    % 
+
+startValues = nan(1, nStates);
+startValues(finals) = 0;  %valueVector(finals);
+
+func = @(followerVals, ownVal) min(min(followerVals)+1, ownVal);
+
+vs = generalDiffuse(reverseMat, followerMat, startValues, find(finals), func);
+
+
+
 %%
 
 if false
