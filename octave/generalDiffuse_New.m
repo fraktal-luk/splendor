@@ -42,37 +42,44 @@ function values = generalDiffuse_New(graphInfo, startValues, startWave, func)
     end
 
 
-
     function res = calcNewVals(newWave)
-        res = arrayfun(kernel, newWave);
+        res = nan(size(newWave));
+        
+        for i = 1:numel(res)
+            res(i) = apply(newWave(i));
+        end
+    end
+    
+    
+    function val = apply(id)
+        ownVal = values(id);
+        followers = getFollowers(id, followerMat);
+        if isempty(followers)
+            val = ownVal;
+            return
+        end
+    
+        fVals = values(followers);
+        val = func(fVals, ownVal);
     end
 
+    function followers = getFollowers(id, follMat)
+        followersAll = follMat(:, id);
+        followers = followersAll(~isnan(followersAll))';
 
-end
-
-
-function followers = getFollowers(id, followerMat)
-    followersAll = followerMat(:, id);
-    followers = followersAll(~isnan(followersAll))';
-end
-
-function newWave = moveWave(wave, followerMat)
-    waveNext = arrayfun(@(x)getFollowers(x, followerMat), wave, 'UniformOutput', false);
-    newWave = unique([waveNext{:}]);
-end
-
-function val = apply(id, revMat, values, func)
-    ownVal = values(id);
-    followers = getFollowers(id, revMat);
-    if isempty(followers)
-        val = ownVal;
-        return
+        % followers_Alt = graphInfo.eTo(find(graphInfo.eFrom == id))';
+        % 
+        %     assert (isequal(followers_Alt, followers))
     end
 
-    fVals = values(followers);
-    val = func(fVals, ownVal);
-end
+    function newWave = moveWave(wave, follMat)
+        waveNext = cell(1, numel(wave));
+        %waveNext = arrayfun(@(x)getFollowers(x), wave, 'UniformOutput', false);
+        for i = 1:numel(waveNext)
+            waveNext{i} = getFollowers(wave(i), follMat);
+        end
 
-% function newVals = getNewVals(wave, revMat, values, func)
-% 
-% end
+        newWave = unique([waveNext{:}]);
+    end
+
+end

@@ -1,25 +1,22 @@
 
 
-
-    % skelFromStep10 = subgraphFrom(find(stepValues == 10), skelMat_Both);
-    % 
-    % 
-    % initSteps = inf(1, nStates); 
-    % initSteps(1) = 1;
-    % 
-    % valsPF = propForward(initSteps, followerMat, @(y,x) min(y, x+1), 1);
-    % 
-
 startValues = nan(1, nStates);
 startValues(finals) = 0;  %valueVector(finals);
+
 
 graphInfo.fwMatrix = reverseMat;
 graphInfo.revMatrix = followerMat;
 
+graphInfo.eFrom = edgesTo; % ! reversed like the rest of this struct
+graphInfo.eTo = edgesFrom;
+
+
 func = @(followerVals, ownVal) min(min(followerVals)+1, ownVal);
 
 vs = generalDiffuse(graphInfo, startValues, find(finals), func);
+vs_New = generalDiffuse_New(graphInfo, startValues, find(finals), func);
 
+isequaln(vs_New, vs)
 
 %%
 graphInfo.fwMatrix = followerMat;
@@ -29,10 +26,6 @@ startSteps = inf(1, nStates);
 startSteps(1) = 1;
 
 steps_T = generalDiffuse(graphInfo, startSteps, 1, func);
-steps_TNew = generalDiffuse_New(graphInfo, startSteps, 1, func);
-
-isequal(steps_TNew, steps_T)
-
 
 %%
 
