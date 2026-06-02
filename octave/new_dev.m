@@ -13,10 +13,25 @@
 startValues = nan(1, nStates);
 startValues(finals) = 0;  %valueVector(finals);
 
+graphInfo.fwMatrix = reverseMat;
+graphInfo.revMatrix = followerMat;
+
 func = @(followerVals, ownVal) min(min(followerVals)+1, ownVal);
 
-vs = generalDiffuse(reverseMat, followerMat, startValues, find(finals), func);
+vs = generalDiffuse(graphInfo, startValues, find(finals), func);
 
+
+%%
+graphInfo.fwMatrix = followerMat;
+graphInfo.revMatrix = reverseMat;
+
+startSteps = inf(1, nStates);
+startSteps(1) = 1;
+
+steps_T = generalDiffuse(graphInfo, startSteps, 1, func);
+steps_TNew = generalDiffuse_New(graphInfo, startSteps, 1, func);
+
+isequal(steps_TNew, steps_T)
 
 
 %%

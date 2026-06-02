@@ -1,4 +1,4 @@
-function values = generalDiffuse(graphInfo, startValues, startWave, func)
+function values = generalDiffuse_New(graphInfo, startValues, startWave, func)
 
     followerMat = graphInfo.fwMatrix;
     revMat = graphInfo.revMatrix;
@@ -27,7 +27,8 @@ function values = generalDiffuse(graphInfo, startValues, startWave, func)
         kernel = @(x) apply(x, revMat, values, func);
 
         % foreach (wavefront) calculate new value
-        newVals = arrayfun(kernel, newWave);
+       % newVals = arrayfun(kernel, newWave);
+            newVals = calcNewVals(newWave);
 
         % compare current value with new (nans are equal!)
         sameValues = (newVals == currentVals) | isnan(currentVals) & isnan(newVals);
@@ -39,6 +40,14 @@ function values = generalDiffuse(graphInfo, startValues, startWave, func)
         
         wave = newWave;
     end
+
+
+
+    function res = calcNewVals(newWave)
+        res = arrayfun(kernel, newWave);
+    end
+
+
 end
 
 
