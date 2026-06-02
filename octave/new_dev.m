@@ -3,12 +3,12 @@
 startValues = nan(1, nStates);
 startValues(finals) = 0;  %valueVector(finals);
 
-
+% Reversed graph info needed for this task
 graphInfo.fwMatrix = reverseMat;
 graphInfo.revMatrix = followerMat;
 
-graphInfo.fwW = nan(size(reverseMat));
-graphInfo.revW = nan(size(followerMat));
+graphInfo.fwW = getWeights_0(reverseMat, valueVector);
+graphInfo.revW = getWeights_0(followerMat, valueVector);
 
 graphInfo.eFrom = edgesTo; % ! reversed like the rest of this struct
 graphInfo.eTo = edgesFrom;
@@ -16,7 +16,7 @@ graphInfo.eTo = edgesFrom;
 
 
 
-func = @(followerVals, ownVal) min(min(followerVals)+1, ownVal);
+func = @(followerVals, weigths, ownVal) min(min(followerVals)+1, ownVal);
 
 vs = generalDiffuse(graphInfo, startValues, find(finals), func);
 vs_New = generalDiffuse_New(graphInfo, startValues, find(finals), func);
@@ -26,13 +26,26 @@ isequaln(vs_New, vs)
 %%
 clear graphInfo
 
+% Normal graph info this time 
 graphInfo.fwMatrix = followerMat;
 graphInfo.revMatrix = reverseMat;
+
+graphInfo.fwW = getWeights_0(followerMat, valueVector);
+graphInfo.revW = getWeights_0(reverseMat, valueVector);
+
+graphInfo.eFrom = edgesFrom;
+graphInfo.eTo = edgesTo;
+
+
 
 startSteps = inf(1, nStates);
 startSteps(1) = 1;
 
 steps_T = generalDiffuse(graphInfo, startSteps, 1, func);
+steps_TNew = generalDiffuse_New(graphInfo, startSteps, 1, func);
+
+isequaln(steps_T, stepValues)
+isequaln(steps_TNew, stepValues)
 
 %%
 

@@ -61,7 +61,7 @@ function val = apply(id, revMat, values, func)
     end
 
     fVals = values(followers);
-    val = func(fVals, ownVal);
+    val = func(fVals, [], ownVal);
 end
 
 % function newVals = getNewVals(wave, revMat, values, func)

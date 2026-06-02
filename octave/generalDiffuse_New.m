@@ -54,7 +54,7 @@ function values = generalDiffuse_New(graphInfo, startValues, startWave, func)
         end
     
         fVals = values(followers);
-        val = func(fVals, ownVal);
+        val = func(fVals, weights, ownVal);
     end
 
 
