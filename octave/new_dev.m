@@ -7,8 +7,13 @@ startValues(finals) = 0;  %valueVector(finals);
 graphInfo.fwMatrix = reverseMat;
 graphInfo.revMatrix = followerMat;
 
+graphInfo.fwW = nan(size(reverseMat));
+graphInfo.revW = nan(size(followerMat));
+
 graphInfo.eFrom = edgesTo; % ! reversed like the rest of this struct
 graphInfo.eTo = edgesFrom;
+
+
 
 
 func = @(followerVals, ownVal) min(min(followerVals)+1, ownVal);
@@ -19,6 +24,8 @@ vs_New = generalDiffuse_New(graphInfo, startValues, find(finals), func);
 isequaln(vs_New, vs)
 
 %%
+clear graphInfo
+
 graphInfo.fwMatrix = followerMat;
 graphInfo.revMatrix = reverseMat;
 

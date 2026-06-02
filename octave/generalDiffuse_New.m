@@ -1,8 +1,11 @@
 function values = generalDiffuse_New(graphInfo, startValues, startWave, func)
 
-    followerMat = graphInfo.fwMatrix;
-    revMat = graphInfo.revMatrix;
-
+    revGraphInfo.fwMatrix = graphInfo.revMatrix;
+    revGraphInfo.revMatrix = graphInfo.fwMatrix;
+    revGraphInfo.eFrom = graphInfo.eTo;
+    revGraphInfo.eTo = graphInfo.eFrom;
+    revGraphInfo.fwW = graphInfo.revW;
+    revGraphInfo.revW = graphInfo.fwW;
 
     iter = 0;
     
@@ -15,19 +18,10 @@ function values = generalDiffuse_New(graphInfo, startValues, startWave, func)
         iter = iter + 1;
 
         % find next wvefront (graph FW)
-        newWave = moveWave(wave, followerMat);
+        newWave = moveWave(wave, graphInfo);
 
-        % ?? rm from wavefront the nodes that are already done? How to find?
-
-        % foreach (wavefront) get current value
         currentVals = values(newWave);
 
-        %Careful: kernel must be defined in each iteration because 'values'
-        % changes throught the loop
-        kernel = @(x) apply(x, revMat, values, func);
-
-        % foreach (wavefront) calculate new value
-       % newVals = arrayfun(kernel, newWave);
             newVals = calcNewVals(newWave);
 
         % compare current value with new (nans are equal!)
@@ -53,7 +47,7 @@ function values = generalDiffuse_New(graphInfo, startValues, startWave, func)
     
     function val = apply(id)
         ownVal = values(id);
-        followers = getFollowers(id, followerMat);
+        [followers, weights] = getFollowers(id, revGraphInfo);
         if isempty(followers)
             val = ownVal;
             return
@@ -63,23 +57,27 @@ function values = generalDiffuse_New(graphInfo, startValues, startWave, func)
         val = func(fVals, ownVal);
     end
 
-    function followers = getFollowers(id, follMat)
-        followersAll = follMat(:, id);
-        followers = followersAll(~isnan(followersAll))';
 
-        % followers_Alt = graphInfo.eTo(find(graphInfo.eFrom == id))';
-        % 
-        %     assert (isequal(followers_Alt, followers))
+end
+
+
+function [followers, weights] = getFollowers(id, gi)
+    followersAll = gi.fwMatrix(:, id);
+        weightsAll = gi.fwW(:, id);
+
+    followers = followersAll(~isnan(followersAll))';
+    weights = weightsAll(~isnan(followersAll))';
+
+       % followers_Alt = gi.eTo(find(gi.eFrom == id))';
+    % 
+    %     assert (isequal(followers_Alt, followers))
+end
+
+function newWave = moveWave(wave, gi)
+    waveNext = cell(1, numel(wave));
+    for i = 1:numel(waveNext)
+        waveNext{i} = getFollowers(wave(i), gi);
     end
 
-    function newWave = moveWave(wave, follMat)
-        waveNext = cell(1, numel(wave));
-        %waveNext = arrayfun(@(x)getFollowers(x), wave, 'UniformOutput', false);
-        for i = 1:numel(waveNext)
-            waveNext{i} = getFollowers(wave(i), follMat);
-        end
-
-        newWave = unique([waveNext{:}]);
-    end
-
+    newWave = unique([waveNext{:}]);
 end
