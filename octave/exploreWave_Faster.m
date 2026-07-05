@@ -1,13 +1,16 @@
-function stats = exploreWave(followerMat, expInput, thr, mode)
+% TODO
+
+function stats = exploreWave_Faster(followerMat, expInput, thr, mode)
     LIMIT = thr; %400 * 2 * 3;
 
         values = expInput.valueVector;
+        maxPoints = expInput.maxPoints;
         moves = expInput.moves;
         finals = expInput.finals;
         ignored = expInput.tips;
 
 
-    nIters = 30;
+    nIters = 1000;
 
     active = false(1, width(followerMat));
     visited = false(1, width(followerMat));
@@ -30,23 +33,13 @@ function stats = exploreWave(followerMat, expInput, thr, mode)
     for i = 1:nIters
         selected = find(active);
 
-        nActive = numel(selected);
+        nActive = numel(active);
             vActive(i) = nActive;
 
-        % Selection process
-        if nActive > LIMIT
-            switch mode
-                case 'newest'
-                    selected = selected(end-LIMIT+1:end);
-                case 'highV'
-                    vals = values(selected);
-                    [~, inds] = sort(-vals);
-                    selected = selected(inds(1:LIMIT));
-                        1;
-                otherwise
-                    selected = selected(1:LIMIT);
-            end
-        end
+        % % Selection process
+            maxP = max(maxPoints(active));
+            selected = find(active & (maxPoints == maxP));
+
 
         nSelected = numel(selected);
             vSelected(i) = nSelected;
@@ -60,7 +53,7 @@ function stats = exploreWave(followerMat, expInput, thr, mode)
         wave = waveNext;
 
         % Set newly discovered as active
-           % wave(visited(wave)) = [];
+            wave(visited(wave)) = [];
             active(wave) = 1;
 
         expandedSize = numel(wave);
@@ -78,9 +71,9 @@ function stats = exploreWave(followerMat, expInput, thr, mode)
 
         fprintf('active: %d\n', nnz(active))
 
-        nVisitedFinals = nnz(visited & finals);
+        nActiveFinals = nnz(active & finals);
         
-        if nVisitedFinals == 0
+        if nActiveFinals == 0
             waveSizesReduced(i) = waveSizes(i);
             continue
         end    
@@ -88,15 +81,21 @@ function stats = exploreWave(followerMat, expInput, thr, mode)
         % Diffuse known values
         % ...
         initVals = nan(1, width(followerMat));
-        initVals(visited &   finals) = values(visited &   finals);
+        initVals(active & finals) = values(active & finals);
         
-        [diffusedVals] = diffuseValuesQuick(initVals, followerMat, moves, finals);
 
+        % TODO: use reverse graph for real quick diffusion
+        [diffusedVals] = diffuseValuesQuick(initVals, followerMat, moves, active & finals);
 
             if (~isnan(diffusedVals(1)))
                 disp 'Solved!'
                 break
             end
+
+            
+            % diffusionFunc = @(followerVals, weigths, ownVal) 0; % TODO
+            % [diffusedVals_N] = generaDiffuse_New(revGraphInfo, startValues, find(finals), func);
+            % 
 
         nKnownVals = nnz(~isnan(diffusedVals));
             % disp([nActiveFinals, nKnownVals])
