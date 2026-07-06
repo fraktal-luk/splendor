@@ -13,16 +13,32 @@ function valuesAll = diffuse_New(graphInfo, mainTable, initialStates, initialVal
 
     
     for i = 1:MAX_ITERS
+        if isempty(wave)
+            break
+        end
+
+
         nextWave = moveWave(wave, rfm);
         nextWaveU = unique([nextWave{:}]);
 
-        wave = nextWaveU;
+        nextWaveCurrentVals = valuesAll(nextWaveU);
+        nextWaveNewVals = nan(1, numel(nextWaveU));
+
+
+        for j = 1:numel(nextWaveU)
+            nextWaveNewVals(j) = computeValue(nextWaveU(j), graphInfo, mainTable, valuesAll);
+        end
+
+        changed = ~isnan(nextWaveNewVals) & (nextWaveNewVals ~= nextWaveCurrentVals);
+
+        fprintf('%d: %d ch\n', numel(nextWaveU), nnz(changed))
+
+            valuesAll(nextWaveU) = nextWaveNewVals;
+
+        wave = nextWaveU(changed);
     end
 
 end
-
-
-
 
 
 function newWave = moveWave(waveIn, followerMat)
@@ -37,3 +53,14 @@ function followers = getFollowers(s, followerMat)
     followers = next;
 end
 
+function val = computeValue(s, graphInfo, mainTable, allValues)
+    followers = getFollowers(s, graphInfo.fwMatrix);
+
+    fVals = allValues(followers);
+
+    if mod(mainTable{s, 'step'}, 2) == 1
+        val = min(nan, min(fVals));
+    else
+        val = max(nan, max(fVals));
+    end
+end
