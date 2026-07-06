@@ -31,7 +31,7 @@ function valuesAll = diffuse_New(graphInfo, mainTable, initialStates, initialVal
 
         changed = ~isnan(nextWaveNewVals) & (nextWaveNewVals ~= nextWaveCurrentVals);
 
-        fprintf('%d: %d ch\n', numel(nextWaveU), nnz(changed))
+        fprintf('  %d: %d ch\n', numel(nextWaveU), nnz(changed))
 
             valuesAll(nextWaveU) = nextWaveNewVals;
 
@@ -58,9 +58,23 @@ function val = computeValue(s, graphInfo, mainTable, allValues)
 
     fVals = allValues(followers);
 
+    val = nan;
+
     if mod(mainTable{s, 'step'}, 2) == 1
-        val = min(nan, min(fVals));
+        optKnown = min(nan, min(fVals));
+        
+        if optKnown >= 0 && any(isnan(fVals))
+            return
+        end
+
+        val = optKnown;
     else
-        val = max(nan, max(fVals));
+        optKnown = max(nan, max(fVals));
+        
+        if optKnown <= 0 && any(isnan(fVals))
+            return
+        end
+
+        val = optKnown;
     end
 end

@@ -24,7 +24,9 @@ isequaln(vs_New, vs)
 %%
 
     diffNew = diffuse_New(graphInfo, mainTable, find(finals), valueVector(finals));
-
+    
+    
+    exploreWave_Faster(graphInfo, mainTable, 1);
 
 
 %%
