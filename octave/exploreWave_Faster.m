@@ -34,7 +34,7 @@ function exploreWave_Faster(graphInfo, mainTable, initialStates)
         active(waveSubset) = false;
         visited(waveSubset) = true;
         
-        fprintf('A %d, sel %d, next %d, new %d\n', nA, numel(waveSubset), numel(waveNextU), numel(waveNextD))
+        fprintf('%d. A %d, sel %d, next %d, new %d\n', i, nA, numel(waveSubset), numel(waveNextU), numel(waveNextD))
     
         % Now find 
             initialStates = find(mainTable.final' & visited);
@@ -46,7 +46,28 @@ function exploreWave_Faster(graphInfo, mainTable, initialStates)
                 disp Solved
                 break
             end
+
+                unsolvedMat = graphInfo.fwMatrix;
+                %solvedNodes = find();
+                unsolvedMat(:, ~isnan(newDiff)) = nan;
+                unsolvedSub = subgraphFrom(1, unsolvedMat);
+
+            % what if we clear 'active' where newDiff is not nan?
+               % active(~isnan(newDiff)) = false;
+            % Not much changes in trial. We need stats: how many nodes
+            % became solved on each level (step number)?
+               %active(solvedSub) = false; // this would cut off also
+               activeUp = false(size(active));
+               activeUp(unsolvedSub) = active(unsolvedSub);
+                     active = activeUp;
+               
+               % needed branches, if they share predecessor with an
+               % unneeded one
+
     end
+
+
+    fprintf('Visited: %d\n', nnz(visited))
 
 end
 

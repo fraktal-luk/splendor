@@ -31,7 +31,7 @@ function valuesAll = diffuse_New(graphInfo, mainTable, initialStates, initialVal
 
         changed = ~isnan(nextWaveNewVals) & (nextWaveNewVals ~= nextWaveCurrentVals);
 
-        fprintf('  %d: %d ch\n', numel(nextWaveU), nnz(changed))
+        % fprintf('  %d: %d ch\n', numel(nextWaveU), nnz(changed))
 
             valuesAll(nextWaveU) = nextWaveNewVals;
 
