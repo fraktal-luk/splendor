@@ -4,12 +4,12 @@ function statsTable = exploreWave_Faster(graphInfo, mainTable, initialStates)
     nStates = width(graphInfo.fwMatrix);
 
         statsTable = table();
-        statsTable.active = nan(nStates, 1);
-        statsTable.visited = nan(nStates, 1);
-        statsTable.selected = nan(nStates, 1);
-        statsTable.next = nan(nStates, 1);
-        statsTable.new = nan(nStates, 1);
-        statsTable.pv = nan(nStates, 1);
+        statsTable.active = nan(MAX_ITERS, 1);
+        statsTable.visited = nan(MAX_ITERS, 1);
+        statsTable.selected = nan(MAX_ITERS, 1);
+        statsTable.next = nan(MAX_ITERS, 1);
+        statsTable.new = nan(MAX_ITERS, 1);
+        statsTable.pv = nan(MAX_ITERS, 1);
 
     pts = max(mainTable.p0, mainTable.p1)';
 

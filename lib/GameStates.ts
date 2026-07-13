@@ -24,28 +24,29 @@ const TABLE_STACKS: number[][] =
      3, 10,  5, 11, 17, 7, 19,
     15, 16,  1, 18,  9, 6, 14,
     12,  4, 20,  2, 13, 8
-  ],
+  ], //.toReversed(),
   [
     27, 25, 29, 38, 36, 35, 22, 45, 41,
     37, 40, 34, 47, 49, 26, 50, 46, 33,
     43, 32, 21, 42, 28, 23, 30, 48, 31,
     39, 44, 24
-  ],
+  ], //.toReversed(),
   [ // lowest cards
     62, 65, 51, 82, 74, 63, 64, 56, 69, 81,
     55, 54, 73, 71, 57, 79, 76, 70, 85, 89,
     78, 68, 72, 58, 59, 66, 77, 86, 87, 60,
     61, 52, 84, 90, 83, 80, 75, 88, 67, 53
-  ],
+  ], //.toReversed(),
 
 ];
 
 const INITIAL_STACK_SIZES = [16, 26, 36];
 
 const INITIAL_TABLE_NUMS: number[][] =
-		[ [ 2,  8, 13, 20],
-		  [24, 31, 39, 44], 
-		  [53, 67, 75, 88] ];
+		[ /*[ 2,  8, 13, 20],*/  TABLE_STACKS[0].slice(-4).toSorted((a,b) => a-b),
+		  /*[24, 31, 39, 44],*/  TABLE_STACKS[1].slice(-4).toSorted((a,b) => a-b),
+		  /*[53, 67, 75, 88] */  TABLE_STACKS[2].slice(-4).toSorted((a,b) => a-b)
+		];
 
 
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
@@ -991,6 +992,8 @@ export namespace GameStates {
 		pointThreshold = 0;
 
 			save(): void {
+					const saveDir = "saved_11";
+
 
 				const rowAllStr = getRowBase().strings.join('');
 				const rowAllFollowers = getRowBase().descriptors.map(d => rowFollowersFull(d.next)).flat();
@@ -1030,14 +1033,16 @@ export namespace GameStates {
 				//const followerBuf = Float32Array.from(allFollowers);
 				const valueBuf = Float32Array.from(allValues);
 
-				fs.writeFileSync('saved_9/rstrings', rowAllStr, 'utf16le', console.log);
-				fs.writeFileSync('saved_9/rfollowers', Int32Array.from(rowAllFollowers));
+					fs.writeFileSync(saveDir + '/stacks.txt', TABLE_STACKS.toString());
+
+				fs.writeFileSync(saveDir + '/rstrings', rowAllStr, 'utf16le', console.log);
+				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
 
 				//fs.writeFileSync('saved_2/strings', allStr, 'utf16le', console.log);
-				fs.writeFileSync('saved_9/strings', strBuf, console.log);
+				fs.writeFileSync(saveDir + '/strings', strBuf, console.log);
 				//fs.writeFileSync('saved_2/followers', followerBuf, console.log);
-				fs.writeFileSync('saved_9/followers', follBuf, console.log);
-				fs.writeFileSync('saved_9/values', valueBuf, console.log);
+				fs.writeFileSync(saveDir + '/followers', follBuf, console.log);
+				fs.writeFileSync(saveDir + '/values', valueBuf, console.log);
 
 			}
 

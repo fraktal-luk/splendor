@@ -1,4 +1,12 @@
 
+graphInfo.fwMatrix = followerMat;
+graphInfo.revMatrix = reverseMat;
+
+graphInfo.fwW = getWeights_0(followerMat, valueVector);
+graphInfo.revW = getWeights_0(reverseMat, valueVector);
+
+graphInfo.eFrom = edgesFrom;
+graphInfo.eTo = edgesTo;
 
 statsTb = exploreWave_Faster(graphInfo, mainTable, 1);
 
