@@ -1,5 +1,8 @@
 
-function statsTable = exploreWave_Faster(graphInfo, mainTable, initialStates)
+function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo, mainTable, initialStates)
+    PRUNE = true;
+    INITIAL_STEPS = 16; % 16 -greatly reduces for stadard input
+
     MAX_ITERS = 10000;
     nStates = width(graphInfo.fwMatrix);
 
@@ -7,9 +10,13 @@ function statsTable = exploreWave_Faster(graphInfo, mainTable, initialStates)
         statsTable.active = nan(MAX_ITERS, 1);
         statsTable.visited = nan(MAX_ITERS, 1);
         statsTable.selected = nan(MAX_ITERS, 1);
+        statsTable.solved = nan(MAX_ITERS, 1);
         statsTable.next = nan(MAX_ITERS, 1);
         statsTable.new = nan(MAX_ITERS, 1);
         statsTable.pv = nan(MAX_ITERS, 1);
+
+    
+    statsHistory = cell(1, MAX_ITERS);
 
     pts = max(mainTable.p0, mainTable.p1)';
 
@@ -17,12 +24,12 @@ function statsTable = exploreWave_Faster(graphInfo, mainTable, initialStates)
     wave = unique(initialStates);
 
 
-
     active = false(1, width(graphInfo.fwMatrix));
     active(wave) = true;
     visited = false(1, width(graphInfo.fwMatrix));
-    
-    
+    solved = false(1, width(graphInfo.fwMatrix));
+    when = nan(1, width(graphInfo.fwMatrix));
+
 
     for i = 1:MAX_ITERS
         if nnz(active) == 0
@@ -34,7 +41,7 @@ function statsTable = exploreWave_Faster(graphInfo, mainTable, initialStates)
            maxV = max(pts(active));
            maxActive = active & pts == maxV;
 
-        if i < 0 % 12
+        if i < INITIAL_STEPS
             waveSubset = find(active);
         else    
             waveSubset = ...find(active);
@@ -55,7 +62,6 @@ function statsTable = exploreWave_Faster(graphInfo, mainTable, initialStates)
         visited(waveSubset) = true;
         
             
-
         fprintf('%d. A %d, sel %d, next %d, new %d\n', i, nA, numel(waveSubset), numel(waveNextU), numel(waveNextD))
     
             statsTable.active(i) = nA;
@@ -63,7 +69,10 @@ function statsTable = exploreWave_Faster(graphInfo, mainTable, initialStates)
             statsTable.selected(i) = numel(waveSubset);
             statsTable.next(i) = numel(waveNextU);
             statsTable.new(i) = numel(waveNextD);
+            statsTable.solved(i) = nnz(solved);
             statsTable.pv(i) = maxV;
+
+            statsHistory{i} = makeHist2D(mainTable, active);
 
         % Now find
             if ~foundFinals
@@ -76,10 +85,20 @@ function statsTable = exploreWave_Faster(graphInfo, mainTable, initialStates)
             initialValues = mainTable.value(initialStates);
 
             newDiff = diffuse_New(graphInfo, mainTable, initialStates, initialValues);
-            
+            solvedNew = ~isnan(newDiff);
+
+            when(solvedNew & ~solved) = i;
+
+            solved = solvedNew;
+
+
             if ~isnan(newDiff(1))
                 disp Solved
                 break
+            end
+
+            if ~PRUNE
+                continue
             end
 
                 unsolvedMat = graphInfo.fwMatrix;
@@ -91,13 +110,17 @@ function statsTable = exploreWave_Faster(graphInfo, mainTable, initialStates)
             % became solved on each level (step number)?
                activeUp = false(size(active));
                activeUp(unsolvedSub) = active(unsolvedSub);
-                     
-                   active = activeUp;
+               
+               active = activeUp;
     end
 
 
     fprintf('Visited: %d\n', nnz(visited))
-
+    
+    finalStatus.visited = visited;
+    finalStatus.active = active;
+    finalStatus.values = newDiff;
+    finalStatus.when = when;
 end
 
 

@@ -8,7 +8,7 @@ graphInfo.revW = getWeights_0(reverseMat, valueVector);
 graphInfo.eFrom = edgesFrom;
 graphInfo.eTo = edgesTo;
 
-statsTb = exploreWave_Faster(graphInfo, mainTable, 1);
+[statsTb, statsHist, status] = exploreWave_Faster(graphInfo, mainTable, 1);
 
 
 % 
