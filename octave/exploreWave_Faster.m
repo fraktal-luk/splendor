@@ -1,7 +1,7 @@
 
-function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo, mainTable, initialStates)
+function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo, mainTable, initialStates, INITIAL_STEPS)
     PRUNE = true;
-    INITIAL_STEPS = 16; % 16 -greatly reduces for stadard input
+    %INITIAL_STEPS = 16; % 16 -greatly reduces for stadard input
 
     MAX_ITERS = 10000;
     nStates = width(graphInfo.fwMatrix);
@@ -115,7 +115,7 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     end
 
 
-    fprintf('Visited: %d\n', nnz(visited))
+    fprintf('Visited: %d\nSolved: %d\n', nnz(visited), nnz(~isnan(newDiff)))
     
     finalStatus.visited = visited;
     finalStatus.active = active;

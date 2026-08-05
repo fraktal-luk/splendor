@@ -1,7 +1,7 @@
 
 analyze
 
-find_crown
+% find_crown
 
 % new_graph
 
