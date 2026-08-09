@@ -15,7 +15,13 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
         statsTable.new = nan(MAX_ITERS, 1);
         statsTable.pv = nan(MAX_ITERS, 1);
 
-    
+            statsTable.minStepA = nan(MAX_ITERS, 1);
+            statsTable.maxStepA = nan(MAX_ITERS, 1);
+            statsTable.minPointA = nan(MAX_ITERS, 1);
+            statsTable.maxPointA = nan(MAX_ITERS, 1);
+
+
+
     statsHistory = cell(1, MAX_ITERS);
 
     pts = max(mainTable.p0, mainTable.p1)';
@@ -72,7 +78,19 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
             statsTable.solved(i) = nnz(solved);
             statsTable.pv(i) = maxV;
 
-            statsHistory{i} = makeHist2D(mainTable, active);
+                
+                selected = ismember(1:nStates, waveSubset);
+
+%            statsHistory{i} = makeHist2D(mainTable, active);
+            statsHistorySel = makeHist2D(mainTable, selected);
+            statsHistory{i} = statsHistorySel;
+
+                [iy, ix] = find(statsHistorySel);
+
+                statsTable.minStepA(i) = min(ix);
+                statsTable.maxStepA(i) = max(ix);
+                statsTable.minPointA(i) = min(iy)-1;
+                statsTable.maxPointA(i) = max(iy)-1;
 
         % Now find
             if ~foundFinals
@@ -104,7 +122,18 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
                 unsolvedMat = graphInfo.fwMatrix;
                 %solvedNodes = find();
                 unsolvedMat(:, ~isnan(newDiff)) = nan;
+
+
+                % TODO: this is perfmornce bottleneck.
+                % We need better way to prune.
+                % Proposition: for all 'active', remove fro active list those that have
+                % only 'solved' predecessors.
+                % Reverse mat should provide easy access to this data
+                % Also, is it possible to be solved & active? If so, remove
+                % too
                 unsolvedSub = subgraphFrom(1, unsolvedMat);
+
+                    
 
             % Not much changes in trial. We need stats: how many nodes
             % became solved on each level (step number)?

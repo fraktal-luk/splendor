@@ -1,7 +1,7 @@
 function output = makeHist2D(mainTable, mask)
 
 if nargin < 2
-    mask = ones(1, heigth(mainTable));
+    mask = ones(1, height(mainTable));
 end
 
 pointLimit = 16;
