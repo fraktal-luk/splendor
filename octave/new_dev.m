@@ -12,7 +12,7 @@ graphInfo.eTo = edgesTo;
 
 histAll = makeHist2D(mainTable);
 
-%[statsTb, statsHist, status] = exploreWave_Faster(graphInfo, mainTable, [1],  16);
+[statsTb, statsHist, status] = exploreWave_Faster(graphInfo, mainTable, [1],  16);
 
 
 testRecord = cell(1, 20);

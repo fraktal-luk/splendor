@@ -60,7 +60,8 @@ function val = computeValue(s, graphInfo, mainTable, allValues)
 
     val = nan;
 
-    if mod(mainTable{s, 'step'}, 2) == 1
+    %if mod(mainTable{s, 'step'}, 2) == 1
+    if mod(mainTable.step(s), 2) == 1
         optKnown = min(nan, min(fVals));
         
         if optKnown >= 0 && any(isnan(fVals))

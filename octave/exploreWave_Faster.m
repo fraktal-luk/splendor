@@ -107,11 +107,19 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
 
             when(solvedNew & ~solved) = i;
 
+            newSolvedNum = nnz(solvedNew) - nnz(solved);
+
+            if newSolvedNum == 0
+                continue
+            else
+                fprintf('New solved nodes: %d\n', newSolvedNum)
+            end
+
             solved = solvedNew;
 
 
             if ~isnan(newDiff(1))
-                disp Solved
+                disp 'TREE SOLVED'
                 break
             end
 
@@ -131,15 +139,37 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
                 % Reverse mat should provide easy access to this data
                 % Also, is it possible to be solved & active? If so, remove
                 % too
+                % !! Problem: 'solved' state must first propagate to
+                % followers of solved nodes
+
+                maxStep = max(mainTable.step(active | visited));
+
+
                 unsolvedSub = subgraphFrom(1, unsolvedMat);
+                  % unsolvedSub_M = subgraphFromMasked(1, unsolvedMat, ~solved, maxStep + 2);
 
-                    
+                % Mask of reachable unsolved
+             %   TMP_unsolvedSub = TMP_subgraphFrom_Exp([1], graphInfo.fwMatrix, isnan(newDiff), maxStep);
 
+                    numActiveSolved = nnz(active & solved);
+                 
             % Not much changes in trial. We need stats: how many nodes
             % became solved on each level (step number)?
                activeUp = false(size(active));
                activeUp(unsolvedSub) = active(unsolvedSub);
-               
+ 
+                  %activeUp_M = false(size(active));
+                  %activeUp_M(unsolvedSub_M) = active(unsolvedSub_M);
+
+
+                  %if ~isequal(activeUp_M, activeUp)
+                  %     error('dopa')
+                  %end
+
+                    if nnz(activeUp) ~= nnz(active)
+                        fprintf("Reduced acvte: %d\n", nnz(active & ~activeUp));
+                    end
+
                active = activeUp;
     end
 
