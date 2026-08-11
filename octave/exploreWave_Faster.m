@@ -34,7 +34,7 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     active(wave) = true;
     visited = false(1, width(graphInfo.fwMatrix));
     solved = false(1, width(graphInfo.fwMatrix));
-    %doneFinals = false(1, width(graphInfo.fwMatrix));
+    doneFinals = false(1, width(graphInfo.fwMatrix));
     computedValues = nan(1, width(graphInfo.fwMatrix));
     when = nan(1, width(graphInfo.fwMatrix));
 
@@ -99,10 +99,10 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
                 continue
             end
 
-            initialStates = find(mainTable.final' & (visited));
+            initialStates = find(mainTable.final' & (visited) & ~doneFinals);
               %  initialStates = find(~isnan(computedValues) | (mainTable.final' & (visited)));
 
-              %  doneFinals(initialStates) = true; % To prevent repeated usage of finals
+               doneFinals(initialStates) = true; % To prevent repeated usage of finals
 
             initialValues = mainTable.value(initialStates);
 
