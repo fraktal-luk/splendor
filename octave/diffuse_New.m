@@ -1,10 +1,16 @@
-function valuesAll = diffuse_New(graphInfo, mainTable, initialStates, initialValues)
+function valuesAll = diffuse_New(graphInfo, mainTable, initialStates, initialValues, prevValues)
+    if isempty(initialStates)
+        fprintf('>> Diffuse with empty input\n')
+    else
+        fprintf('>> Start diffuse with %d \n', numel(initialStates))
+        %initialStates(1:6)
+    end
 
     fm = graphInfo.fwMatrix;
     rfm = graphInfo.revMatrix;
     
-    valuesAll = nan(1, width(fm));
-    
+    %valuesAll = nan(1, width(fm));
+      valuesAll = prevValues;
         MAX_ITERS = 30;
 
 

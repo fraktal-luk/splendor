@@ -34,6 +34,8 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     active(wave) = true;
     visited = false(1, width(graphInfo.fwMatrix));
     solved = false(1, width(graphInfo.fwMatrix));
+    %doneFinals = false(1, width(graphInfo.fwMatrix));
+    computedValues = nan(1, width(graphInfo.fwMatrix));
     when = nan(1, width(graphInfo.fwMatrix));
 
 
@@ -98,12 +100,15 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
             end
 
             initialStates = find(mainTable.final' & (visited));
-            %initialStates = find(mainTable.final' & (visited | active)); %
-            %     Somehow visited | active makes much slower search - even than unprunned  
+              %  initialStates = find(~isnan(computedValues) | (mainTable.final' & (visited)));
+
+              %  doneFinals(initialStates) = true; % To prevent repeated usage of finals
+
             initialValues = mainTable.value(initialStates);
 
-            newDiff = diffuse_New(graphInfo, mainTable, initialStates, initialValues);
+            newDiff = diffuse_New(graphInfo, mainTable, initialStates, initialValues, computedValues);
             solvedNew = ~isnan(newDiff);
+                computedValues = newDiff;
 
             when(solvedNew & ~solved) = i;
 
