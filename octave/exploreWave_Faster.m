@@ -67,74 +67,49 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
         end
 
         initialStates = find(mainTable.final' & (visited) & ~doneFinals);
+        initialValues = mainTable.value(initialStates);
 
         doneFinals(initialStates) = true; % To prevent repeated usage of finals
 
-        initialValues = mainTable.value(initialStates);
+        computedValues = diffuse_New(graphInfo, mainTable, initialStates, initialValues, computedValues);
 
-        newDiff = diffuse_New(graphInfo, mainTable, initialStates, initialValues, computedValues);
-        solvedNew = ~isnan(newDiff);
-        computedValues = newDiff;
+        solvedNew = ~isnan(computedValues);
 
-        when(solvedNew & ~solved) = i;
-
-        newSolvedNum = nnz(solvedNew) - nnz(solved);
-
-        if newSolvedNum == 0
-            continue
-        else
-            fprintf('New solved nodes: %d\n', newSolvedNum)
-        end
+        fprintf('New solved nodes: %d\n', nnz(solvedNew) - nnz(solved))
 
         solved = solvedNew;
 
-        if ~isnan(newDiff(1))
+        if solved(1)
             disp 'TREE SOLVED'
             break
         end
 
-        if ~PRUNE
-            continue
-        end
+        if ~PRUNE; continue; end
 
-        unsolvedMat = graphInfo.fwMatrix;
-        unsolvedMat(:, ~isnan(newDiff)) = nan;
-
-        % TODO: this is perfmornce bottleneck.
-        % We need better way to prune.
-        % Proposition: for all 'active', remove fro active list those that have
-        % only 'solved' predecessors.
-        % Reverse mat should provide easy access to this data
-        % Also, is it possible to be solved & active? If so, remove
-        % too
-        % !! Problem: 'solved' state must first propagate to
-        % followers of solved nodes
-
-        %maxStep = max(mainTable.step(active | visited));
-
-        unsolvedSub = subgraphFrom(1, unsolvedMat);
-        
-        %numActiveSolved = nnz(active & solved);
-         
-        % Not much changes in trial. We need stats: how many nodes
-        % became solved on each level (step number)?
-        activeUp = false(size(active));
-        activeUp(unsolvedSub) = active(unsolvedSub);
-
-        if nnz(activeUp) ~= nnz(active)
-            fprintf("Reduced acvte: %d\n", nnz(active & ~activeUp));
-        end
+        activeUp = updateActive(active, graphInfo.fwMatrix, computedValues);
 
         active = activeUp;
     end
 
-    fprintf('Visited: %d\nSolved: %d\n', nnz(visited), nnz(~isnan(newDiff)))
+    fprintf('Visited: %d\nSolved: %d\n', nnz(visited), nnz(~isnan(computedValues)))
     
     finalStatus.visited = visited;
     finalStatus.active = active;
-    finalStatus.values = newDiff;
+    finalStatus.values = computedValues;
     finalStatus.when = when;
 end
+
+
+function activeUp = updateActive(active, followerMat, computedValues)
+    unsolvedMat = followerMat;
+    unsolvedMat(:, ~isnan(computedValues)) = nan;
+
+    unsolvedSub = subgraphFrom(1, unsolvedMat);
+    
+    activeUp = false(size(active));
+    activeUp(unsolvedSub) = active(unsolvedSub);
+end
+
 
 function waveNextU = waveNextUnique(waveIn, followerMat)
      waveNext = moveWave(waveIn, followerMat);
