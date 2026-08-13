@@ -36,32 +36,30 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     for i = 1:MAX_ITERS
         nA = nnz(active);
 
-        if nA == 0; break; end
-
-        waveSubset = selectSubset(active, pts, i, INITIAL_STEPS);
-        waveNextU = waveNextUnique(waveSubset, graphInfo.fwMatrix);
-
-        visited(waveSubset) = true;
-        active(waveNextU) = true;
-        active(visited) = false;
-
-        fprintf('%d. A %d, sel %d, next %d\n', i, nA, numel(waveSubset), numel(waveNextU))
-
+        if nA == 0
+            disp 'Wrong! search broken'
+            break;
+        end
+    
         initialStates = find(mainTable.final' & active & ~doneFinals);
 
-        if isempty(initialStates); continue; end 
-
-        initialValues = mainTable.value(initialStates);
+        if isempty(initialStates)
+            advance()
+            continue;
+        end 
 
         doneFinals(initialStates) = true; % To prevent repeated usage of finals
+        active(initialStates) = false;
+        visited(initialStates) = true;
 
-        computedValues = diffuse_New(graphInfo, mainTable, initialStates, initialValues, computedValues);
+        computedValues = diffuse_New(graphInfo, mainTable, initialStates, mainTable.value(initialStates), computedValues);
 
         solvedNew = ~isnan(computedValues);
 
         fprintf('New solved nodes: %d\n', nnz(solvedNew) - nnz(solved))
 
         solved = solvedNew;
+
 
         if solved(1)
             disp 'TREE SOLVED'
@@ -81,7 +79,22 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     finalStatus.active = active;
     finalStatus.values = computedValues;
     finalStatus.when = when;
+
+
+    function advance()
+        waveSubset = selectSubset(active, pts, i, INITIAL_STEPS);
+        waveNextU = waveNextUnique(waveSubset, graphInfo.fwMatrix);
+    
+        visited(waveSubset) = true;
+        active(waveNextU) = true;
+        active(visited) = false;
+
+        fprintf('%d. A %d, sel %d, next %d\n', i, nA, numel(waveSubset), numel(waveNextU))
+    end
+
 end
+
+
 
 
 
