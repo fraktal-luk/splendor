@@ -38,28 +38,28 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
 
         if nA == 0; break; end
 
-        maxV = max(pts(active));
-        maxActive = active & pts == maxV;
-
-        if i < INITIAL_STEPS
-            waveSubset = find(active);
-        else    
-            waveSubset = find(maxActive);
-        end
+        waveSubset = selectSubset(active, pts, i, INITIAL_STEPS);
 
         waveNextU = waveNextUnique(waveSubset, graphInfo.fwMatrix);
 
         % Remove already visited
         waveNextD = waveNextU;
-        waveNextD(visited(waveNextU)) = [];
+       % waveNextD(visited(waveNextU)) = [];
 
-        foundFinals = any(mainTable.final(waveNextD));
+        %foundFinals = any(mainTable.final(waveNextD));
+       % foundFinals = any(mainTable.final' & visited);
 
         active(waveNextD) = true;
-        active(waveSubset) = false;
+        %active(waveSubset) = false;
+
         visited(waveSubset) = true;
-                    
+
+            active(visited) = false;
+
         fprintf('%d. A %d, sel %d, next %d, new %d\n', i, nA, numel(waveSubset), numel(waveNextU), numel(waveNextD))
+
+             foundFinals = any(mainTable.final' & visited);
+
 
         % Now find
         if ~foundFinals
@@ -67,6 +67,9 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
         end
 
         initialStates = find(mainTable.final' & (visited) & ~doneFinals);
+
+        if isempty(initialStates); continue; end 
+
         initialValues = mainTable.value(initialStates);
 
         doneFinals(initialStates) = true; % To prevent repeated usage of finals
@@ -97,6 +100,19 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     finalStatus.active = active;
     finalStatus.values = computedValues;
     finalStatus.when = when;
+end
+
+
+
+function waveSubset = selectSubset(active, pts, i, INITIAL_STEPS)
+    maxV = max(pts(active));
+    maxActive = active & pts == maxV;
+
+    if i < INITIAL_STEPS
+        waveSubset = find(active);
+    else    
+        waveSubset = find(maxActive);
+    end
 end
 
 
