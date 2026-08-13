@@ -39,34 +39,15 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
         if nA == 0; break; end
 
         waveSubset = selectSubset(active, pts, i, INITIAL_STEPS);
-
         waveNextU = waveNextUnique(waveSubset, graphInfo.fwMatrix);
 
-        % Remove already visited
-        waveNextD = waveNextU;
-       % waveNextD(visited(waveNextU)) = [];
-
-        %foundFinals = any(mainTable.final(waveNextD));
-       % foundFinals = any(mainTable.final' & visited);
-
-        active(waveNextD) = true;
-        %active(waveSubset) = false;
-
         visited(waveSubset) = true;
+        active(waveNextU) = true;
+        active(visited) = false;
 
-            active(visited) = false;
+        fprintf('%d. A %d, sel %d, next %d\n', i, nA, numel(waveSubset), numel(waveNextU))
 
-        fprintf('%d. A %d, sel %d, next %d, new %d\n', i, nA, numel(waveSubset), numel(waveNextU), numel(waveNextD))
-
-             foundFinals = any(mainTable.final' & visited);
-
-
-        % Now find
-        if ~foundFinals
-            continue
-        end
-
-        initialStates = find(mainTable.final' & (visited) & ~doneFinals);
+        initialStates = find(mainTable.final' & active & ~doneFinals);
 
         if isempty(initialStates); continue; end 
 
