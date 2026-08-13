@@ -24,22 +24,22 @@ statsHistories = cell(1, 20);
 for testIter = 10:16
       %  break
 
-    [st_T, statsHist_T, status_T] = exploreWave_Faster(graphInfo, mainTable, [1],  testIter);
+    [st_T, ~, status_T] = exploreWave_Faster(graphInfo, mainTable, [1],  testIter);
     testRecord{testIter} = st_T;
     visitRecord{testIter} = status_T.visited;
-    statsHistories{testIter} = statsHist_T;  % histogram of selected
+    %statsHistories{testIter} = statsHist_T;  % histogram of selected
 end
 
 
 
 
 if false
-    [st_13, statsHist_13, status_13] = exploreWave_Faster(graphInfo, mainTable, [1],  13);
-    [st_14, statsHist_14, status_14] = exploreWave_Faster(graphInfo, mainTable, [1],  14);
-    [st_15, statsHist_15, status_15] = exploreWave_Faster(graphInfo, mainTable, [1],  15);
-    [st_16, statsHist_16, status_16] = exploreWave_Faster(graphInfo, mainTable, [1],  16);
-    [st_17, statsHist_17, status_17] = exploreWave_Faster(graphInfo, mainTable, [1],  17);
-    [st_18, statsHist_18, status_18] = exploreWave_Faster(graphInfo, mainTable, [1],  18);
+    [st_13, ~, status_13] = exploreWave_Faster(graphInfo, mainTable, [1],  13);
+    [st_14, ~, status_14] = exploreWave_Faster(graphInfo, mainTable, [1],  14);
+    [st_15, ~, status_15] = exploreWave_Faster(graphInfo, mainTable, [1],  15);
+    [st_16, ~, status_16] = exploreWave_Faster(graphInfo, mainTable, [1],  16);
+    [st_17, ~, status_17] = exploreWave_Faster(graphInfo, mainTable, [1],  17);
+    [st_18, ~, status_18] = exploreWave_Faster(graphInfo, mainTable, [1],  18);
 
 
 nIters13 = find(isnan(st_13.visited), 1) - 1;

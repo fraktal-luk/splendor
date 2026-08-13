@@ -34,24 +34,20 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     when = nan(1, width(graphInfo.fwMatrix));
 
     for i = 1:MAX_ITERS
-        if nnz(active) == 0
-            break
-        end
-
         nA = nnz(active);
 
-           maxV = max(pts(active));
-           maxActive = active & pts == maxV;
+        if nA == 0; break; end
+
+        maxV = max(pts(active));
+        maxActive = active & pts == maxV;
 
         if i < INITIAL_STEPS
             waveSubset = find(active);
         else    
-            waveSubset = ...find(active);
-                     find(maxActive);
+            waveSubset = find(maxActive);
         end
 
-        waveNext = moveWave(waveSubset, graphInfo.fwMatrix);
-        waveNextU = unique([waveNext{:}]);
+        waveNextU = waveNextUnique(waveSubset, graphInfo.fwMatrix);
 
         % Remove already visited
         waveNextD = waveNextU;
@@ -62,29 +58,8 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
         active(waveNextD) = true;
         active(waveSubset) = false;
         visited(waveSubset) = true;
-        
-            
+                    
         fprintf('%d. A %d, sel %d, next %d, new %d\n', i, nA, numel(waveSubset), numel(waveNextU), numel(waveNextD))
-
-        statsTable.active(i) = nA;
-        statsTable.visited(i) = nnz(visited);
-        statsTable.selected(i) = numel(waveSubset);
-        statsTable.next(i) = numel(waveNextU);
-        statsTable.new(i) = numel(waveNextD);
-        statsTable.solved(i) = nnz(solved);
-        statsTable.pv(i) = maxV;
-
-        selected = ismember(1:nStates, waveSubset);
-
-        statsHistorySel = makeHist2D(mainTable, selected);
-        statsHistory{i} = statsHistorySel;
-
-        [iy, ix] = find(statsHistorySel);
-
-        statsTable.minStepA(i) = min(ix);
-        statsTable.maxStepA(i) = max(ix);
-        statsTable.minPointA(i) = min(iy)-1;
-        statsTable.maxPointA(i) = max(iy)-1;
 
         % Now find
         if ~foundFinals
@@ -135,11 +110,11 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
         % !! Problem: 'solved' state must first propagate to
         % followers of solved nodes
 
-        maxStep = max(mainTable.step(active | visited));
+        %maxStep = max(mainTable.step(active | visited));
 
         unsolvedSub = subgraphFrom(1, unsolvedMat);
         
-        numActiveSolved = nnz(active & solved);
+        %numActiveSolved = nnz(active & solved);
          
         % Not much changes in trial. We need stats: how many nodes
         % became solved on each level (step number)?
@@ -161,6 +136,10 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     finalStatus.when = when;
 end
 
+function waveNextU = waveNextUnique(waveIn, followerMat)
+     waveNext = moveWave(waveIn, followerMat);
+     waveNextU = unique([waveNext{:}]);
+end
 
 function newWave = moveWave(waveIn, followerMat)
     newWave = arrayfun(@(s) getFollowers(s, followerMat), waveIn, 'UniformOutput', false);

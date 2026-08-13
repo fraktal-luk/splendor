@@ -2,7 +2,7 @@
 % _9 is a shorter version of _0: stopped right after solution (1.5M vs 7M
 % states)
 prefix = '../saved_9/';
-prefix = '../saved_11/';
+%prefix = '../saved_11/';
 
 [followerMat, valueVector, stringMat] = readFromFiles(prefix);
 
