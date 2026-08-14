@@ -6,18 +6,17 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     nStates = width(graphInfo.fwMatrix);
 
     statsTable = table();
-    statsTable.active = nan(MAX_ITERS, 1);
+    statsTable.backtrack = nan(MAX_ITERS, 1);
     statsTable.visited = nan(MAX_ITERS, 1);
+    statsTable.active = nan(MAX_ITERS, 1);
     statsTable.selected = nan(MAX_ITERS, 1);
-    statsTable.solved = nan(MAX_ITERS, 1);
-    statsTable.next = nan(MAX_ITERS, 1);
     statsTable.new = nan(MAX_ITERS, 1);
-    statsTable.pv = nan(MAX_ITERS, 1);
+    statsTable.solved = nan(MAX_ITERS, 1);
 
-    statsTable.minStepA = nan(MAX_ITERS, 1);
-    statsTable.maxStepA = nan(MAX_ITERS, 1);
-    statsTable.minPointA = nan(MAX_ITERS, 1);
-    statsTable.maxPointA = nan(MAX_ITERS, 1);
+    % statsTable.minStepA = nan(MAX_ITERS, 1);
+    % statsTable.maxStepA = nan(MAX_ITERS, 1);
+    % statsTable.minPointA = nan(MAX_ITERS, 1);
+    % statsTable.maxPointA = nan(MAX_ITERS, 1);
 
     statsHistory = cell(1, MAX_ITERS);
 
@@ -45,8 +44,19 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
 
         if isempty(initialStates)
             advance()
+
             continue;
         end 
+
+            if i == 20
+                1;
+            end
+
+
+            statsTable.backtrack(i) = 1;
+            statsTable.active(i) = nnz(active);
+            statsTable.visited(i) = nnz(visited);
+            
 
         doneFinals(initialStates) = true; % To prevent repeated usage of finals
         active(initialStates) = false;
@@ -59,6 +69,8 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
         fprintf('New solved nodes: %d\n', nnz(solvedNew) - nnz(solved))
 
         solved = solvedNew;
+
+            statsTable.solved(i) = nnz(solved);
 
 
         if solved(1)
@@ -84,10 +96,18 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     function advance()
         waveSubset = selectSubset(active, pts, i, INITIAL_STEPS);
         waveNextU = waveNextUnique(waveSubset, graphInfo.fwMatrix);
-    
+
+                statsTable.backtrack(i) = 0;
+                statsTable.visited(i) = nnz(visited);
+                statsTable.active(i) = nnz(active);
+                statsTable.selected(i) = numel(waveSubset);
+
         visited(waveSubset) = true;
         active(waveNextU) = true;
         active(visited) = false;
+
+                statsTable.new(i) = nnz(active) - statsTable.active(i) + statsTable.selected(i);
+
 
         fprintf('%d. A %d, sel %d, next %d\n', i, nA, numel(waveSubset), numel(waveNextU))
     end
