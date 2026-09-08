@@ -13,6 +13,8 @@ nStates = width(followerMat);
 
 clear stringMat
 
+buys = getBuyMatrix(followerMat, rows, rowBase);
+
 stepValues = countSteps(followerMat);
 
 [edgesFrom, edgesTo] = getEdges(followerMat);
