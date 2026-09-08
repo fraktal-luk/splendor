@@ -1,4 +1,4 @@
-function [followerMat, valueVector, stringMat] = readFromFiles(prefix)
+function [followerMat, valueVector, stringMat, rowBase] = readFromFiles(prefix)
 
 fh = fopen([prefix, 'followers']);
 followerData = fread(fh, 'float32');
@@ -9,13 +9,19 @@ valueVectorJS = fread(fhv, 'float32');
 fhs = fopen([prefix, 'strings']);
 stringVector = fread(fhs, 'uint16');
 
+    fhrs = fopen([prefix, 'rstrings']);
+    rstringVector = fread(fhrs, 'uint16');
+
 fclose(fh);
 fclose(fhv);
 fclose(fhs);
+fclose(fhrs);
 
 followerMat = single(reshape(followerData, 13, []));
 valueVectorJS = reshape(valueVectorJS, 1, []);
 stringMat = uint16(reshape(stringVector, 20, []));
+
+rowBase = reshape(rstringVector, 5, [])';
 
 clear followerData stringVector
 

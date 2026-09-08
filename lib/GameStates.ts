@@ -992,7 +992,7 @@ export namespace GameStates {
 		pointThreshold = 0;
 
 			save(): void {
-					const saveDir = "saved_11";
+					const saveDir = "saved_9";
 
 
 				const rowAllStr = getRowBase().strings.join('');

@@ -4,12 +4,12 @@
 prefix = '../saved_9/';
 %prefix = '../saved_11/';
 
-[followerMat, valueVector, stringMat] = readFromFiles(prefix);
+[followerMat, valueVector, stringMat, rowBase] = readFromFiles(prefix);
 
 nStates = width(followerMat);
 
 
-[moves, points0, points1] = parsePoints(stringMat);
+[moves, points0, points1, rows] = parsePoints(stringMat);
 
 clear stringMat
 

@@ -12,7 +12,7 @@ graphInfo.eTo = edgesTo;
 
 histAll = makeHist2D(mainTable);
 
-[statsTb, statsHist, status] = exploreWave_Faster(graphInfo, mainTable, [1],  16);
+%[statsTb, statsHist, status] = exploreWave_Faster(graphInfo, mainTable, [1],  16);
 
 
 testRecord = cell(1, 20);
@@ -21,13 +21,12 @@ statsHistories = cell(1, 20);
 
 %testRecord{:} = [];
 
-for testIter = 10:16
+for testIter = 14:15
       %  break
 
     [st_T, ~, status_T] = exploreWave_Faster(graphInfo, mainTable, [1],  testIter);
     testRecord{testIter} = st_T;
     visitRecord{testIter} = status_T.visited;
-    %statsHistories{testIter} = statsHist_T;  % histogram of selected
 end
 
 
