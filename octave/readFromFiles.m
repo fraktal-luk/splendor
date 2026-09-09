@@ -23,6 +23,8 @@ stringMat = uint16(reshape(stringVector, 20, []));
 
 rowBase = reshape(rstringVector, 5, [])';
 
+rowBase(1, :) = []; % Delete row 0, not ndexing is natura in matlab
+
 clear followerData stringVector
 
 followerMat(:,1) = []; % remove column 0 to make column 1 appear at index 1 (no big loss)

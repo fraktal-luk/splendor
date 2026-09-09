@@ -14,7 +14,9 @@ function [moves, p0, p1, rows, toks0, toks1] = parsePoints(strings)
 rows = strings(1:3, :);
 moves = strings(4, :);
 p0 = single(strings(5, :));
-    toks0 = strings(7:12, :) - '0';
+    toks0 = (strings(7:12, :)) - '0';
+    toks0(toks0 == 49) = 10;
 p1 = single(strings(13, :));
-    toks1 = strings(15:end, :) - '0';
+    toks1 = (strings(15:end, :)) - '0';
+    toks1(toks1 == 49) = 10;
 end

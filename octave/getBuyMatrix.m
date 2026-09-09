@@ -6,6 +6,10 @@ function bm = getBuyMatrix(followerMat, rows, rowBase)
     for state = 1:width(followerMat)
         rowsThis = rows(:, state);
 
+            if (state == 1159)
+                1;
+            end
+
         for j = 1:height(followerMat)
             if (isnan(followerMat(j, state)))
                 continue
@@ -25,8 +29,8 @@ function bm = getBuyMatrix(followerMat, rows, rowBase)
                     error('TTTT')
                 end
 
-                oldRow = rowBase(1+oldRowId,:);
-                newRow = rowBase(1+newRowId,:);
+                oldRow = rowBase(oldRowId,:);
+                newRow = rowBase(newRowId,:);
                 %newCard = setdiff()
 
                 cardId = setdiff(oldRow(2:end), newRow(2:end));
