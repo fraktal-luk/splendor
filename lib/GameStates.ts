@@ -56,7 +56,7 @@ const PARAM_TMP_TH = 10 - 1;
 
 
 const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 4;
+const PARAM_TIP_SUB = 3 + 1;
 
 const PARAM_COLUMN_WALL = 4;
 
@@ -161,13 +161,13 @@ export namespace GameStates {
 					const deficit = this.bonuses.TMP_effPrice(c).sum();
 					const gold = parseInt(this.bonuses.str[5]!, 16);				
 					
-						console.log(c );
-						console.log("  bonuses:" + this.bonuses.str);
-						console.log("  absPrice:" + getCardPrice(c));
-						console.log("  effPrice:" + this.bonuses.TMP_effPrice(c).str);
-						console.log(deficit <= gold)
+						// console.log(c );
+						// console.log("  bonuses:" + this.bonuses.str);
+						// console.log("  absPrice:" + getCardPrice(c));
+						// console.log("  effPrice:" + this.bonuses.TMP_effPrice(c).str);
+						// console.log(deficit <= gold)
 
-						console.log('\n');
+						// console.log('\n');
 
 
 					if (deficit > gold) return undefined;
@@ -374,11 +374,11 @@ export namespace GameStates {
 
 				desc!.next = this.makeIds(nextRows);
 
-					if (state == 29) {
-						console.log("\n   Row " + state);
-						console.log("  next = " + desc!.next);
-						console.log(nextRows);
-					}
+					// if (state == 29) {
+					// 	console.log("\n   Row " + state);
+					// 	console.log("  next = " + desc!.next);
+					// 	console.log(nextRows);
+					// }
 			}
 			
 			return desc!.next!;
@@ -954,10 +954,10 @@ export namespace GameStates {
 			}
 			else {
 				if (desc!.next == undefined) {
-						if (state == 1159) {
-							console.log("\n\nFnidng next for state 1159\n\n");
-							stateObjS.genNextBU_DB();
-						}
+						// if (state == 1159) {
+						// 	console.log("\n\nFnidng next for state 1159\n\n");
+						// 	stateObjS.genNextBU_DB();
+						// }
 
 					desc!.next = this.makeIds(stateObjS.genNextBU());
 				}
@@ -1086,12 +1086,12 @@ export namespace GameStates {
 					const saveDir = "saved_9";
 
 
-							console.log("Row base preview:")
-							console.log(getRowBase().descriptors[29]);
-							console.log(getRowBase().descriptors[36]);
-							console.log(getRowBase().descriptors[60]);
-							console.log(getRowBase().descriptors[61]);
-							console.log(getRowBase().descriptors[62]);
+							// console.log("Row base preview:")
+							// console.log(getRowBase().descriptors[29]);
+							// console.log(getRowBase().descriptors[36]);
+							// console.log(getRowBase().descriptors[60]);
+							// console.log(getRowBase().descriptors[61]);
+							// console.log(getRowBase().descriptors[62]);
 
 
 				const rowAllStr = getRowBase().strings.join('');
@@ -1215,6 +1215,10 @@ export namespace GameStates {
 		expand(): void {
 			const thr = this.pointThreshold;
 			const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
+
+				if (getStateListSize(startStates) == 0) {
+					console.log("\n\n\nEXHAUSTED\n\n\n\n");
+				}
 
 			console.log(`starting with size ${getStateListSize(startStates)}`);
 
