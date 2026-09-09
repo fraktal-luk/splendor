@@ -31,7 +31,11 @@ function showNode(state, mainTable, followerMat, buys, stateInfos)
         nCards = nCards1;
     end
 
+    nToks = toks(end);
+
     fprintf('S(%d) mv %d\n(%s) %dT/%dB\n', state, mover, num2str(toks), nTakes, nCards)
+
+    MAX_COLOR = 4; % max token per color for 2 players
 
     for i = 1:numel(followers)
         if cards(i) == 0
@@ -39,7 +43,23 @@ function showNode(state, mainTable, followerMat, buys, stateInfos)
         else
             price = [getCardPrice(cards(i)), 0];
             effPrice = max(0, price - toks);
-            fprintf('  [%d] -> %d   (%s)\n', cards(i), followers(i), num2str(effPrice))
+
+            overLimit = max(0, effPrice - MAX_COLOR);
+            surpluses = max(0, effPrice - nTakes); % number of times we had to take 2 (limiting total number)
+            
+            effSum = sum(effPrice + surpluses);
+
+            fault = '';
+ 
+            if sum(effPrice) > nToks
+                fault = 'WTF';
+            elseif any(overLimit)
+                fault = '#';
+            elseif effSum > nToks
+                fault = '$';
+            end
+
+            fprintf('  [%d] -> %d  (%s)   %s\n', cards(i), followers(i), num2str(effPrice), fault)
         end
     end
 end

@@ -52,11 +52,11 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
-const PARAM_TMP_TH = 10 + -0;
+const PARAM_TMP_TH = 10 + -1;
 
 
-const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 3 - 0;
+const PARAM_TRIM_LOW = false;
+const PARAM_TIP_SUB = 3;
 
 const PARAM_COLUMN_WALL = 4;
 
@@ -155,7 +155,23 @@ export namespace GameStates {
 			const newPoints = this.points + POINT_TABLE[c]!;
 			return new PlayerCards(newBonuses, newPoints, []);//this.reserved);
 		}
-		
+
+				buyUniversal_DB(c: Card): PlayerCards | undefined {
+					const ind = (c-1) % 5;
+					const deficit = this.bonuses.TMP_effPrice(c).sum();
+					const gold = parseInt(this.bonuses.str[5]!, 16);				
+					
+						console.log("  bonuses:" + this.bonuses.str);
+						console.log("  absPrice:" + getCardPrice(c));
+						console.log("  effPrice:" + this.bonuses.TMP_effPrice(c).str);
+
+					if (deficit > gold) return undefined;
+
+					const newBonuses = this.bonuses.incAt(ind).payGold(deficit);
+					const newPoints = this.points + POINT_TABLE[c]!;
+					return new PlayerCards(newBonuses, newPoints, []);//this.reserved);
+				}
+
 		takeUniversal(): PlayerCards {
 			return new PlayerCards(this.bonuses.takeUniversal(), this.points, []);
 		}
@@ -547,8 +563,19 @@ export namespace GameStates {
 				  if ((ind % 4) >= PARAM_COLUMN_WALL) return undefined;
 
 			const c = this.tableCards_S.cardAt(ind);
+
+
 			const newPlayerCards = this.mpc.arr[player]!.buyUniversal(c);
 			
+
+
+					if (c == 53 && this.tableCards_S.rows[0] == 1 && this.tableCards_S.rows[1] == 26 && this.tableCards_S.rows[2] == 3
+						&& newPlayerCards != undefined)
+					{
+							console.log("\nWe have this case!  " + getCardPrice(53) +  "\n\n");
+							this.mpc.arr[player]!.buyUniversal_DB(c);	
+					} 
+
 			if (newPlayerCards == undefined) return undefined;
 			
 			const mpa = this.mpc.arr.with(player, newPlayerCards);
