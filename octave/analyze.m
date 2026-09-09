@@ -9,7 +9,12 @@ prefix = '../saved_9/';
 nStates = width(followerMat);
 
 
-[moves, points0, points1, rows] = parsePoints(stringMat);
+[moves, points0, points1, rows, toks0, toks1] = parsePoints(stringMat);
+
+stateInfos.moves = moves;
+stateInfos.rows = rows;
+stateInfos.toks0 = toks0;
+stateInfos.toks1 = toks1;
 
 clear stringMat
 
