@@ -13,11 +13,6 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     statsTable.new = nan(MAX_ITERS, 1);
     statsTable.solved = nan(MAX_ITERS, 1);
 
-    % statsTable.minStepA = nan(MAX_ITERS, 1);
-    % statsTable.maxStepA = nan(MAX_ITERS, 1);
-    % statsTable.minPointA = nan(MAX_ITERS, 1);
-    % statsTable.maxPointA = nan(MAX_ITERS, 1);
-
     statsHistory = cell(1, MAX_ITERS);
 
     pts = max(mainTable.p0, mainTable.p1)';
@@ -42,22 +37,16 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     
         initialStates = find(mainTable.final' & active & ~doneFinals);
 
-        if isempty(initialStates)
-            advance()
-
-            continue;
+        %if isempty(initialStates)
+        if numel(initialStates) < 1
+            advance();
+            continue
         end 
 
-            if i == 20
-                1;
-            end
-
-
-            statsTable.backtrack(i) = 1;
-            statsTable.active(i) = nnz(active);
-            statsTable.visited(i) = nnz(visited);
-            
-
+        statsTable.backtrack(i) = 1;
+        statsTable.active(i) = nnz(active);
+        statsTable.visited(i) = nnz(visited);
+        
         doneFinals(initialStates) = true; % To prevent repeated usage of finals
         active(initialStates) = false;
         visited(initialStates) = true;
@@ -70,8 +59,7 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
 
         solved = solvedNew;
 
-            statsTable.solved(i) = nnz(solved);
-
+        statsTable.solved(i) = nnz(solved);
 
         if solved(1)
             disp 'TREE SOLVED'
@@ -92,29 +80,25 @@ function [statsTable, statsHistory, finalStatus] = exploreWave_Faster(graphInfo,
     finalStatus.values = computedValues;
     finalStatus.when = when;
 
-
     function advance()
         waveSubset = selectSubset(active, pts, i, INITIAL_STEPS);
         waveNextU = waveNextUnique(waveSubset, graphInfo.fwMatrix);
 
-                statsTable.backtrack(i) = 0;
-                statsTable.visited(i) = nnz(visited);
-                statsTable.active(i) = nnz(active);
-                statsTable.selected(i) = numel(waveSubset);
+        statsTable.backtrack(i) = 0;
+        statsTable.visited(i) = nnz(visited);
+        statsTable.active(i) = nnz(active);
+        statsTable.selected(i) = numel(waveSubset);
 
         visited(waveSubset) = true;
         active(waveNextU) = true;
         active(visited) = false;
 
-                statsTable.new(i) = nnz(active) - statsTable.active(i) + statsTable.selected(i);
-
+        statsTable.new(i) = nnz(active) - statsTable.active(i) + statsTable.selected(i);
 
         fprintf('%d. A %d, sel %d, next %d\n', i, nA, numel(waveSubset), numel(waveNextU))
     end
 
 end
-
-
 
 
 
