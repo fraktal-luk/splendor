@@ -52,11 +52,12 @@ const INITIAL_TABLE_NUMS: number[][] =
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
-const PARAM_TMP_TH = 10 - 1;
+const PARAM_TMP_TH = 10 - 0;
 
+const MAX_STATES = 6000000;
 
 const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 3 + 1;
+const PARAM_TIP_SUB = 3 + 2;
 
 const PARAM_COLUMN_WALL = 4;
 
@@ -1083,6 +1084,7 @@ export namespace GameStates {
 		pointThreshold = 0;
 
 			save(): void {
+
 					const saveDir = "saved_9";
 
 
@@ -1195,8 +1197,8 @@ export namespace GameStates {
 
 			console.log('> Step ' + this.stepNum);
 
-				if (this.stateBase.descriptors.length >= 3000000) {
-					console.log("Not going on, states 3M states reached");
+				if (this.stateBase.descriptors.length >= MAX_STATES) {
+					console.log("Not going on, " + MAX_STATES + " states reached");
 					return;
 				}
 
