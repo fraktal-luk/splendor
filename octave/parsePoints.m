@@ -12,7 +12,7 @@ function [moves, p0, p1, rows, toks0, toks1] = parsePoints(strings)
 % p1pts = single(p1(1));
 % p1all = single(p1(2));
 rows = strings(1:3, :);
-moves = strings(4, :);
+moves = bitand(strings(4, :), 1);
 p0 = single(strings(5, :));
     toks0 = (strings(7:12, :)) - '0';
     toks0(toks0 == 49) = 10;

@@ -423,17 +423,22 @@ export namespace GameStates {
 	export class CardState implements StateValue<CardState> {
 		readonly tableCards_S: TableCardsShort;
 		readonly mpc: ManyPlayerCards;
-		readonly moves: number; 
+		readonly step: number; 
 		
-		constructor(mp: ManyPlayerCards, moves: number, ts: TableCardsShort) {
-			this.tableCards_S = ts;
-			this.mpc = mp;
-			this.moves = moves;
+		moves(): number {
+			return this.step & 1;
 		}
 
 
-		keyString(): string { return this.tableCards_S.keyString() + String.fromCharCode(this.moves) + this.mpc.keyString(); }
-		niceString(): string { return CONV_TC(this.tableCards_S).niceString() + '  @' + this.moves + '  ' + this.mpc.niceString(); }
+		constructor(mp: ManyPlayerCards, step: number, ts: TableCardsShort) {
+			this.tableCards_S = ts;
+			this.mpc = mp;
+			this.step = step;
+		}
+
+
+		keyString(): string { return this.tableCards_S.keyString() + String.fromCharCode(this.step) + this.mpc.keyString(); }
+		niceString(): string { return CONV_TC(this.tableCards_S).niceString() + '  @' + this.step + '  ' + this.mpc.niceString(); }
 
 
 		checkKeyString(): void {
@@ -452,7 +457,7 @@ export namespace GameStates {
 		static fromKeyString(s: string): CardState {
 			const tableCards_S = TableCardsShort.fromKeyString(s.slice(0, 4)); // TODO: verify size
 			const playerCards = ManyPlayerCards.fromKeyString(s.substring(4));
-			return new CardState(playerCards, s.charCodeAt(/*15*/3), tableCards_S);
+			return new CardState(playerCards, s.charCodeAt(3), tableCards_S);
 		}
 
 		playerKString(): string { return this.mpc.playerKString(); }
@@ -460,12 +465,12 @@ export namespace GameStates {
 		ofPlayer(player: number): PlayerCards { return this.mpc.ofPlayer(player); }
 
 		takeUniversal(): CardState {
-			const player = this.moves;
-			return new CardState(this.mpc.takeUniversal(player), (player+1) % N_PLAYERS, this.tableCards_S); 
+			const player = this.moves();
+			return new CardState(this.mpc.takeUniversal(player), this.step + 1, this.tableCards_S); 
 		}
 		
 		buyUniversal(ind: number): CardState|undefined {
-			const player = this.moves;
+			const player = this.moves();
 				
 			const c = this.tableCards_S.cardAt(ind);
 
@@ -475,7 +480,7 @@ export namespace GameStates {
 			
 			const mpa = this.mpc.arr.with(player, newPlayerCards);
 			const mpc = new ManyPlayerCards(mpa);
-			return new CardState(mpc, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
+			return new CardState(mpc, this.step + 1, this.tableCards_S.grabAt(ind));
 		}
 
 		genNextBU(): (CardState|undefined)[] {			
@@ -559,7 +564,7 @@ export namespace GameStates {
 
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
-			this.mover = state.moves;
+			this.mover = state.moves();
 			this.playerPts = [state.ofPlayer(0).points, state.ofPlayer(1).points];
 		}
 
