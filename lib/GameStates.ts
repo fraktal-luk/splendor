@@ -1,14 +1,10 @@
 
-import {cardStringList, CARD_SPECS, getCardPrice, getCardPoints, TokenVec, MAX_PLAYER_TOKS, 	Card,
-	sortRows,
-	STR_1x1, STR_2x1, STR_1x2, STR_1x3, STR_1x2_1x1, STR_3x1, STR_RET3, STR_RET2, STR_RET1,
-
-	numStringD,
-	numStringH,
-	cardStringD,
-	cardStringH,
-	getVectorsSum1,
-	getVectorsSum2,
+import {
+	CARD_SPECS,
+	getCardPrice, getCardPoints, TokenVec, MAX_PLAYER_TOKS, 	Card, // getcardPoints redundant cause POINT_TABLE?
+	numStringD, numStringH, cardStringD, cardStringH,
+	nan2undef, undef2nan,
+	encodeNum2, decodeNum2
 	}
 from './searching_base.ts';
 
@@ -59,28 +55,11 @@ const MAX_STATES = 6000000;
 const PARAM_TRIM_LOW = true;
 const PARAM_TIP_SUB = 3 + 2;
 
-const PARAM_RUN_DEPTH = 2  - 1;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
+const PARAM_RUN_DEPTH = 1;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
 
 const N_PLAYERS = 2;
 
 
-
-function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
-function decodeNum2(s: string): number { return s.charCodeAt(0); }
-
-function sortSpread(copied: number[], index: number, card: Card): void {
-	while (index < 11 && copied[index+1]! < card) {
-		copied[index] = copied[index+1]!;
-		index++;
-	}
-
-	while (index > 0 && copied[index-1]! > card) {
-		copied[index] = copied[index-1]!;
-		index--;
-	}
-
-	copied[index] = card;
-}
 
 abstract class Wavefront {
 	readonly nPlayers = N_PLAYERS;
@@ -96,27 +75,6 @@ interface StateValue<T> {
 	keyString(): string;
 	niceString(): string;
 	isSame(other: T): boolean;
-}
-
-
-function compareNumbers(a?: number, b?: number): number {
-	if (a == undefined && b == undefined) return 0;
-	if (a == undefined) return 1;
-	if (b == undefined) return -1;
-	return a!-b!;
-}
-
-
-function isConsecutive(arr: number[]): boolean {
-	if (arr.length == 0) return true;
-
-	let latest = arr[0]!;
-	for (let i = 1; i < arr.length; i++) {
-		if (arr[i]! - latest != 1) return false;
-		latest = arr[i]!;
-	}
-
-	return true;
 }
 
 
@@ -159,12 +117,12 @@ export namespace GameStates {
 			return new PlayerCards(this.bonuses.takeUniversal(), this.points, []);
 		}
 
-		// Get effective gload price and points
-		evaluateCard(c: Card): [Card, number, number] {
-				const deficit = this.bonuses.TMP_effPrice(c).sum();
-				const points = getCardPoints(c);
-				return [c, deficit, points];
-		}
+			// Get effective gload price and points
+			evaluateCard(c: Card): [Card, number, number] {
+					const deficit = this.bonuses.TMP_effPrice(c).sum();
+					const points = getCardPoints(c);
+					return [c, deficit, points];
+			}
 
 	}
 	
@@ -389,7 +347,6 @@ export namespace GameStates {
 				this.rows = r;
 			}
 
-			// TODO: should be shortened (remove padding) but fromKeyString in dependents must be modified accordingly
 			keyString(): string {
 				return String.fromCharCode(...this.rows);
 			}
@@ -450,32 +407,6 @@ export namespace GameStates {
 
 			isSame(other: TableCards): boolean {			
 				return this.stackNums.toString() == other.stackNums.toString() && this.spread.toString() == other.spread.toString();
-			}
-
-			static fromKeyString(s: string): TableCards {
-				const nums = Array.from(s.substring(0,3), c => c.charCodeAt(0));
-				const spread = Array.from(s.substring(3,15), c => c.charCodeAt(0));
-				return new TableCards(nums, spread);
-			}
-
-			cardAt(index: number): number {
-					return this.spread[index];
-			}
-
-			grabAt(index: number): TableCards {
-				if (index < 0 || index > 11) throw new Error("Wrong index");
-				
-				const row = index >> 2;
-				const col = index & 3;
-				const stackSize = this.stackNums[row]!;
-				
-				const newCard = TABLE_STACKS[row]![stackSize-1]!;
-				const newStackNums = this.stackNums.toSpliced(row, 1, stackSize-1);
-
-				const newSpread = [...this.spread];
-				sortSpread(newSpread, index, newCard);
-
-				return new TableCards(newStackNums, newSpread);
 			}
 
 		}
@@ -572,68 +503,7 @@ export namespace GameStates {
 
 	type StateId = number;
 
-	// type NodeCategory = 'unknown'
-	// 							| 'late'
-	// 			   	  | 'final'  // end the game
-	// 			   	  | 'falls'; // leads to known final state (result determined)
 	type GameRating = 'U' | '0' | '1' | 'D';
-
-
-	function undef2nan(x: number|undefined): number {
-		if (x == undefined) return NaN;
-		return x!;
-	}
-
-	function nan2undef(x: number): number|undefined {
-		if (isNaN(x)) return undefined;
-		return x;
-	}
-
-	// empty - all -1; undefined - -1 followed by 0
-	function followersFull(input: number[]|undefined): number[] {
-		if (input == undefined) return [NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN];
-
-		const res = [...input];
-		res.fill(-1, input.length);
-		return res;
-	}
-
-	function followersDecode(input: number[]) {
-		if (isNaN(input[0]!)) return undefined;
-
-		const end = input.indexOf(-1);
-		return input.slice(0, end);
-	}
-
-
-	function valEncode(x: number): number {
-		if (isNaN(x)) return 100;
-		else return x;
-	}
-
-	function valDecode(x:number): number {
-		if (x >= 100) return NaN;
-		return x;
-	}
-
-
-	// empty - all -1; undefined - -1 followed by 0
-	function rowFollowersFull(input: number[]|undefined): number[] {
-		if (input == undefined) return [-1, 0, 0, 0];
-
-		const res = [...input];
-		res[3] = -1;
-		res.fill(-1, input.length);
-		return res;
-	}
-
-	function rowFollowersDecode(input: number[]) {
-		if (input[0] == -1 && input[1] == 0) return undefined;
-
-		const end = input.indexOf(-1);
-		return input.slice(0, end);
-	}
-
 
 
 	function bestForPlayer(arr: (number|undefined)[], player: number): number|undefined {
@@ -646,8 +516,7 @@ export namespace GameStates {
 		const first = sorted.at(0)!;
 		const last = sorted.at(-1)!;
 
-		// Dont accept losing position if some is unknown
-		// Dont accept draw if not sure
+		// Dont accept losing position or draw if some is unknown
 		if (player == 0) {
 			if (last <= 0 && hasUndef) return undefined;
 		}
@@ -665,7 +534,6 @@ export namespace GameStates {
 		next?: StateId[];
 
 			mover = -1;
-			maxP = -1;
 			playerPts = [-1, -1];
 
 			moves(): number {
@@ -689,23 +557,11 @@ export namespace GameStates {
 			return isChecked;
 		}
 
-		// isLate(): boolean {
-		// 	const isChecked = this.maxPoints() >= PARAM_TMP_TH && this.moves() != 0;
-		// 	return isChecked;
-		// }
-
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
 			this.mover = state.moves;
-			this.playerPts = [state.ofPlayer(0).points, state.ofPlayer(1).points]; 
-
-			//this.rateFinal();
+			this.playerPts = [state.ofPlayer(0).points, state.ofPlayer(1).points];
 		}
-
-
-		// rateFinal(): void {
-		// 	if (!this.isFinal()) return;
-		// }
 
 	}
 
@@ -723,12 +579,6 @@ export namespace GameStates {
 	function stateArr(sl: StateList): StateId[] {
 		return sl.values().toArray();
 	}
-
-
-	// function desc2sl(sd: StateDesc): StateList {
-	// 	return makeStateList([sd.id]);
-	// }
-
 
 
 	class StateBase {
@@ -787,8 +637,7 @@ export namespace GameStates {
 			}
 
 			RATING(d: StateDesc): GameRating {
-				const v = this.values[d.id];
-				const diff = v;//d.finalDiff;
+				const diff = this.values[d.id];
 
 				if (diff == undefined) return 'U';
 				else if (diff! > 0) return '0'; 
@@ -812,12 +661,6 @@ export namespace GameStates {
 			const newDesc = new StateDesc(newId, cs);
 
 			const value = newDesc.isFinal() ? newDesc.diffP() : NaN;
-
-				if (newId == 1159) {
-					console.log(cs);
-					console.log(cs.mpc.arr[0]);
-					console.log(cs.mpc.arr[1]);
-				}
 
 			this.descriptors.push(newDesc);
 			this.strings.push(ks);
@@ -921,7 +764,7 @@ export namespace GameStates {
 		processNonfinal(desc: StateDesc): void {
 			if (this.IS_DONE(desc) || desc.isFinal() || desc.next == undefined) return;
 
-			const nextIds = this.descriptors[desc.id]!.next!;
+			//const nextIds = this.descriptors[desc.id]!.next!;
 			const fds = this.getFollowerDescs(desc.id);
 			const mover = desc.moves();
 			const fdiffs = fds.map(d => this.values[d.id]!);
@@ -929,8 +772,6 @@ export namespace GameStates {
 			const bestResult = bestForPlayer(fdiffs, mover);
 
 			this.values[desc.id] = undef2nan(bestResult);
-
-			const bestResultNum = undef2nan(bestResult);
 		}
 
 	}
@@ -965,15 +806,12 @@ export namespace GameStates {
 
 
 
-
 		// Needed for interface compliance
 		moveImpl(): void {
 		}
 
 		runStep(): void {
-			if (this.finished) {
-				return;
-			}
+			if (this.finished) return;
 
 			console.log('> Step ' + this.stepNum);
 
@@ -986,7 +824,7 @@ export namespace GameStates {
 			this.propagateStates();
 			this.stats();
 
-			if (this.stateBase.FALLS(this.stateBase.descriptors[0]!)) {//  this.stateBase.descriptors[0]!.falls()) {
+			if (this.stateBase.FALLS(this.stateBase.descriptors[0]!)) {
 				console.log(`\n  >>>  Discovered solution! Result is ${this.stateBase.RATING(this.stateBase.descriptors[0]!)}\n`);
 				this.finished = true;
 			}
@@ -1070,11 +908,8 @@ export namespace GameStates {
 			const latestDescs = this.stateBase.descriptors;
 			const nFinal = latestDescs.filter(x => x.isFinal()).length;
 			const nFalls = latestDescs.filter(x => this.stateBase.FALLS(x)).length;
-
 			const nAll = this.stateBase.descriptors.length;
-
 			const nUnknown = nAll - nFinal - nFalls;
-
 
 			console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${maxPts} (tip ${maxTipPts})`);
 
@@ -1086,17 +921,14 @@ export namespace GameStates {
 			console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 
 			//console.log(process.memoryUsage());
-
 		}
 
 
 		TMP_print(currentTip: StateDesc): void {
 				const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
 				fds.sort((a,b) => (a.diffP()) - (b.diffP()));
-
 					console.log(currentTip.id);
 		}
-
 
 
 			save(): void {
@@ -1166,5 +998,38 @@ export namespace GameStates {
 	}
 
 
+	// empty - all -1; undefined - -1 followed by 0
+	function followersFull(input: number[]|undefined): number[] {
+		if (input == undefined) return [NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN];
+
+		const res = [...input];
+		res.fill(-1, input.length);
+		return res;
+	}
+
+	function followersDecode(input: number[]) {
+		if (isNaN(input[0]!)) return undefined;
+
+		const end = input.indexOf(-1);
+		return input.slice(0, end);
+	}
+
+
+	// empty - all -1; undefined - -1 followed by 0
+	function rowFollowersFull(input: number[]|undefined): number[] {
+		if (input == undefined) return [-1, 0, 0, 0];
+
+		const res = [...input];
+		res[3] = -1;
+		res.fill(-1, input.length);
+		return res;
+	}
+
+	function rowFollowersDecode(input: number[]) {
+		if (input[0] == -1 && input[1] == 0) return undefined;
+
+		const end = input.indexOf(-1);
+		return input.slice(0, end);
+	}
 
 }
