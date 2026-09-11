@@ -24,28 +24,28 @@ const TABLE_STACKS: number[][] =
      3, 10,  5, 11, 17, 7, 19,
     15, 16,  1, 18,  9, 6, 14,
     12,  4, 20,  2, 13, 8
-  ], //.toReversed(),
+  ],
   [
     27, 25, 29, 38, 36, 35, 22, 45, 41,
     37, 40, 34, 47, 49, 26, 50, 46, 33,
     43, 32, 21, 42, 28, 23, 30, 48, 31,
     39, 44, 24
-  ], //.toReversed(),
+  ],
   [ // lowest cards
     62, 65, 51, 82, 74, 63, 64, 56, 69, 81,
     55, 54, 73, 71, 57, 79, 76, 70, 85, 89,
     78, 68, 72, 58, 59, 66, 77, 86, 87, 60,
     61, 52, 84, 90, 83, 80, 75, 88, 67, 53
-  ], //.toReversed(),
+  ],
 
 ];
 
 const INITIAL_STACK_SIZES = [16, 26, 36];
 
 const INITIAL_TABLE_NUMS: number[][] =
-		[ /*[ 2,  8, 13, 20],*/  TABLE_STACKS[0].slice(-4).toSorted((a,b) => a-b),
-		  /*[24, 31, 39, 44],*/  TABLE_STACKS[1].slice(-4).toSorted((a,b) => a-b),
-		  /*[53, 67, 75, 88] */  TABLE_STACKS[2].slice(-4).toSorted((a,b) => a-b)
+		[ TABLE_STACKS[0].slice(-4).toSorted((a,b) => a-b),
+		  TABLE_STACKS[1].slice(-4).toSorted((a,b) => a-b),
+		  TABLE_STACKS[2].slice(-4).toSorted((a,b) => a-b)
 		];
 
 
@@ -391,7 +391,7 @@ export namespace GameStates {
 
 			// TODO: should be shortened (remove padding) but fromKeyString in dependents must be modified accordingly
 			keyString(): string {
-				return String.fromCharCode(...this.rows);// + "............"; // pad to 15
+				return String.fromCharCode(...this.rows);
 			}
 
 
@@ -427,12 +427,6 @@ export namespace GameStates {
 
 				return new TableCardsShort(newRows);
 			}
-
-				grabAt_ByRow(rowInd: number): TableCardsShort[] {
-					const resultRows = getRowBase().getFollowers(rowInd, this.rows[rowInd]);
-					const newRowsA = resultRows.map(ri => this.rows.with(rowInd, ri));
-					return newRowsA.map(rr => new TableCardsShort(rr));
-				}
 
 	}
 
@@ -502,7 +496,7 @@ export namespace GameStates {
 		
 		constructor(mp: ManyPlayerCards, moves: number, ts: TableCardsShort) {
 			this.tableCards_S = ts;
-			this.mpc = mp;//new ManyPlayerCards(p);
+			this.mpc = mp;
 			this.moves = moves;
 		}
 
@@ -525,8 +519,8 @@ export namespace GameStates {
 		}
 
 		static fromKeyString(s: string): CardState {
-			const tableCards_S = TableCardsShort.fromKeyString(s.slice(0,/*16*/4)); // TODO: verify size
-			const playerCards = ManyPlayerCards.fromKeyString(s.substring(/*16*/4));
+			const tableCards_S = TableCardsShort.fromKeyString(s.slice(0, 4)); // TODO: verify size
+			const playerCards = ManyPlayerCards.fromKeyString(s.substring(4));
 			return new CardState(playerCards, s.charCodeAt(/*15*/3), tableCards_S);
 		}
 
@@ -578,19 +572,17 @@ export namespace GameStates {
 
 	type StateId = number;
 
-	type NodeCategory = 'unknown'
-								| 'late'
-				   	  | 'final'  // end the game
-				   	  | 'falls'; // leads to known final state (result determined)
+	// type NodeCategory = 'unknown'
+	// 							| 'late'
+	// 			   	  | 'final'  // end the game
+	// 			   	  | 'falls'; // leads to known final state (result determined)
 	type GameRating = 'U' | '0' | '1' | 'D';
-
 
 
 	function undef2nan(x: number|undefined): number {
 		if (x == undefined) return NaN;
 		return x!;
 	}
-
 
 	function nan2undef(x: number): number|undefined {
 		if (isNaN(x)) return undefined;
@@ -644,7 +636,6 @@ export namespace GameStates {
 
 
 
-	// CAREFUL: this function considers 0 better than undefined, so draw rates better than "unknown but don't see a winning move"
 	function bestForPlayer(arr: (number|undefined)[], player: number): number|undefined {
 		const sorted = arr.filter(x => x != undefined && !isNaN(x)).toSorted((a,b) => a! - b!);
 
@@ -698,23 +689,23 @@ export namespace GameStates {
 			return isChecked;
 		}
 
-		isLate(): boolean {
-			const isChecked = this.maxPoints() >= PARAM_TMP_TH && this.moves() != 0;
-			return isChecked;
-		}
+		// isLate(): boolean {
+		// 	const isChecked = this.maxPoints() >= PARAM_TMP_TH && this.moves() != 0;
+		// 	return isChecked;
+		// }
 
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
 			this.mover = state.moves;
 			this.playerPts = [state.ofPlayer(0).points, state.ofPlayer(1).points]; 
 
-			this.rateFinal();
+			//this.rateFinal();
 		}
 
 
-		rateFinal(): void {
-			if (!this.isFinal()) return;
-		}
+		// rateFinal(): void {
+		// 	if (!this.isFinal()) return;
+		// }
 
 	}
 
@@ -734,9 +725,9 @@ export namespace GameStates {
 	}
 
 
-	function desc2sl(sd: StateDesc): StateList {
-		return makeStateList([sd.id]);
-	}
+	// function desc2sl(sd: StateDesc): StateList {
+	// 	return makeStateList([sd.id]);
+	// }
 
 
 
@@ -841,7 +832,7 @@ export namespace GameStates {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
 
-			if (!trace && this.IS_DONE(desc)/*.isDone()*/) return [];
+			if (!trace && this.IS_DONE(desc)) return [];
 
 			const stateObjS = CardState.fromKeyString(this.strings[state]);
 
@@ -972,70 +963,6 @@ export namespace GameStates {
 		latestList = makeStateList([0]);
 		pointThreshold = 0;
 
-			save(): void {
-
-				const saveDir = "saved_0";
-
-				const rowAllStr = getRowBase().strings.join('');
-				const rowAllFollowers = getRowBase().descriptors.map(d => rowFollowersFull(d.next)).flat();
-
-				const nStr = this.stateBase.strings.length;
-				const STRLEN = this.stateBase.strings[0].length;
-
-				const allValues = this.stateBase.values;		
-				const keyStrSize = DEFAULT_CARDS.keyString().length;
-
-					const strBuf = new Int16Array(nStr * STRLEN);
-					const follBuf = new Float32Array(nStr * 13);
-
-					this.stateBase.strings.forEach( (s, ind)  => {
-						strBuf.set(Array.from(s, x => x.charCodeAt(0)), STRLEN * ind);
-					});
-
-					this.stateBase.descriptors.forEach( (d, ind)  => {
-						follBuf.set(followersFull(d.next), 13 * ind);
-					});
-				
-				console.log(`A ${strBuf.length}: ` + strBuf.slice(0,20));
-
-				const valueBuf = Float32Array.from(allValues);
-
-				fs.writeFileSync(saveDir + '/stacks.txt', TABLE_STACKS.toString());
-
-				fs.writeFileSync(saveDir + '/rstrings', rowAllStr, 'utf16le', console.log);
-				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
-
-				fs.writeFileSync(saveDir + '/strings', strBuf, console.log);
-				fs.writeFileSync(saveDir + '/followers', follBuf, console.log);
-				fs.writeFileSync(saveDir + '/values', valueBuf, console.log);
-
-			}
-
-
-			load(): void {
-				const prefix = 'saved_9';
-
-				console.time('loading');
-
-				const loadedRowS = fs.readFileSync(prefix + '/rstrings', "utf16le");
-				const loadedRowF = new Uint8Array(fs.readFileSync(prefix + '/rfollowers'));
-				const loadedRowF32 = new Int32Array(loadedRowF.buffer);
-
-				const loadedS = fs.readFileSync(prefix + '/strings', "utf16le");
-				const loadedF = new Uint8Array(fs.readFileSync(prefix + '/followers'));
-				const loadedF32 = new Float32Array(loadedF.buffer);
-
-				const loadedV = new Uint8Array(fs.readFileSync(prefix + '/values'));
-				const loadedV32 = new Float32Array(loadedV.buffer);
-
-				getMainBase().fillFromArrays(loadedS, loadedF32, loadedV32);
-
-				getRowBase().fillFromArrays(loadedRowS, loadedRowF32);
-
-				console.timeEnd('loading');
-
-				this.stateBase = getMainBase();
-			}
 
 
 
@@ -1158,7 +1085,7 @@ export namespace GameStates {
 			const nU = this.stateBase.descriptors.filter(x => this.stateBase.RATING(x) == 'U').length;
 			console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 
-			console.log(process.memoryUsage());
+			//console.log(process.memoryUsage());
 
 		}
 
@@ -1170,6 +1097,72 @@ export namespace GameStates {
 					console.log(currentTip.id);
 		}
 
+
+
+			save(): void {
+
+				const saveDir = "saved_0";
+
+				const rowAllStr = getRowBase().strings.join('');
+				const rowAllFollowers = getRowBase().descriptors.map(d => rowFollowersFull(d.next)).flat();
+
+				const nStr = this.stateBase.strings.length;
+				const STRLEN = this.stateBase.strings[0].length;
+
+				const allValues = this.stateBase.values;		
+				const keyStrSize = DEFAULT_CARDS.keyString().length;
+
+					const strBuf = new Int16Array(nStr * STRLEN);
+					const follBuf = new Float32Array(nStr * 13);
+
+					this.stateBase.strings.forEach( (s, ind)  => {
+						strBuf.set(Array.from(s, x => x.charCodeAt(0)), STRLEN * ind);
+					});
+
+					this.stateBase.descriptors.forEach( (d, ind)  => {
+						follBuf.set(followersFull(d.next), 13 * ind);
+					});
+				
+				console.log(`A ${strBuf.length}: ` + strBuf.slice(0,20));
+
+				const valueBuf = Float32Array.from(allValues);
+
+				fs.writeFileSync(saveDir + '/stacks.txt', TABLE_STACKS.toString());
+
+				fs.writeFileSync(saveDir + '/rstrings', rowAllStr, 'utf16le', console.log);
+				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
+
+				fs.writeFileSync(saveDir + '/strings', strBuf, console.log);
+				fs.writeFileSync(saveDir + '/followers', follBuf, console.log);
+				fs.writeFileSync(saveDir + '/values', valueBuf, console.log);
+
+			}
+
+
+			load(): void {
+				const prefix = 'saved_9';
+
+				console.time('loading');
+
+				const loadedRowS = fs.readFileSync(prefix + '/rstrings', "utf16le");
+				const loadedRowF = new Uint8Array(fs.readFileSync(prefix + '/rfollowers'));
+				const loadedRowF32 = new Int32Array(loadedRowF.buffer);
+
+				const loadedS = fs.readFileSync(prefix + '/strings', "utf16le");
+				const loadedF = new Uint8Array(fs.readFileSync(prefix + '/followers'));
+				const loadedF32 = new Float32Array(loadedF.buffer);
+
+				const loadedV = new Uint8Array(fs.readFileSync(prefix + '/values'));
+				const loadedV32 = new Float32Array(loadedV.buffer);
+
+				getMainBase().fillFromArrays(loadedS, loadedF32, loadedV32);
+
+				getRowBase().fillFromArrays(loadedRowS, loadedRowF32);
+
+				console.timeEnd('loading');
+
+				this.stateBase = getMainBase();
+			}
 	}
 
 
