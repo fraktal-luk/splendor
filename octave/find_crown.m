@@ -55,4 +55,3 @@ nStates15 = nnz(stepValues < 15);
 commonU15 = commonUnnormalized(stepValues < 15, :);
 commonN15 = normalize(commonU15);
 corrMat15 = commonN15' * commonN15 / nStates15;
-

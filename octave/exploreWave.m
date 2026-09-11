@@ -1,131 +1,134 @@
-function stats = exploreWave(followerMat, expInput, thr, mode)
-    LIMIT = thr; %400 * 2 * 3;
 
-        values = expInput.valueVector;
-        moves = expInput.moves;
-        finals = expInput.finals;
-        ignored = expInput.tips;
+function [statsTable, statsHistory, finalStatus] = exploreWave(graphInfo, mainTable, initialStates, INITIAL_STEPS)
+    PRUNE = true;
 
+    MAX_ITERS = 10000;
+    nStates = width(graphInfo.fwMatrix);
 
-    nIters = 30;
+    statsTable = table();
+    statsTable.backtrack = nan(MAX_ITERS, 1);
+    statsTable.visited = nan(MAX_ITERS, 1);
+    statsTable.active = nan(MAX_ITERS, 1);
+    statsTable.selected = nan(MAX_ITERS, 1);
+    statsTable.new = nan(MAX_ITERS, 1);
+    statsTable.solved = nan(MAX_ITERS, 1);
 
-    active = false(1, width(followerMat));
-    visited = false(1, width(followerMat));
+    statsHistory = cell(1, MAX_ITERS);
 
-    active(1) = 1;
-    %initialState = 1;
+    pts = max(mainTable.p0, mainTable.p1)';
 
-   % wave = initialState;
+    wave = unique(initialStates);
 
-    waveSizes = nan(1, nIters);
-    waveSizesReduced = nan(1, nIters);
+    active = false(1, width(graphInfo.fwMatrix));
+    active(wave) = true;
+    visited = false(1, width(graphInfo.fwMatrix));
+    solved = false(1, width(graphInfo.fwMatrix));
+    doneFinals = false(1, width(graphInfo.fwMatrix));
+    computedValues = nan(1, width(graphInfo.fwMatrix));
+    when = nan(1, width(graphInfo.fwMatrix));
 
-        vActive = nan(1, nIters);
-        vNextActive = nan(1, nIters);
-        vReduced = nan(1, nIters);
-        vSelected = nan(1, nIters);
-        vExpanded = nan(1, nIters);
+    for i = 1:MAX_ITERS
+        nA = nnz(active);
 
-
-    for i = 1:nIters
-        selected = find(active);
-
-        nActive = numel(selected);
-            vActive(i) = nActive;
-
-        % Selection process
-        if nActive > LIMIT
-            switch mode
-                case 'newest'
-                    selected = selected(end-LIMIT+1:end);
-                case 'highV'
-                    vals = values(selected);
-                    [~, inds] = sort(-vals);
-                    selected = selected(inds(1:LIMIT));
-                        1;
-                otherwise
-                    selected = selected(1:LIMIT);
-            end
+        if nA == 0
+            disp 'Wrong! search broken'
+            break;
         end
+    
+        initialStates = find(mainTable.final' & active & ~doneFinals);
 
-        nSelected = numel(selected);
-            vSelected(i) = nSelected;
-
-        % Move from selected tips: switch then from active to visited
-        visited(selected) = 1;
-        active(selected) = 0;
-
-        moved = moveWave(selected, followerMat);
-        waveNext = unique(cell2mat(moved));
-        wave = waveNext;
-
-        % Set newly discovered as active
-           % wave(visited(wave)) = [];
-            active(wave) = 1;
-
-        expandedSize = numel(wave);
-        waveSizes(i) = expandedSize;
-            vExpanded(i) = expandedSize;
-            vReduced(i) = vActive(i);
-
-         nActivePre = nnz(active);
-            vNextActive(i) = nActivePre;
-
-        if waveSizes(i) == 0
-            fprintf('exhausted wave; active: %d\n', nnz(active))
-            %break
-        end
-
-        fprintf('active: %d\n', nnz(active))
-
-        nVisitedFinals = nnz(visited & finals);
-        
-        if nVisitedFinals == 0
-            waveSizesReduced(i) = waveSizes(i);
+        %if isempty(initialStates)
+        if numel(initialStates) < 1
+            advance();
             continue
-        end    
+        end 
 
-        % Diffuse known values
-        % ...
-        initVals = nan(1, width(followerMat));
-        initVals(visited &   finals) = values(visited &   finals);
+        statsTable.backtrack(i) = 1;
+        statsTable.active(i) = nnz(active);
+        statsTable.visited(i) = nnz(visited);
         
-        [diffusedVals] = diffuseValuesQuick(initVals, followerMat, moves, finals);
+        doneFinals(initialStates) = true; % To prevent repeated usage of finals
+        active(initialStates) = false;
+        visited(initialStates) = true;
 
+        computedValues = diffuse_New(graphInfo, mainTable, initialStates, mainTable.value(initialStates), computedValues);
 
-            if (~isnan(diffusedVals(1)))
-                disp 'Solved!'
-                break
-            end
+        solvedNew = ~isnan(computedValues);
 
-        nKnownVals = nnz(~isnan(diffusedVals));
-            % disp([nActiveFinals, nKnownVals])
+        fprintf('New solved nodes: %d\n', nnz(solvedNew) - nnz(solved))
 
-        % Propagate forward from solved nodes (only visited!), eliminate reached
-        % ...
-        solvedNew = subgraphFrom(find(~isnan(diffusedVals)), followerMat);
+        solved = solvedNew;
 
-        active(solvedNew) = 0;
+        statsTable.solved(i) = nnz(solved);
 
-            nActiveNew = nnz(active);
+        if solved(1)
+            disp 'TREE SOLVED'
+            break
+        end
 
-        waveSizesReduced(i) = nActiveNew;
-            vReduced(i) = nActiveNew;
+        if ~PRUNE; continue; end
 
-        fprintf('active prev: %d, known %d, active new %d\n', [nActivePre, nKnownVals, nActiveNew])
+        activeUp = updateActive(active, graphInfo.fwMatrix, computedValues);
+
+        active = activeUp;
     end
 
-      %  disp(waveSizes)
-      %  sum(waveSizes(~isnan(waveSizes)))
+    fprintf('Visited: %d\nSolved: %d\n', nnz(visited), nnz(~isnan(computedValues)))
+    
+    finalStatus.visited = visited;
+    finalStatus.active = active;
+    finalStatus.values = computedValues;
+    finalStatus.when = when;
 
-  stats.vActive = vActive;
-  stats.vSelected = vSelected;
-  stats.vExpanded = vExpanded;
-  stats.vNextActive = vNextActive;
-  stats.vReduced = vReduced;
-  stats.nV = nnz(visited);
+    function advance()
+        waveSubset = selectSubset(active, pts, i, INITIAL_STEPS);
+        waveNextU = waveNextUnique(waveSubset, graphInfo.fwMatrix);
+
+        statsTable.backtrack(i) = 0;
+        statsTable.visited(i) = nnz(visited);
+        statsTable.active(i) = nnz(active);
+        statsTable.selected(i) = numel(waveSubset);
+
+        visited(waveSubset) = true;
+        active(waveNextU) = true;
+        active(visited) = false;
+
+        statsTable.new(i) = nnz(active) - statsTable.active(i) + statsTable.selected(i);
+
+        fprintf('%d. A %d, sel %d, next %d\n', i, nA, numel(waveSubset), numel(waveNextU))
+    end
+
 end
 
+
+
+function waveSubset = selectSubset(active, pts, i, INITIAL_STEPS)
+    maxV = max(pts(active));
+    maxActive = active & pts == maxV;
+
+    if i < INITIAL_STEPS
+        waveSubset = find(active);
+    else    
+        waveSubset = find(maxActive);
+    end
+end
+
+
+function activeUp = updateActive(active, followerMat, computedValues)
+    unsolvedMat = followerMat;
+    unsolvedMat(:, ~isnan(computedValues)) = nan;
+
+    unsolvedSub = subgraphFrom(1, unsolvedMat);
+    
+    activeUp = false(size(active));
+    activeUp(unsolvedSub) = active(unsolvedSub);
+end
+
+
+function waveNextU = waveNextUnique(waveIn, followerMat)
+     waveNext = moveWave(waveIn, followerMat);
+     waveNextU = unique([waveNext{:}]);
+end
 
 function newWave = moveWave(waveIn, followerMat)
     newWave = arrayfun(@(s) getFollowers(s, followerMat), waveIn, 'UniformOutput', false);
@@ -138,3 +141,4 @@ function followers = getFollowers(s, followerMat)
     next = next(~isnan(next))';
     followers = next;
 end
+

@@ -105,12 +105,12 @@ export function getReturns(surplus: number): string[] {
 
 
 export function getCardPrice(n: number): string {
-	const str = CARD_SPECS[n-1];
+	const str = CARD_SPECS[n];
 	return str.split(':')[1] + "0";
 }
 
 export function getCardPoints(n: number): number {
-	const str = CARD_SPECS[n-1];
+	const str = CARD_SPECS[n];
 	return parseInt(str[0]);
 }
 

@@ -24,38 +24,40 @@ const TABLE_STACKS: number[][] =
      3, 10,  5, 11, 17, 7, 19,
     15, 16,  1, 18,  9, 6, 14,
     12,  4, 20,  2, 13, 8
-  ],
+  ], //.toReversed(),
   [
     27, 25, 29, 38, 36, 35, 22, 45, 41,
     37, 40, 34, 47, 49, 26, 50, 46, 33,
     43, 32, 21, 42, 28, 23, 30, 48, 31,
     39, 44, 24
-  ],
+  ], //.toReversed(),
   [ // lowest cards
     62, 65, 51, 82, 74, 63, 64, 56, 69, 81,
     55, 54, 73, 71, 57, 79, 76, 70, 85, 89,
     78, 68, 72, 58, 59, 66, 77, 86, 87, 60,
     61, 52, 84, 90, 83, 80, 75, 88, 67, 53
-  ],
+  ], //.toReversed(),
 
 ];
 
 const INITIAL_STACK_SIZES = [16, 26, 36];
 
 const INITIAL_TABLE_NUMS: number[][] =
-		[ [ 2,  8, 13, 20],
-		  [24, 31, 39, 44], 
-		  [53, 67, 75, 88] ];
+		[ /*[ 2,  8, 13, 20],*/  TABLE_STACKS[0].slice(-4).toSorted((a,b) => a-b),
+		  /*[24, 31, 39, 44],*/  TABLE_STACKS[1].slice(-4).toSorted((a,b) => a-b),
+		  /*[53, 67, 75, 88] */  TABLE_STACKS[2].slice(-4).toSorted((a,b) => a-b)
+		];
 
 
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 
-const PARAM_TMP_TH = 10 + -0;
+const PARAM_TMP_TH = 10 - 0;
 
+const MAX_STATES = 6000000;
 
 const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 3 - 0;
+const PARAM_TIP_SUB = 3 + 2;
 
 const PARAM_COLUMN_WALL = 4;
 
@@ -154,7 +156,28 @@ export namespace GameStates {
 			const newPoints = this.points + POINT_TABLE[c]!;
 			return new PlayerCards(newBonuses, newPoints, []);//this.reserved);
 		}
-		
+
+				buyUniversal_DB(c: Card): PlayerCards | undefined {
+					const ind = (c-1) % 5;
+					const deficit = this.bonuses.TMP_effPrice(c).sum();
+					const gold = parseInt(this.bonuses.str[5]!, 16);				
+					
+						// console.log(c );
+						// console.log("  bonuses:" + this.bonuses.str);
+						// console.log("  absPrice:" + getCardPrice(c));
+						// console.log("  effPrice:" + this.bonuses.TMP_effPrice(c).str);
+						// console.log(deficit <= gold)
+
+						// console.log('\n');
+
+
+					if (deficit > gold) return undefined;
+
+					const newBonuses = this.bonuses.incAt(ind).payGold(deficit);
+					const newPoints = this.points + POINT_TABLE[c]!;
+					return new PlayerCards(newBonuses, newPoints, []);//this.reserved);
+				}
+
 		takeUniversal(): PlayerCards {
 			return new PlayerCards(this.bonuses.takeUniversal(), this.points, []);
 		}
@@ -348,7 +371,15 @@ export namespace GameStates {
 			if (desc == undefined) throw new Error("State not existing");
 
 			if (desc!.next == undefined) {
-				desc!.next = this.makeIds(desc.state.getNext(thisRow));
+				const nextRows = desc.state.getNext(thisRow);
+
+				desc!.next = this.makeIds(nextRows);
+
+					// if (state == 29) {
+					// 	console.log("\n   Row " + state);
+					// 	console.log("  next = " + desc!.next);
+					// 	console.log(nextRows);
+					// }
 			}
 			
 			return desc!.next!;
@@ -374,7 +405,7 @@ export namespace GameStates {
 				}
 			}
 			
-			nextIds.sort((a,b) => a-b);
+			//nextIds.sort((a,b) => a-b);
 
 			return nextIds;
 		}
@@ -546,14 +577,46 @@ export namespace GameStates {
 				  if ((ind % 4) >= PARAM_COLUMN_WALL) return undefined;
 
 			const c = this.tableCards_S.cardAt(ind);
+
+
 			const newPlayerCards = this.mpc.arr[player]!.buyUniversal(c);
 			
+
+
+					// if (c == 4 && this.tableCards_S.rows[0] == 29 && this.tableCards_S.rows[1] == 5 && this.tableCards_S.rows[2] == 3
+					// 	&& newPlayerCards != undefined)
+					// {
+					// 		console.log("\nWe have this case!  " + getCardPrice(4) +  "\n\n");
+					// 		this.mpc.arr[player]!.buyUniversal_DB(c);	
+					// } 
+
 			if (newPlayerCards == undefined) return undefined;
 			
 			const mpa = this.mpc.arr.with(player, newPlayerCards);
 			const mpc = new ManyPlayerCards(mpa);
 			return new CardState(mpc, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
 		}
+
+
+
+			buyUniversal_DB(ind: number): CardState|undefined {
+				const player = this.moves;
+					
+					  // TMP: limit columns to buy (performance "hack")
+					  if ((ind % 4) >= PARAM_COLUMN_WALL) return undefined;
+
+				const c = this.tableCards_S.cardAt(ind);
+
+
+				const newPlayerCards = this.mpc.arr[player]!.buyUniversal_DB(c);
+				
+				if (newPlayerCards == undefined) return undefined;
+				
+				const mpa = this.mpc.arr.with(player, newPlayerCards);
+				const mpc = new ManyPlayerCards(mpa);
+				return new CardState(mpc, (player+1) % N_PLAYERS, this.tableCards_S.grabAt(ind));
+			}
+
 
 		genNextBU(): (CardState|undefined)[] {			
 			const buys = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i));
@@ -563,6 +626,19 @@ export namespace GameStates {
 			const res = res0.concat(buys);
 			return res;
 		}
+
+
+			genNextBU_DB(): (CardState|undefined)[] {			
+				const buys = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal_DB(i));
+				let res0: (CardState|undefined)[] = [this.takeUniversal()];
+
+				const res = res0.concat(buys);
+
+					buys.forEach(x => { if (x != undefined) console.log(" BU_DB " + x.tableCards_S.rows) });
+
+				return res;
+			}
+
 
 		maxPoints(): number {
 			return this.mpc.maxPoints();
@@ -843,6 +919,18 @@ export namespace GameStates {
 
 			const value = newDesc.isFinal() ? newDesc.diffP() : NaN;
 
+				if (newId == 1159) {
+					console.log(cs);
+
+					console.log(cs.mpc.arr[0]);
+					console.log(cs.mpc.arr[1]);
+
+					//console.log(newDesc.next);
+
+					//process.exit(0);
+				}
+
+
 			this.descriptors.push(newDesc);
 			this.strings.push(ks);
 			this.values.push(value);//undef2nan(newDesc.finalDiff));
@@ -867,6 +955,11 @@ export namespace GameStates {
 			}
 			else {
 				if (desc!.next == undefined) {
+						// if (state == 1159) {
+						// 	console.log("\n\nFnidng next for state 1159\n\n");
+						// 	stateObjS.genNextBU_DB();
+						// }
+
 					desc!.next = this.makeIds(stateObjS.genNextBU());
 				}
 			}
@@ -992,6 +1085,17 @@ export namespace GameStates {
 
 			save(): void {
 
+					const saveDir = "saved_9";
+
+
+							// console.log("Row base preview:")
+							// console.log(getRowBase().descriptors[29]);
+							// console.log(getRowBase().descriptors[36]);
+							// console.log(getRowBase().descriptors[60]);
+							// console.log(getRowBase().descriptors[61]);
+							// console.log(getRowBase().descriptors[62]);
+
+
 				const rowAllStr = getRowBase().strings.join('');
 				const rowAllFollowers = getRowBase().descriptors.map(d => rowFollowersFull(d.next)).flat();
 
@@ -1030,14 +1134,16 @@ export namespace GameStates {
 				//const followerBuf = Float32Array.from(allFollowers);
 				const valueBuf = Float32Array.from(allValues);
 
-				fs.writeFileSync('saved_9/rstrings', rowAllStr, 'utf16le', console.log);
-				fs.writeFileSync('saved_9/rfollowers', Int32Array.from(rowAllFollowers));
+					fs.writeFileSync(saveDir + '/stacks.txt', TABLE_STACKS.toString());
+
+				fs.writeFileSync(saveDir + '/rstrings', rowAllStr, 'utf16le', console.log);
+				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
 
 				//fs.writeFileSync('saved_2/strings', allStr, 'utf16le', console.log);
-				fs.writeFileSync('saved_9/strings', strBuf, console.log);
+				fs.writeFileSync(saveDir + '/strings', strBuf, console.log);
 				//fs.writeFileSync('saved_2/followers', followerBuf, console.log);
-				fs.writeFileSync('saved_9/followers', follBuf, console.log);
-				fs.writeFileSync('saved_9/values', valueBuf, console.log);
+				fs.writeFileSync(saveDir + '/followers', follBuf, console.log);
+				fs.writeFileSync(saveDir + '/values', valueBuf, console.log);
 
 			}
 
@@ -1091,8 +1197,8 @@ export namespace GameStates {
 
 			console.log('> Step ' + this.stepNum);
 
-				if (this.stateBase.descriptors.length >= 3000000) {
-					console.log("Not going on, states 3M states reached");
+				if (this.stateBase.descriptors.length >= MAX_STATES) {
+					console.log("Not going on, " + MAX_STATES + " states reached");
 					return;
 				}
 
@@ -1111,6 +1217,10 @@ export namespace GameStates {
 		expand(): void {
 			const thr = this.pointThreshold;
 			const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
+
+				if (getStateListSize(startStates) == 0) {
+					console.log("\n\n\nEXHAUSTED\n\n\n\n");
+				}
 
 			console.log(`starting with size ${getStateListSize(startStates)}`);
 

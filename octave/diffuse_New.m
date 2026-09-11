@@ -1,10 +1,16 @@
-function valuesAll = diffuse_New(graphInfo, mainTable, initialStates, initialValues)
+function valuesAll = diffuse_New(graphInfo, mainTable, initialStates, initialValues, prevValues)
+    if isempty(initialStates)
+        fprintf('>> Diffuse with empty input\n')
+    else
+        fprintf('>> Start diffuse with %d \n', numel(initialStates))
+        %initialStates(1:6)
+    end
 
     fm = graphInfo.fwMatrix;
     rfm = graphInfo.revMatrix;
     
-    valuesAll = nan(1, width(fm));
-    
+    %valuesAll = nan(1, width(fm));
+      valuesAll = prevValues;
         MAX_ITERS = 30;
 
 
@@ -60,7 +66,8 @@ function val = computeValue(s, graphInfo, mainTable, allValues)
 
     val = nan;
 
-    if mod(mainTable{s, 'step'}, 2) == 1
+    %if mod(mainTable{s, 'step'}, 2) == 1
+    if mod(mainTable.step(s), 2) == 1
         optKnown = min(nan, min(fVals));
         
         if optKnown >= 0 && any(isnan(fVals))

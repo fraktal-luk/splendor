@@ -1,4 +1,4 @@
-function [moves, p0, p1] = parsePoints(strings)
+function [moves, p0, p1, rows, toks0, toks1] = parsePoints(strings)
 
 % table = str(1:4);
 % p0 = str(5:12);
@@ -11,9 +11,12 @@ function [moves, p0, p1] = parsePoints(strings)
 % p1owned = single(p1(3:end)' - '0');
 % p1pts = single(p1(1));
 % p1all = single(p1(2));
-
+rows = strings(1:3, :);
 moves = strings(4, :);
 p0 = single(strings(5, :));
+    toks0 = (strings(7:12, :)) - '0';
+    toks0(toks0 == 49) = 10;
 p1 = single(strings(13, :));
-
+    toks1 = (strings(15:end, :)) - '0';
+    toks1(toks1 == 49) = 10;
 end
