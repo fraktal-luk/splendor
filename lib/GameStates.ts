@@ -59,7 +59,7 @@ const MAX_STATES = 6000000;
 const PARAM_TRIM_LOW = true;
 const PARAM_TIP_SUB = 3 + 2;
 
-const PARAM_RUN_DEPTH = /*4*/ 2;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
+const PARAM_RUN_DEPTH = 2  - 1;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
 
 const N_PLAYERS = 2;
 
