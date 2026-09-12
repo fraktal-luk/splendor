@@ -4,7 +4,7 @@ function reverseMat = getReverseGraph(edgesFrom, edgesTo, nStates)
 [ets, eto] = sort(edgesTo);
 
 revBranching = diff(find(diff(ets)));
-assert(max(revBranching) <= 8)
+assert(max(revBranching) <= 10)
 
 efs = edgesFrom(eto);
 

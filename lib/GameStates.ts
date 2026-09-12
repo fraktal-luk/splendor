@@ -941,40 +941,51 @@ export namespace GameStates {
 
 			save(): void {
 
-				const saveDir = "saved_0";
+				const saveDir = "saved_1";
 
-				const rowAllStr = getRowBase().strings.join('');
-				const rowAllFollowers = getRowBase().descriptors.map(d => rowFollowersFull(d.next)).flat();
 
 				const nStr = this.stateBase.strings.length;
 				const STRLEN = this.stateBase.strings[0].length;
 
-				const allValues = this.stateBase.values;		
 				const keyStrSize = DEFAULT_CARDS.keyString().length;
 
-					const strBuf = new Int16Array(nStr * STRLEN);
-					const follBuf = new Float32Array(nStr * 13);
 
+				//console.log(`A ${strBuf.length}: ` + strBuf.slice(0,20));
+				console.log("Saving to folder " + saveDir);
+
+
+				fs.writeFileSync(saveDir + '/stacks.txt', TABLE_STACKS.toString());
+
+				const rowAllStr = getRowBase().strings.join('');
+				fs.writeFileSync(saveDir + '/rstrings', rowAllStr, 'utf16le', console.log);
+
+				const rowAllFollowers = getRowBase().descriptors.map(d => rowFollowersFull(d.next)).flat();
+				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
+
+
+				{
+					const allValues = this.stateBase.values;
+					const valueBuf = Float32Array.from(allValues);
+					fs.writeFileSync(saveDir + '/values', valueBuf, console.log);
+				}
+
+				{
+					const strBuf = new Int16Array(nStr * STRLEN);
 					this.stateBase.strings.forEach( (s, ind)  => {
 						strBuf.set(Array.from(s, x => x.charCodeAt(0)), STRLEN * ind);
 					});
 
+					fs.writeFileSync(saveDir + '/strings', strBuf, console.log);
+				}
+
+				{
+					const follBuf = new Float32Array(nStr * 13);
 					this.stateBase.descriptors.forEach( (d, ind)  => {
 						follBuf.set(followersFull(d.next), 13 * ind);
 					});
-				
-				console.log(`A ${strBuf.length}: ` + strBuf.slice(0,20));
-
-				const valueBuf = Float32Array.from(allValues);
-
-				fs.writeFileSync(saveDir + '/stacks.txt', TABLE_STACKS.toString());
-
-				fs.writeFileSync(saveDir + '/rstrings', rowAllStr, 'utf16le', console.log);
-				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
-
-				fs.writeFileSync(saveDir + '/strings', strBuf, console.log);
-				fs.writeFileSync(saveDir + '/followers', follBuf, console.log);
-				fs.writeFileSync(saveDir + '/values', valueBuf, console.log);
+					
+					fs.writeFileSync(saveDir + '/followers', follBuf, console.log);
+				}
 
 			}
 
