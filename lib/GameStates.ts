@@ -50,10 +50,10 @@ const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 const PARAM_TMP_TH = 10 - 0;
 
-const MAX_STATES = 6000000;
+const MAX_STATES = 8000000;
 
 const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 3 + 2;
+const PARAM_TIP_SUB = 3 + 1;
 
 const PARAM_RUN_DEPTH = 1;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
 
@@ -680,9 +680,11 @@ export namespace GameStates {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
 
-			if (!trace && this.IS_DONE(desc)) return [];
+			if (!trace && this.IS_DONE(desc)) {
+				desc!.next = [];
+				return [];
+			}
 
-			const stateObjS = CardState.fromKeyString(this.strings[state]);
 
 			if (trace) {
 				if (desc!.next == undefined) {
@@ -691,6 +693,7 @@ export namespace GameStates {
 			}
 			else {
 				if (desc!.next == undefined) {
+					const stateObjS = CardState.fromKeyString(this.strings[state]);
 					desc!.next = this.makeIds(stateObjS.genNextBU());
 				}
 			}
