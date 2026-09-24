@@ -557,3 +557,21 @@ export class CardState {
 		}
 	
 	}
+
+
+
+	export function undef2nan(x: number|undefined): number {
+		if (x == undefined) return NaN;
+		return x!;
+	}
+
+	export function nan2undef(x: number): number|undefined {
+		if (isNaN(x)) return undefined;
+		return x;
+	}
+
+
+
+export function encodeNum2(p: number) { return String.fromCharCode(p, 0); }
+export function decodeNum2(s: string): number { return s.charCodeAt(0); }
+
