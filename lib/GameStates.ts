@@ -101,12 +101,35 @@ export namespace GameStates {
 		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s), []); }
 
 		// If can afford, otherwise undef
-		buyUniversal(c: Card): PlayerCards | undefined {
+		buyUniversal(c: Card, movesByPlayer: number): PlayerCards | undefined {
+				const MAX_PER_COLOR = 4;
+
 			const ind = (c-1) % 5;
-			const deficit = this.bonuses.TMP_effPrice(c).sum();
-			const gold = parseInt(this.bonuses.str[5]!, 16);				
-			
+			const gold = parseInt(this.bonuses.str[5]!, 16);
+			const nCards = this.bonuses.sum() - gold;
+			const nTakes = movesByPlayer - nCards;
+			const effPrice = this.bonuses.TMP_effPrice(c);
+			const overMax = effPrice.subScalar0plus(MAX_PER_COLOR);
+			const surplusses = effPrice.subScalar0plus(nTakes);
+			const deficit = effPrice.sum();
+			const surplusSum = surplusses.sum();
+			const anyOverMax = overMax.sum();
+
+				//if (movesByPlayer < 3) {
+
+					if (anyOverMax) {
+						//console.log(` ${movesByPlayer} overMax (${overMax.str}); ` + effPrice.str);
+						return undefined;
+					}
+
+					if (deficit + surplusSum > gold) {
+						//console.log(` ${movesByPlayer} ${nTakes} surplus (${surplusses.str}); ` + effPrice.str);
+						return undefined;
+					}
+				//}
+
 			if (deficit > gold) return undefined;
+
 
 			const newBonuses = this.bonuses.incAt(ind).payGold(deficit);
 			const newPoints = this.points + POINT_TABLE[c]!;
@@ -163,9 +186,9 @@ export namespace GameStates {
 		playerKString(): string { return this.arr.map(x => x.keyString()).join(''); }
 		ofPlayer(player: number): PlayerCards { return this.arr[player]!; }
 
-		buyUniversal(player: number, c: Card): ManyPlayerCards | undefined {
+		buyUniversal(player: number, c: Card, movesByPlayer: number): ManyPlayerCards | undefined {
 			const thisPlayer = this.ofPlayer(player);
-			const thisPlayerNew = thisPlayer.buyUniversal(c);
+			const thisPlayerNew = thisPlayer.buyUniversal(c, movesByPlayer);
 			if (thisPlayerNew == undefined) return undefined;
 			return new ManyPlayerCards(this.arr.with(player, thisPlayerNew!));
 		}
@@ -471,10 +494,11 @@ export namespace GameStates {
 		
 		buyUniversal(ind: number): CardState|undefined {
 			const player = this.moves();
-				
+			const movesByPlayer = (this.step + player)/2;
+
 			const c = this.tableCards_S.cardAt(ind);
 
-			const newPlayerCards = this.mpc.arr[player]!.buyUniversal(c);
+			const newPlayerCards = this.mpc.arr[player]!.buyUniversal(c, movesByPlayer);
 
 			if (newPlayerCards == undefined) return undefined;
 			
@@ -820,7 +844,6 @@ export namespace GameStates {
 
 		runStep(): void {
 			if (this.finished) return;
-
 			console.log('> Step ' + this.stepNum);
 
 				if (this.stateBase.descriptors.length >= MAX_STATES) {

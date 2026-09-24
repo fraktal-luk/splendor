@@ -7,8 +7,7 @@ function outputs = reviewBuys(mainTable, followerMat, buys, stateInfos)
         toks1 = double( stateInfos.toks1(:, state))';
     
         % Moves done before are stepValue(state)
-    
-    
+
         stepValue = mainTable.step(state);
         movedBy0 = ceil(stepValue/2); 
         movedBy1 = floor(stepValue/2); 

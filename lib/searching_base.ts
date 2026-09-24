@@ -448,13 +448,32 @@ export class CardState {
 
 
 	function incStr(a: string, ind: number): string {
-		//const aLen = a.length;
 		const res = a.split('');
-					//Array.from(a);
 
 		const val = a.charCodeAt(ind);
 		res[ind] = String.fromCharCode(val+1);
 		
+		return res.join('');
+	}
+
+	function addScalarStr(a: string, n: number): string {
+		const res = a.split('');
+		for (let ind = 0; ind < a.length; ind++) {
+			const val = a.charCodeAt(ind);
+			res[ind] = String.fromCharCode(val + n);
+		}	
+		return res.join('');
+	}
+
+	function subScalarStr0plus(a: string, n: number): string {
+		const res = a.split('');
+		for (let ind = 0; ind < a.length; ind++) {
+			const val = a.charCodeAt(ind);
+			if (val - n < '0'.charCodeAt(0))
+				res[ind] = '0';
+			else
+				res[ind] = String.fromCharCode(val - n);
+		}	
 		return res.join('');
 	}
 
@@ -512,6 +531,14 @@ export class CardState {
 				return new TokenVec(basePrice).sub(reduction);
 			}
 		
+		addScalar(n: number): TokenVec {
+			return new TokenVec(addScalarStr(this.str, n));
+		}
+
+		subScalar0plus(n: number): TokenVec {
+			return new TokenVec(subScalarStr0plus(this.str, n));
+		}
+
 		sum(): number {
 			let res = 0;
 			for (const c of this.str) res += parseInt(c, 16);
