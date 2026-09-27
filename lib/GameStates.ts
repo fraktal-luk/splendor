@@ -12,6 +12,9 @@ from './searching_base.ts';
 const fs = require('fs');
 
 
+const FILE_PREFIX = "saved_1";
+
+
 
 // CAREFUL: inverted wrt tables in basic definitions
 const TABLE_STACKS: number[][] =
@@ -47,13 +50,12 @@ const INITIAL_TABLE_NUMS: number[][] =
 
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
+const PARAM_TMP_TH = 10 - 3;
 
-const PARAM_TMP_TH = 10 - 0;
-
-const MAX_STATES = 8000000;
+const MAX_STATES = 8_000_000;
 
 const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 3 + 1;
+const PARAM_TIP_SUB = 3 - 3;
 
 const PARAM_RUN_DEPTH = 1;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
 
@@ -76,7 +78,6 @@ interface StateValue<T> {
 	niceString(): string;
 	isSame(other: T): boolean;
 }
-
 
 
 export namespace GameStates {
@@ -102,7 +103,7 @@ export namespace GameStates {
 
 		// If can afford, otherwise undef
 		buyUniversal(c: Card, movesByPlayer: number): PlayerCards | undefined {
-				const MAX_PER_COLOR = 4;
+			const MAX_PER_COLOR = 4;
 
 			const ind = (c-1) % 5;
 			const gold = parseInt(this.bonuses.str[5]!, 16);
@@ -115,21 +116,15 @@ export namespace GameStates {
 			const surplusSum = surplusses.sum();
 			const anyOverMax = overMax.sum();
 
-				//if (movesByPlayer < 3) {
-
 					if (anyOverMax) {
-						//console.log(` ${movesByPlayer} overMax (${overMax.str}); ` + effPrice.str);
 						return undefined;
 					}
 
 					if (deficit + surplusSum > gold) {
-						//console.log(` ${movesByPlayer} ${nTakes} surplus (${surplusses.str}); ` + effPrice.str);
 						return undefined;
 					}
-				//}
 
 			if (deficit > gold) return undefined;
-
 
 			const newBonuses = this.bonuses.incAt(ind).payGold(deficit);
 			const newPoints = this.points + POINT_TABLE[c]!;
@@ -374,7 +369,6 @@ export namespace GameStates {
 				return String.fromCharCode(...this.rows);
 			}
 
-
 			niceString(): string { return `${this.rows}`; }
 
 			isSame(other: TableCardsShort): boolean {			
@@ -447,11 +441,10 @@ export namespace GameStates {
 		readonly tableCards_S: TableCardsShort;
 		readonly mpc: ManyPlayerCards;
 		readonly step: number; 
-		
+
 		moves(): number {
 			return this.step & 1;
 		}
-
 
 		constructor(mp: ManyPlayerCards, step: number, ts: TableCardsShort) {
 			this.tableCards_S = ts;
@@ -459,10 +452,8 @@ export namespace GameStates {
 			this.step = step;
 		}
 
-
 		keyString(): string { return this.tableCards_S.keyString() + String.fromCharCode(this.step) + this.mpc.keyString(); }
 		niceString(): string { return CONV_TC(this.tableCards_S).niceString() + '  @' + this.step + '  ' + this.mpc.niceString(); }
-
 
 		checkKeyString(): void {
 			const str = this.keyString();
@@ -491,13 +482,12 @@ export namespace GameStates {
 			const player = this.moves();
 			return new CardState(this.mpc.takeUniversal(player), this.step + 1, this.tableCards_S); 
 		}
-		
+
 		buyUniversal(ind: number): CardState|undefined {
 			const player = this.moves();
 			const movesByPlayer = (this.step + player)/2;
 
 			const c = this.tableCards_S.cardAt(ind);
-
 			const newPlayerCards = this.mpc.arr[player]!.buyUniversal(c, movesByPlayer);
 
 			if (newPlayerCards == undefined) return undefined;
@@ -558,12 +548,23 @@ export namespace GameStates {
 		return player == 0 ? last : first;
 	}
 
+
+
+	type StateCategory = 'QUIET' | 'ACTIVE' | 'SELECTED' | 'VISITED' | 'SOLVED' | 'FINAL';
+
+
+
 	class StateDesc {
 		id: StateId;
 		next?: StateId[];
 
+			step: number;
 			mover = -1;
 			playerPts = [-1, -1];
+
+
+			categ: StateCategory = 'ACTIVE';
+
 
 			moves(): number {
 				return this.mover;
@@ -577,6 +578,11 @@ export namespace GameStates {
 					return this.playerPts[p]!;
 			}
 
+			shouldExplore(): boolean {
+					return this.categ == 'ACTIVE' || this.categ == 'VISITED';
+			}
+
+
 		diffP(): number {
 			return this.playerPoints(0) - this.playerPoints(1);
 		}
@@ -588,6 +594,7 @@ export namespace GameStates {
 
 		constructor(id: StateId, state: CardState) {
 			this.id = id;
+			this.step = state.step;
 			this.mover = state.moves();
 			this.playerPts = [state.ofPlayer(0).points, state.ofPlayer(1).points];
 		}
@@ -614,9 +621,9 @@ export namespace GameStates {
 		descriptors: StateDesc[] = [new StateDesc(0, DEFAULT_CARDS)];
 		strings: string[] = [DEFAULT_CARDS.keyString()];
 		
-		values: number[] = [NaN];
-
 		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
+
+		values: number[] = [NaN];
 
 
 		reset(): void {
@@ -691,6 +698,8 @@ export namespace GameStates {
 
 			const value = newDesc.isFinal() ? newDesc.diffP() : NaN;
 
+				if (newDesc.isFinal()) newDesc.categ = 'FINAL';
+
 			this.descriptors.push(newDesc);
 			this.strings.push(ks);
 			this.values.push(value);
@@ -709,7 +718,6 @@ export namespace GameStates {
 				return [];
 			}
 
-
 			if (trace) {
 				if (desc!.next == undefined) {
 					return [];
@@ -717,6 +725,8 @@ export namespace GameStates {
 			}
 			else {
 				if (desc!.next == undefined) {
+					desc!.categ = 'VISITED';
+
 					const stateObjS = CardState.fromKeyString(this.strings[state]);
 					desc!.next = this.makeIds(stateObjS.genNextBU());
 				}
@@ -756,10 +766,6 @@ export namespace GameStates {
 			return nextIds.map(x => this.descriptors[x]!);
 		}
 
-		followersRatings(state: StateId): GameRating[] {
-			return this.getFollowerDescs(state).map(x => this.RATING(x));
-		}
-
 		genBatchFollowers(input: StateList, trace: boolean = false): StateList {
 			const flatArr = input.values().map(x => this.getFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
 			const stateSet = new Set<StateId>(flatArr); 
@@ -791,17 +797,13 @@ export namespace GameStates {
 			this.descriptors.forEach(x => this.processNonfinal(x));
 		}
 
-
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
 			if (this.IS_DONE(desc) || desc.isFinal() || desc.next == undefined) return;
 
-			//const nextIds = this.descriptors[desc.id]!.next!;
 			const fds = this.getFollowerDescs(desc.id);
-			const mover = desc.moves();
 			const fdiffs = fds.map(d => this.values[d.id]!);
-
-			const bestResult = bestForPlayer(fdiffs, mover);
+			const bestResult = bestForPlayer(fdiffs, desc.moves());
 
 			this.values[desc.id] = undef2nan(bestResult);
 		}
@@ -835,7 +837,6 @@ export namespace GameStates {
 
 		latestList = makeStateList([0]);
 		pointThreshold = 0;
-
 
 
 		// Needed for interface compliance
@@ -922,6 +923,57 @@ export namespace GameStates {
 				if (newDone == nDone) break;
 				nDone = newDone;
 			}
+
+
+
+				this.stateBase.descriptors.forEach( d => { if (d.categ == 'ACTIVE') d.categ = 'QUIET';} );
+
+				let currentStep = 0;
+				let currentSet: StateDesc[] = [];
+
+
+			//		console.log("   >>>>>>>");
+				//	console.log(this.stateBase.descriptors[0]);
+
+				while (true) {
+					currentSet = this.stateBase.descriptors.filter(x => (x.step == currentStep) && (x.categ == 'ACTIVE' || x.categ == 'VISITED'));
+
+						//console.log(`    >>>>>>>>> step ${currentStep}: ${currentSet.length}`);
+
+					if (currentSet.length == 0) break;
+
+					// currentSet.forEach(d => {
+					// 	d.categ = 'SELECTED';
+					// });
+
+					// get followers
+					const currentStates = makeStateList( currentSet.map(d => d.id) );
+				  const nextStates = this.stateBase.genBatchFollowers(currentStates, true);
+
+				  nextStates.forEach(s => {
+				  	const desc = this.stateBase.getDesc(s);
+				  	if (desc.categ == 'QUIET') desc.categ = 'ACTIVE';
+				  });
+
+
+				  const nextStatesFiltered = stateArr(nextStates).filter(s => 
+				  	this.stateBase.getDesc(s).shouldExplore()
+				  );
+
+				  // currentSet.forEach(d => {
+					// 	if (d.categ == 'SELECTED') d.categ = 'VISITED';
+					// });
+
+
+
+				  	if (currentStep < 9) {
+				  		console.log("  >>>>>>> " +  stateArr(currentStates));
+				  	}
+
+					currentStep++;
+				}
+
+
 			console.timeEnd('rating');
 
 			return ct;
@@ -941,41 +993,21 @@ export namespace GameStates {
 			const nFalls = latestDescs.filter(x => this.stateBase.FALLS(x)).length;
 			const nAll = this.stateBase.descriptors.length;
 			const nUnknown = nAll - nFinal - nFalls;
-
-			console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${maxPts} (tip ${maxTipPts})`);
-
 			const nDone = this.stateBase.descriptors.filter(x => this.stateBase.IS_DONE(x)).length;
-			const n0 = this.stateBase.descriptors.filter(x => this.stateBase.RATING(x) == '0').length;
-			const n1 = this.stateBase.descriptors.filter(x => this.stateBase.RATING(x) == '1').length;
-			const nD = this.stateBase.descriptors.filter(x => this.stateBase.RATING(x) == 'D').length;
-			const nU = this.stateBase.descriptors.filter(x => this.stateBase.RATING(x) == 'U').length;
-			console.log(`    nDone: ${nDone}/ (0,D,1) ${n0}, ${nD}, ${n1}`);
 
-			//console.log(process.memoryUsage());
-		}
-
-
-		TMP_print(currentTip: StateDesc): void {
-				const fds = this.stateBase.getFollowerDescs(currentTip.id); // getFollowerDescs returns existing follower list!
-				fds.sort((a,b) => (a.diffP()) - (b.diffP()));
-					console.log(currentTip.id);
+			console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) done ${nDone}, ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${maxPts} (tip ${maxTipPts})`);
 		}
 
 
 			save(): void {
-
-				const saveDir = "saved_1";
-
+				const saveDir = FILE_PREFIX;//"saved_1";
 
 				const nStr = this.stateBase.strings.length;
 				const STRLEN = this.stateBase.strings[0].length;
 
 				const keyStrSize = DEFAULT_CARDS.keyString().length;
 
-
-				//console.log(`A ${strBuf.length}: ` + strBuf.slice(0,20));
 				console.log("Saving to folder " + saveDir);
-
 
 				fs.writeFileSync(saveDir + '/stacks.txt', TABLE_STACKS.toString());
 
@@ -984,7 +1016,6 @@ export namespace GameStates {
 
 				const rowAllFollowers = getRowBase().descriptors.map(d => rowFollowersFull(d.next)).flat();
 				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
-
 
 				{
 					const allValues = this.stateBase.values;
@@ -1014,7 +1045,7 @@ export namespace GameStates {
 
 
 			load(): void {
-				const prefix = 'saved_9';
+				const prefix = FILE_PREFIX;// 'saved_9';
 
 				console.time('loading');
 
@@ -1030,7 +1061,6 @@ export namespace GameStates {
 				const loadedV32 = new Float32Array(loadedV.buffer);
 
 				getMainBase().fillFromArrays(loadedS, loadedF32, loadedV32);
-
 				getRowBase().fillFromArrays(loadedRowS, loadedRowF32);
 
 				console.timeEnd('loading');
