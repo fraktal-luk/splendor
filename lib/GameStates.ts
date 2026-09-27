@@ -786,7 +786,8 @@ export namespace GameStates {
 		}
 
 		getTipsAtLeast(min: number): StateList {
-			return makeStateList(this.descriptors.filter(d => d.next == undefined && d.maxPoints() >= min).map(d => d.id));
+			//return makeStateList(this.descriptors.filter(d => d.next == undefined && d.maxPoints() >= min).map(d => d.id));
+				return makeStateList(this.descriptors.filter(d => d.categ == 'ACTIVE' && d.maxPoints() >= min).map(d => d.id));
 		}
 
 		getTipDescs(): StateDesc[] {
@@ -806,6 +807,8 @@ export namespace GameStates {
 			const bestResult = bestForPlayer(fdiffs, desc.moves());
 
 			this.values[desc.id] = undef2nan(bestResult);
+
+				if (this.IS_DONE(desc)) desc.categ = 'SOLVED';
 		}
 
 	}
@@ -877,7 +880,8 @@ export namespace GameStates {
 			const nextStates = this.runDepth(startStates, PARAM_RUN_DEPTH);
 
 			const currentMaxP = this.stateBase.descriptors/*.filter(d => d.next == undefined)*/.map(d => d.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
-			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
+			//const currentMaxTipP = this.stateBase.descriptors.filter(d => d.next == undefined).map(d => d.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
+			const currentMaxTipP = this.stateBase.descriptors.filter(d => d.categ == 'ACTIVE').map(d => d.maxPoints()).reduce((a,b) => Math.max(a, b), 0);
 
 			this.pointThreshold = (PARAM_TRIM_LOW) ? currentMaxTipP - PARAM_TIP_SUB : 0;
 			this.latestList = nextStates;
@@ -965,16 +969,22 @@ export namespace GameStates {
 					// });
 
 
-
-				  	if (currentStep < 9) {
-				  		console.log("  >>>>>>> " +  stateArr(currentStates));
-				  	}
+				  	//if (currentStep < 20) {
+				  		console.log("  >>>>>>> " + currentStep + ": " +  getStateListSize(currentStates));
+				  		//console.log("  >>>>>>> " +  stateArr(currentStates));
+				  	//}
 
 					currentStep++;
 				}
 
 
 			console.timeEnd('rating');
+
+
+				console.log("  Solved " + this.stateBase.descriptors.filter(d => d.categ == 'SOLVED').length);
+				console.log("  Active " + this.stateBase.descriptors.filter(d => d.categ == 'ACTIVE').length);
+				console.log("  Quiet  " + this.stateBase.descriptors.filter(d => d.categ == 'QUIET').length);
+				//console.log(""  this.stateBase.descriptors.filter(d => d.categ == 'SOLVED').length);
 
 			return ct;
 		}
