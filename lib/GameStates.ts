@@ -928,7 +928,9 @@ export namespace GameStates {
 				nDone = newDone;
 			}
 
+			console.timeEnd('rating');
 
+			console.time('pruning');
 
 				this.stateBase.descriptors.forEach( d => { if (d.categ == 'ACTIVE') d.categ = 'QUIET';} );
 
@@ -969,16 +971,14 @@ export namespace GameStates {
 					// });
 
 
-				  	//if (currentStep < 20) {
-				  		console.log("  >>>>>>> " + currentStep + ": " +  getStateListSize(currentStates));
-				  		//console.log("  >>>>>>> " +  stateArr(currentStates));
-				  	//}
+				  		//console.log("  >>>>>>> " + currentStep + ": " +  getStateListSize(currentStates));
+
 
 					currentStep++;
 				}
 
 
-			console.timeEnd('rating');
+			console.timeEnd('pruning');
 
 
 				console.log("  Solved " + this.stateBase.descriptors.filter(d => d.categ == 'SOLVED').length);
