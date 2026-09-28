@@ -50,12 +50,12 @@ const INITIAL_TABLE_NUMS: number[][] =
 
 const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
-const PARAM_TMP_TH = 10 - 3;
+const PARAM_TMP_TH = 5; //10 - 3;
 
 const MAX_STATES = 8_000_000;
 
 const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 3 - 3;
+const PARAM_TIP_SUB = 1;
 
 const PARAM_RUN_DEPTH = 1;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
 
@@ -852,6 +852,10 @@ export namespace GameStates {
 
 				if (this.stateBase.descriptors.length >= MAX_STATES) {
 					console.log("Not going on, " + MAX_STATES + " states reached");
+
+					this.showStats();
+
+					process.exit(0);
 					return;
 				}
 
@@ -1006,6 +1010,29 @@ export namespace GameStates {
 			const nDone = this.stateBase.descriptors.filter(x => this.stateBase.IS_DONE(x)).length;
 
 			console.log(`   all: ${nAll}, (${nFinal}, ${nFalls}, ${nUnknown}) done ${nDone}, ${((nFinal+nFalls)/nAll).toFixed(3)} // maxPoints = ${maxPts} (tip ${maxTipPts})`);
+		}
+
+
+		showStats(): void {
+			const levelMap = Map.groupBy(this.stateBase.descriptors, d => d.step);
+
+//			levelMap.entries().forEach(e => console.log(`${e[0]}: ${e[1].length}`));
+
+			levelMap.entries().forEach(e => {
+				const step = e[0];
+				const arr = e[1];
+
+				const nV = arr.filter(d => d.categ == 'VISITED').length;
+				const nF = arr.filter(d => d.categ == 'FINAL').length;
+				const nS = arr.filter(d => d.categ == 'SOLVED').length;
+				const nA = arr.filter(d => d.categ == 'ACTIVE').length;
+				const nQ = arr.filter(d => d.categ == 'QUIET').length;
+
+				console.log(`${step}:\t ${arr.length};  \t F\t ${nF},  \t S\t ${nS},  \t V\t ${nV},  \t A\t ${nA},  \t Q\t ${nQ}`);
+			}
+			);
+
+
 		}
 
 
