@@ -12,7 +12,7 @@ from './searching_base.ts';
 const fs = require('fs');
 
 
-const FILE_PREFIX = "saved_1";
+const FILE_PREFIX = "saved_2";
 
 
 
@@ -55,7 +55,7 @@ const PARAM_TMP_TH = 5; //10 - 3;
 const MAX_STATES = 8_000_000;
 
 const PARAM_TRIM_LOW = true;
-const PARAM_TIP_SUB = 1;
+const PARAM_TIP_SUB = 0;
 
 const PARAM_RUN_DEPTH = 1;  // If no clipping, (PARAM_TRIM_LOW = false), depth doesnt matter
 
@@ -785,9 +785,11 @@ export namespace GameStates {
 			return makeStateList(this.descriptors.filter(d => d.next == undefined).map(d => d.id));
 		}
 
-		getTipsAtLeast(min: number): StateList {
+		getTipsAtLeast(min: number, maxSize: number): StateList {
 			//return makeStateList(this.descriptors.filter(d => d.next == undefined && d.maxPoints() >= min).map(d => d.id));
-				return makeStateList(this.descriptors.filter(d => d.categ == 'ACTIVE' && d.maxPoints() >= min).map(d => d.id));
+				const res = this.descriptors.filter(d => d.categ == 'ACTIVE' && d.maxPoints() >= min).map(d => d.id);
+				if (res.length > maxSize) return makeStateList( res.slice(-maxSize) );
+				else return makeStateList (res);
 		}
 
 		getTipDescs(): StateDesc[] {
@@ -872,11 +874,12 @@ export namespace GameStates {
 		}
 
 		expand(): void {
-			const thr = this.pointThreshold;
-			const startStates = this.stateBase.getTipsAtLeast(this.pointThreshold);
+			const thr = //this.stepNum < 10 ? 0 : 
+									this.pointThreshold; // For early stage explore all
+			const startStates = this.stateBase.getTipsAtLeast(thr, 50_000);
 
 				if (getStateListSize(startStates) == 0) {
-					console.log("\n\n\nEXHAUSTED\n\n\n\n");
+					console.log("\n\nEXHAUSTED\n\n");
 				}
 
 			console.log(`starting with size ${getStateListSize(startStates)}`);
@@ -1031,6 +1034,9 @@ export namespace GameStates {
 				console.log(`${step}:\t ${arr.length};  \t F\t ${nF},  \t S\t ${nS},  \t V\t ${nV},  \t A\t ${nA},  \t Q\t ${nQ}`);
 			}
 			);
+
+
+				//console.log(levelMap.get(9));
 
 
 		}

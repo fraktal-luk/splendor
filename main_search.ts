@@ -14,7 +14,7 @@ let waveN = new GameStates.WavefrontC();
 
 
 console.time('main');
-for (let i = 0; i < 1 + 31 ; i++) {
+for (let i = 0; i < 1 + 31 + 45 + 20 + 20 + 20 + 20  - 50 ; i++) {
 	waveN.runStep();
 }
 
@@ -24,7 +24,7 @@ console.log(process.memoryUsage());
 
 	waveN.showStats();
 
-	//waveN.save();
+		//waveN.save();
 
 	process.exit(0);
 
