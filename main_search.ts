@@ -14,7 +14,8 @@ let waveN = new GameStates.WavefrontC();
 
 
 console.time('main');
-for (let i = 0; i < 1 + 31 + 45 + 20 + 20 + 20 + 20  - 50 ; i++) {
+//for (let i = 0; i < 1 + 31 + 105; i++) {
+for (let i = 0; i < 1 + 31; i++) {
 	waveN.runStep();
 }
 

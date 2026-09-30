@@ -624,6 +624,7 @@ export namespace GameStates {
 		idMap: Map<string, StateId> = new Map<string, StateId>([[DEFAULT_CARDS.keyString(), 0]]);
 
 		values: number[] = [NaN];
+			values_Sparse: number[] = [];
 
 
 		reset(): void {
@@ -703,6 +704,9 @@ export namespace GameStates {
 			this.descriptors.push(newDesc);
 			this.strings.push(ks);
 			this.values.push(value);
+
+			if (newDesc.isFinal())
+				this.values_Sparse[newId] = value;
 
 			this.idMap.set(ks, newId);
 			return newId;
@@ -809,6 +813,9 @@ export namespace GameStates {
 			const bestResult = bestForPlayer(fdiffs, desc.moves());
 
 			this.values[desc.id] = undef2nan(bestResult);
+
+			if (bestResult != undefined)
+				this.values_Sparse[desc.id] = bestResult;
 
 				if (this.IS_DONE(desc)) desc.categ = 'SOLVED';
 		}
@@ -920,38 +927,14 @@ export namespace GameStates {
 		}
 
 
-		// Marks as done if a state has a known and determined future
-		propagateStates(): number {
-			console.time('rating');
-
-			// Backtrack from final states
-			let nDone = 0;
-			let ct = 0;
-			while (true) {
-				ct++;
-				this.stateBase.rateNonfinals();
-				const newDone =	this.stateBase.descriptors.filter(x => this.stateBase.IS_DONE(x)).length;
-				if (newDone == nDone) break;
-				nDone = newDone;
-			}
-
-			console.timeEnd('rating');
-
-			console.time('pruning');
-
+		prune(): void {
 				this.stateBase.descriptors.forEach( d => { if (d.categ == 'ACTIVE') d.categ = 'QUIET';} );
 
 				let currentStep = 0;
 				let currentSet: StateDesc[] = [];
 
-
-			//		console.log("   >>>>>>>");
-				//	console.log(this.stateBase.descriptors[0]);
-
 				while (true) {
 					currentSet = this.stateBase.descriptors.filter(x => (x.step == currentStep) && (x.categ == 'ACTIVE' || x.categ == 'VISITED'));
-
-						//console.log(`    >>>>>>>>> step ${currentStep}: ${currentSet.length}`);
 
 					if (currentSet.length == 0) break;
 
@@ -968,7 +951,6 @@ export namespace GameStates {
 				  	if (desc.categ == 'QUIET') desc.categ = 'ACTIVE';
 				  });
 
-
 				  const nextStatesFiltered = stateArr(nextStates).filter(s => 
 				  	this.stateBase.getDesc(s).shouldExplore()
 				  );
@@ -977,20 +959,107 @@ export namespace GameStates {
 					// 	if (d.categ == 'SELECTED') d.categ = 'VISITED';
 					// });
 
-
-				  		//console.log("  >>>>>>> " + currentStep + ": " +  getStateListSize(currentStates));
-
-
 					currentStep++;
 				}
+		}
+
+
+		backprop(): void {
+				const steps = this.stateBase.descriptors.map(d => d.step);
+				const maxStep = steps.reduce((a,b) => Math.max(a,b), 0);
+
+				let currentStep = maxStep - 1;
+				let currentSet: StateDesc[] = [];
+
+				while (true) {
+					if (currentStep < 0) break;
+
+					currentSet = this.stateBase.descriptors.filter(x => (x.step == currentStep));
+
+					currentSet.forEach(d => {
+						const id = d.id;
+						if (d.categ == 'VISITED' && this.stateBase.values_Sparse[d.id] == undefined) {
+							this.stateBase.processNonfinal(d);
+							//if (this.stateBase.values_Sparse[d.id] != undefined) anyChanged = true;
+						}
+					});
+
+					currentStep--;
+				}
+		}
+
+
+
+
+		// Marks as done if a state has a known and determined future
+		propagateStates(): number {
+			console.time('rating');
+
+			// Backtrack from final states
+			let nDone = 0;
+			let ct = 0;
+
+			if (false) {
+				while (true) {
+					ct++;
+					this.stateBase.rateNonfinals();
+					const newDone =	this.stateBase.descriptors.filter(x => this.stateBase.IS_DONE(x)).length;
+					if (newDone == nDone) break;
+					nDone = newDone;
+				}
+			}
+			else {
+					this.backprop();
+			}
+
+			console.timeEnd('rating');
+
+			console.time('pruning');
+
+			this.prune();
+				// this.stateBase.descriptors.forEach( d => { if (d.categ == 'ACTIVE') d.categ = 'QUIET';} );
+
+				// let currentStep = 0;
+				// let currentSet: StateDesc[] = [];
+
+				// while (true) {
+				// 	currentSet = this.stateBase.descriptors.filter(x => (x.step == currentStep) && (x.categ == 'ACTIVE' || x.categ == 'VISITED'));
+
+				// 	if (currentSet.length == 0) break;
+
+				// 	// currentSet.forEach(d => {
+				// 	// 	d.categ = 'SELECTED';
+				// 	// });
+
+				// 	// get followers
+				// 	const currentStates = makeStateList( currentSet.map(d => d.id) );
+				//   const nextStates = this.stateBase.genBatchFollowers(currentStates, true);
+
+				//   nextStates.forEach(s => {
+				//   	const desc = this.stateBase.getDesc(s);
+				//   	if (desc.categ == 'QUIET') desc.categ = 'ACTIVE';
+				//   });
+
+				//   const nextStatesFiltered = stateArr(nextStates).filter(s => 
+				//   	this.stateBase.getDesc(s).shouldExplore()
+				//   );
+
+				//   // currentSet.forEach(d => {
+				// 	// 	if (d.categ == 'SELECTED') d.categ = 'VISITED';
+				// 	// });
+
+				// 	currentStep++;
+				// }
 
 
 			console.timeEnd('pruning');
 
 
-				console.log("  Solved " + this.stateBase.descriptors.filter(d => d.categ == 'SOLVED').length);
-				console.log("  Active " + this.stateBase.descriptors.filter(d => d.categ == 'ACTIVE').length);
-				console.log("  Quiet  " + this.stateBase.descriptors.filter(d => d.categ == 'QUIET').length);
+				console.log(`  Solved ${this.stateBase.descriptors.filter(d => d.categ == 'SOLVED').length}` +
+									  `  Active ${this.stateBase.descriptors.filter(d => d.categ == 'ACTIVE').length}` +
+										`  Quiet  ${this.stateBase.descriptors.filter(d => d.categ == 'QUIET').length}`);
+				// console.log("  Active " + this.stateBase.descriptors.filter(d => d.categ == 'ACTIVE').length);
+				// console.log("  Quiet  " + this.stateBase.descriptors.filter(d => d.categ == 'QUIET').length);
 				//console.log(""  this.stateBase.descriptors.filter(d => d.categ == 'SOLVED').length);
 
 			return ct;
@@ -1036,7 +1105,7 @@ export namespace GameStates {
 			);
 
 
-				//console.log(levelMap.get(9));
+				console.log(this.stateBase.values_Sparse.slice(0, 30));
 
 
 		}
