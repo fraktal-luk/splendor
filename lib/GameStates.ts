@@ -52,7 +52,7 @@ const POINT_TABLE: number[] = [0].concat(CARD_SPECS.map(s => parseInt(s[0])));
 
 const PARAM_TMP_TH = 5; //10 - 3;
 
-const MAX_STATES = 8_000_000;
+const MAX_STATES = 10_000_000;
 
 const PARAM_TRIM_LOW = true;
 const PARAM_TIP_SUB = 0;
@@ -640,7 +640,11 @@ export namespace GameStates {
 
 			this.descriptors.push(d);
 			this.strings.push(s);
-			this.values.push(v);
+			//this.values.push(v);
+
+			if (!isNaN(v))
+				this.values_Sparse[d.id] = v;
+
 			this.idMap.set(s, d.id);
 		}
 
@@ -667,7 +671,12 @@ export namespace GameStates {
 
 
 			IS_DONE(d: StateDesc): boolean {
-					const res = !isNaN(this.values[d.id]!);
+					//const res_N = !isNaN(this.values[d.id]!);
+
+						const res = (this.values_Sparse[d.id] != undefined);
+
+						//	if (res != res_N) throw new Error('dddd');
+
 					return res;
 			}
 
@@ -676,7 +685,13 @@ export namespace GameStates {
 			}
 
 			RATING(d: StateDesc): GameRating {
-				const diff = this.values[d.id];
+				//const diff_N = this.values[d.id];
+
+					const diff = this.values_Sparse[d.id];
+
+							//if (diff != diff_N) throw new Error('-------dddd');
+
+
 
 				if (diff == undefined) return 'U';
 				else if (diff! > 0) return '0'; 
@@ -820,10 +835,12 @@ export namespace GameStates {
 			if (this.IS_DONE(desc) || desc.isFinal() || desc.next == undefined) return;
 
 			const fds = this.getFollowerDescs(desc.id);
-			const fdiffs = fds.map(d => this.values[d.id]!);
+			const fdiffs = //fds.map(d => this.values[d.id]!);
+										 fds.map(d => undef2nan(this.values_Sparse[d.id]));
+
 			const bestResult = bestForPlayer(fdiffs, desc.moves());
 
-			this.values[desc.id] = undef2nan(bestResult);
+			//this.values[desc.id] = undef2nan(bestResult);
 
 			if (bestResult != undefined)
 				this.values_Sparse[desc.id] = bestResult;
@@ -1108,8 +1125,18 @@ export namespace GameStates {
 				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
 
 				{
-					const allValues = this.stateBase.values;
+						//console.log("  Desc LEN = " + this.stateBase.descriptors.length);
+
+
+					const allValues = //this.stateBase.values;
+													  this.stateBase.values_Sparse;
+					if (allValues[this.stateBase.descriptors.length-1] == undefined)
+						allValues[this.stateBase.descriptors.length-1] = undef2nan(undefined);
+
 					const valueBuf = Float32Array.from(allValues);
+
+							//					console.log("  value buf:  " + valueBuf.length);
+
 					fs.writeFileSync(saveDir + '/values', valueBuf, console.log);
 				}
 
