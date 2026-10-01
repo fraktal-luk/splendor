@@ -626,6 +626,8 @@ export namespace GameStates {
 		values: number[] = [NaN];
 			values_Sparse: number[] = [];
 
+		levelSets: StateId[][] = [[0]];
+
 
 		reset(): void {
 			this.descriptors = [];
@@ -705,13 +707,22 @@ export namespace GameStates {
 			this.strings.push(ks);
 			this.values.push(value);
 
+			const step = newDesc.step;
+
+			if (this.levelSets[step] == undefined)
+				this.levelSets[step] = [];
+
+			this.levelSets[step].push(newId);
+
+
 			if (newDesc.isFinal())
 				this.values_Sparse[newId] = value;
 
 			this.idMap.set(ks, newId);
 			return newId;
 		}
-		
+
+
 		// Trace mode: don't calculate if not already known 
 		getFollowers(state: StateId, trace: boolean = false): StateId[] {
 			const desc = this.descriptors[state];
@@ -934,7 +945,11 @@ export namespace GameStates {
 				let currentSet: StateDesc[] = [];
 
 				while (true) {
-					currentSet = this.stateBase.descriptors.filter(x => (x.step == currentStep) && (x.categ == 'ACTIVE' || x.categ == 'VISITED'));
+						if (this.stateBase.levelSets[currentStep] == undefined) break;
+
+					//currentSet = this.stateBase.descriptors.filter(x => (x.step == currentStep) && (x.categ == 'ACTIVE' || x.categ == 'VISITED'));
+					currentSet = //this.stateBase.descriptors.filter(x => (x.step == currentStep)).filter(x => x.categ == 'ACTIVE' || x.categ == 'VISITED');
+											 this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s)).filter(x => x.categ == 'ACTIVE' || x.categ == 'VISITED');
 
 					if (currentSet.length == 0) break;
 
@@ -974,7 +989,11 @@ export namespace GameStates {
 				while (true) {
 					if (currentStep < 0) break;
 
-					currentSet = this.stateBase.descriptors.filter(x => (x.step == currentStep));
+					currentSet = //this.stateBase.descriptors.filter(x => (x.step == currentStep));
+											 this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s));
+
+						// const csL = this.stateBase.levelSets[currentStep];
+						// console.log(`${currentStep}: ${currentSet.length}/${csL.length}`);
 
 					currentSet.forEach(d => {
 						const id = d.id;
@@ -987,8 +1006,6 @@ export namespace GameStates {
 					currentStep--;
 				}
 		}
-
-
 
 
 		// Marks as done if a state has a known and determined future
@@ -1017,51 +1034,12 @@ export namespace GameStates {
 			console.time('pruning');
 
 			this.prune();
-				// this.stateBase.descriptors.forEach( d => { if (d.categ == 'ACTIVE') d.categ = 'QUIET';} );
-
-				// let currentStep = 0;
-				// let currentSet: StateDesc[] = [];
-
-				// while (true) {
-				// 	currentSet = this.stateBase.descriptors.filter(x => (x.step == currentStep) && (x.categ == 'ACTIVE' || x.categ == 'VISITED'));
-
-				// 	if (currentSet.length == 0) break;
-
-				// 	// currentSet.forEach(d => {
-				// 	// 	d.categ = 'SELECTED';
-				// 	// });
-
-				// 	// get followers
-				// 	const currentStates = makeStateList( currentSet.map(d => d.id) );
-				//   const nextStates = this.stateBase.genBatchFollowers(currentStates, true);
-
-				//   nextStates.forEach(s => {
-				//   	const desc = this.stateBase.getDesc(s);
-				//   	if (desc.categ == 'QUIET') desc.categ = 'ACTIVE';
-				//   });
-
-				//   const nextStatesFiltered = stateArr(nextStates).filter(s => 
-				//   	this.stateBase.getDesc(s).shouldExplore()
-				//   );
-
-				//   // currentSet.forEach(d => {
-				// 	// 	if (d.categ == 'SELECTED') d.categ = 'VISITED';
-				// 	// });
-
-				// 	currentStep++;
-				// }
-
 
 			console.timeEnd('pruning');
-
 
 				console.log(`  Solved ${this.stateBase.descriptors.filter(d => d.categ == 'SOLVED').length}` +
 									  `  Active ${this.stateBase.descriptors.filter(d => d.categ == 'ACTIVE').length}` +
 										`  Quiet  ${this.stateBase.descriptors.filter(d => d.categ == 'QUIET').length}`);
-				// console.log("  Active " + this.stateBase.descriptors.filter(d => d.categ == 'ACTIVE').length);
-				// console.log("  Quiet  " + this.stateBase.descriptors.filter(d => d.categ == 'QUIET').length);
-				//console.log(""  this.stateBase.descriptors.filter(d => d.categ == 'SOLVED').length);
-
 			return ct;
 		}
 
