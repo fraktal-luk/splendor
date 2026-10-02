@@ -106,6 +106,9 @@ export function getReturns(surplus: number): string[] {
 
 export function getCardPrice(n: number): string {
 	const str = CARD_SPECS[n];
+		if (str == undefined) {
+			throw new Error(`wrong for card ${n}`); //return -1;
+		}
 	return str.split(':')[1] + "0";
 }
 
