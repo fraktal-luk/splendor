@@ -750,25 +750,12 @@ export namespace GameStates {
 
 
 		// Trace mode: don't calculate if not already known 
-		getFollowers(state: StateId, trace: boolean = false): StateId[] {
+		getOldFollowers(state: StateId, trace: boolean = false): StateId[] {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
 
-			if (trace) {
-				if (desc!.next == undefined) {
-						//throw new Error('yyyhhttt');
-					return [];
-				}
-			}
-			else {
-					//throw new Error('no trace?');
-
-				if (desc!.next == undefined) {
-					desc!.categ = 'VISITED';
-
-					const stateObjS = CardState.fromKeyString(this.strings[state]);
-					desc!.next = this.makeIds(stateObjS.genNextBU());
-				}
+			if (desc!.next == undefined) {
+				return [];
 			}
 
 			return desc!.next!;
@@ -779,7 +766,6 @@ export namespace GameStates {
 		getNewFollowers(state: StateId): StateId[] {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
-
 
 			if (desc!.next == undefined) {
 				desc!.categ = 'VISITED';
@@ -827,25 +813,18 @@ export namespace GameStates {
 
 
 		genNewFollowers(input: StateList, trace: boolean = false): StateList {
-			const flatArr = input.values().map(x => this.getNewFollowers(x)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
+			const flatArr = input.values().map(x => this.getNewFollowers(x)).toArray().flat(); // Can't use flatMap because getNewFollowers naturallny returns arrays (without copy) 
 			const stateSet = new Set<StateId>(flatArr); 
 			const result = stateSet;
 			return result;
 		}
 
 		genBatchFollowers(input: StateList, trace: boolean = false): StateList {
-			const flatArr = input.values().map(x => this.getFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
+			const flatArr = input.values().map(x => this.getOldFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
 			const stateSet = new Set<StateId>(flatArr); 
 			const result = stateSet;
 			return result;
 		}
-
-			// Used more memory and is not faster:
-			genBatchFollowers_N(input: StateId[], trace: boolean = false): StateId[] {
-				const theSet = new Set<StateId>();
-				const flatArr = input.forEach(x => this.getFollowers(x, trace).forEach(s => theSet.add(s) ) );
-				return Array.from(theSet);
-			}
 
 		// states that are meant to grow - their followers are not known yet
 		getTips(): StateList {
@@ -964,7 +943,8 @@ export namespace GameStates {
 
 			for (let i = 0; i < depth; i++) {
 				if (log) console.time('exp');
-				currentStates = this.stateBase.genBatchFollowers(currentStates, trace); 
+				//currentStates = this.stateBase.genBatchFollowers(currentStates, trace); 
+				currentStates = this.stateBase.genNewFollowers(currentStates, trace); 
 				if (log) console.log(`  setsize ${getStateListSize(currentStates)}`);
 				if (log) console.timeEnd('exp');
 			}
