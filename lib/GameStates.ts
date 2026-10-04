@@ -502,8 +502,6 @@ export namespace GameStates {
 					if (c == undefined) {
 						console.log("\n\n\n!!!!!!!!!!!!Aamr!")
 						console.log(this.tableCards_S);
-						//console.log(this.tableCards_S.rows[0]);
-
 
 						console.log(getRowBase().descriptors[this.tableCards_S.rows[0]].state);
 						console.log(getRowBase().descriptors[this.tableCards_S.rows[1]].state);
@@ -521,11 +519,15 @@ export namespace GameStates {
 
 		genNextBU(): (CardState|undefined)[] {			
 			const buys = [0, 1, 2, 3,  4, 5, 6,7,  8, 9, 10, 11].map(i => this.buyUniversal(i));
+
 			let res0: (CardState|undefined)[] = [this.takeUniversal()];
 
 				// TODO: remove undefined? remove nonoptimal takes?
 			const res = res0.concat(buys);
 			return res;
+
+				// buys.push(this.takeUniversal());
+				// return buys;
 		}
 
 		maxPoints(): number {
@@ -693,27 +695,16 @@ export namespace GameStates {
 
 
 			IS_DONE(d: StateDesc): boolean {
-					//const res_N = !isNaN(this.values[d.id]!);
-
-						const res = (this.values_Sparse[d.id] != undefined);
-
-						//	if (res != res_N) throw new Error('dddd');
-
-					return res;
+				const res = (this.values_Sparse[d.id] != undefined);
+				return res;
 			}
 
 			FALLS(d: StateDesc): boolean {
-					return this.IS_DONE(d) && !d.isFinal();
+				return this.IS_DONE(d) && !d.isFinal();
 			}
 
 			RATING(d: StateDesc): GameRating {
-				//const diff_N = this.values[d.id];
-
-					const diff = this.values_Sparse[d.id];
-
-							//if (diff != diff_N) throw new Error('-------dddd');
-
-
+				const diff = this.values_Sparse[d.id];
 
 				if (diff == undefined) return 'U';
 				else if (diff! > 0) return '0'; 
@@ -738,11 +729,10 @@ export namespace GameStates {
 
 			const value = newDesc.isFinal() ? newDesc.diffP() : NaN;
 
-				if (newDesc.isFinal()) newDesc.categ = 'FINAL';
+			if (newDesc.isFinal()) newDesc.categ = 'FINAL';
 
 			this.descriptors.push(newDesc);
 			this.strings.push(ks);
-			this.values.push(value);
 
 			const step = newDesc.step;
 
@@ -750,7 +740,6 @@ export namespace GameStates {
 				this.levelSets[step] = [];
 
 			this.levelSets[step].push(newId);
-
 
 			if (newDesc.isFinal())
 				this.values_Sparse[newId] = value;
@@ -765,23 +754,41 @@ export namespace GameStates {
 			const desc = this.descriptors[state];
 			if (desc == undefined) throw new Error("State not existing");
 
-			if (!trace && this.IS_DONE(desc)) {
-				desc!.next = [];
-				return [];
-			}
-
 			if (trace) {
 				if (desc!.next == undefined) {
+						//throw new Error('yyyhhttt');
 					return [];
 				}
 			}
 			else {
+					//throw new Error('no trace?');
+
 				if (desc!.next == undefined) {
 					desc!.categ = 'VISITED';
 
 					const stateObjS = CardState.fromKeyString(this.strings[state]);
 					desc!.next = this.makeIds(stateObjS.genNextBU());
 				}
+			}
+
+			return desc!.next!;
+		}
+
+
+		// Trace mode: don't calculate if not already known 
+		getNewFollowers(state: StateId): StateId[] {
+			const desc = this.descriptors[state];
+			if (desc == undefined) throw new Error("State not existing");
+
+
+			if (desc!.next == undefined) {
+				desc!.categ = 'VISITED';
+
+				const stateObjS = CardState.fromKeyString(this.strings[state]);
+				desc!.next = this.makeIds(stateObjS.genNextBU());
+			}
+			else {
+				throw new Error('Already visited!');
 			}
 
 			return desc!.next!;
@@ -818,6 +825,14 @@ export namespace GameStates {
 			return nextIds.map(x => this.descriptors[x]!);
 		}
 
+
+		genNewFollowers(input: StateList, trace: boolean = false): StateList {
+			const flatArr = input.values().map(x => this.getNewFollowers(x)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
+			const stateSet = new Set<StateId>(flatArr); 
+			const result = stateSet;
+			return result;
+		}
+
 		genBatchFollowers(input: StateList, trace: boolean = false): StateList {
 			const flatArr = input.values().map(x => this.getFollowers(x, trace)).toArray().flat(); // Can't use flatMap because getFollowers naturallny returns arrays (without copy) 
 			const stateSet = new Set<StateId>(flatArr); 
@@ -838,10 +853,10 @@ export namespace GameStates {
 		}
 
 		getTipsAtLeast(min: number, maxSize: number): StateList {
-			//return makeStateList(this.descriptors.filter(d => d.next == undefined && d.maxPoints() >= min).map(d => d.id));
-				const res = this.descriptors.filter(d => d.categ == 'ACTIVE' && d.maxPoints() >= min).map(d => d.id);
-				if (res.length > maxSize) return makeStateList( res.slice(-maxSize) );
-				else return makeStateList (res);
+			const res = this.descriptors.filter(d => d.categ == 'ACTIVE' && d.maxPoints() >= min).map(d => d.id);
+
+			if (res.length > maxSize) return makeStateList( res.slice(-maxSize) );
+			else return makeStateList (res);
 		}
 
 		getTipDescs(): StateDesc[] {
@@ -857,12 +872,8 @@ export namespace GameStates {
 			if (this.IS_DONE(desc) || desc.isFinal() || desc.next == undefined) return;
 
 			const fds = this.getFollowerDescs(desc.id);
-			const fdiffs = //fds.map(d => this.values[d.id]!);
-										 fds.map(d => undef2nan(this.values_Sparse[d.id]));
-
+			const fdiffs = fds.map(d => undef2nan(this.values_Sparse[d.id]));
 			const bestResult = bestForPlayer(fdiffs, desc.moves());
-
-			//this.values[desc.id] = undef2nan(bestResult);
 
 			if (bestResult != undefined)
 				this.values_Sparse[desc.id] = bestResult;
@@ -900,7 +911,7 @@ export namespace GameStates {
 		latestList = makeStateList([0]);
 		pointThreshold = 0;
 
-				nothingCtr = 0;
+			nothingCtr = 0;
 
 		// Needed for interface compliance
 		moveImpl(): void {
@@ -912,10 +923,7 @@ export namespace GameStates {
 
 				if (this.stateBase.descriptors.length >= MAX_STATES) {
 					console.log("Not going on, " + MAX_STATES + " states reached");
-
-					//this.showStats();
 					this.finished = true;
-					//process.exit(0);
 					return;
 				}
 
@@ -1086,8 +1094,6 @@ export namespace GameStates {
 		showStats(): void {
 			const levelMap = Map.groupBy(this.stateBase.descriptors, d => d.step);
 
-//			levelMap.entries().forEach(e => console.log(`${e[0]}: ${e[1].length}`));
-
 			levelMap.entries().forEach(e => {
 				const step = e[0];
 				const arr = e[1];
@@ -1102,10 +1108,7 @@ export namespace GameStates {
 			}
 			);
 
-				console.log(`  steps: ${this.stepNum}, nothing ${this.nothingCtr}`);
-				//console.log(this.stateBase.values_Sparse.slice(0, 30));
-
-
+			console.log(`  steps: ${this.stepNum}, nothing ${this.nothingCtr}`);
 		}
 
 
@@ -1128,17 +1131,11 @@ export namespace GameStates {
 				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
 
 				{
-						//console.log("  Desc LEN = " + this.stateBase.descriptors.length);
-
-
-					const allValues = //this.stateBase.values;
-													  this.stateBase.values_Sparse;
+					const allValues = this.stateBase.values_Sparse;
 					if (allValues[this.stateBase.descriptors.length-1] == undefined)
 						allValues[this.stateBase.descriptors.length-1] = undef2nan(undefined);
 
 					const valueBuf = Float32Array.from(allValues);
-
-							//					console.log("  value buf:  " + valueBuf.length);
 
 					fs.writeFileSync(saveDir + '/values', valueBuf, console.log);
 				}
