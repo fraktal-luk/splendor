@@ -752,11 +752,12 @@ export namespace GameStates {
 		// Trace mode: don't calculate if not already known 
 		getOldFollowers(state: StateId, trace: boolean = false): StateId[] {
 			const desc = this.descriptors[state];
-			if (desc == undefined) throw new Error("State not existing");
+			//if (desc == undefined) throw new Error("State not existing");
 
-			if (desc!.next == undefined) {
-				return [];
-			}
+			// if (desc!.next == undefined) {
+			// 			throw new Error('hih hih');
+			// 	return [];
+			// }
 
 			return desc!.next!;
 		}
@@ -801,7 +802,7 @@ export namespace GameStates {
 				}
 			}
 
-			nextIds.sort((a,b) => a-b);
+			//nextIds.sort((a,b) => a-b);
 
 			return nextIds;
 		}
@@ -848,11 +849,21 @@ export namespace GameStates {
 
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
-			if (this.IS_DONE(desc) || desc.isFinal() || desc.next == undefined) return;
+			// if (this.IS_DONE(desc) || desc.isFinal() || desc.next == undefined) {
+			// 	throw new Error('doopa');
+			// 	return;
+			// }
 
-			const fds = this.getFollowerDescs(desc.id);
-			const fdiffs = fds.map(d => undef2nan(this.values_Sparse[d.id]));
-			const bestResult = bestForPlayer(fdiffs, desc.moves());
+			//const fds = this.getFollowerDescs(desc.id);
+
+				const fs = this.getOldFollowers(desc.id);
+
+			//const fdiffs = fds.map(d => undef2nan(this.values_Sparse[d.id]));
+
+				const fdiffs_N = fs.map(x => undef2nan(this.values_Sparse[x]));
+
+
+			const bestResult = bestForPlayer(fdiffs_N, desc.moves());
 
 			if (bestResult != undefined)
 				this.values_Sparse[desc.id] = bestResult;
@@ -943,7 +954,6 @@ export namespace GameStates {
 
 			for (let i = 0; i < depth; i++) {
 				if (log) console.time('exp');
-				//currentStates = this.stateBase.genBatchFollowers(currentStates, trace); 
 				currentStates = this.stateBase.genNewFollowers(currentStates, trace); 
 				if (log) console.log(`  setsize ${getStateListSize(currentStates)}`);
 				if (log) console.timeEnd('exp');
@@ -962,9 +972,7 @@ export namespace GameStates {
 				while (true) {
 					if (this.stateBase.levelSets[currentStep] == undefined) break;
 
-					currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s)).filter(x => x.categ == 'ACTIVE' || x.categ == 'VISITED');
-
-					if (currentSet.length == 0) break;
+					currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s)).filter(x => x.categ == 'VISITED');
 
 					// get followers
 					const currentStates = makeStateList( currentSet.map(d => d.id) );
@@ -993,10 +1001,13 @@ export namespace GameStates {
 					currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s));
 
 					currentSet.forEach(d => {
-						if (d.categ == 'VISITED' && this.stateBase.values_Sparse[d.id] == undefined) {
-							this.stateBase.processNonfinal(d);
+							if (d.categ == 'VISITED') {
+								//if (this.stateBase.values_Sparse[d.id] == undefined) // TODO: is it always undefined for Visited nodes?
+									this.stateBase.processNonfinal(d);
+								//else throw new Error('visited but solved');
+							}
 						}
-					});
+					);
 
 					currentStep--;
 				}
