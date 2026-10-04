@@ -118,13 +118,13 @@ export namespace GameStates {
 			const surplusSum = surplusses.sum();
 			const anyOverMax = overMax.sum();
 
-					if (anyOverMax) {
-						return undefined;
-					}
+				if (anyOverMax) {
+					return undefined;
+				}
 
-					if (deficit + surplusSum > gold) {
-						return undefined;
-					}
+				if (deficit + surplusSum > gold) {
+					return undefined;
+				}
 
 			if (deficit > gold) return undefined;
 
@@ -136,13 +136,6 @@ export namespace GameStates {
 		takeUniversal(): PlayerCards {
 			return new PlayerCards(this.bonuses.takeUniversal(), this.points, []);
 		}
-
-			// // Get effective gload price and points
-			// evaluateCard(c: Card): [Card, number, number] {
-			// 		const deficit = this.bonuses.TMP_effPrice(c).sum();
-			// 		const points = getCardPoints(c);
-			// 		return [c, deficit, points];
-			// }
 
 	}
 	
@@ -586,9 +579,7 @@ export namespace GameStates {
 			mover = -1;
 			playerPts = [-1, -1];
 
-
 			categ: StateCategory = 'ACTIVE';
-
 
 			moves(): number {
 				return this.mover;
@@ -664,7 +655,6 @@ export namespace GameStates {
 
 			this.descriptors.push(d);
 			this.strings.push(s);
-			//this.values.push(v);
 
 			if (!isNaN(v))
 				this.values_Sparse[d.id] = v;
@@ -752,13 +742,6 @@ export namespace GameStates {
 		// Trace mode: don't calculate if not already known 
 		getOldFollowers(state: StateId, trace: boolean = false): StateId[] {
 			const desc = this.descriptors[state];
-			//if (desc == undefined) throw new Error("State not existing");
-
-			// if (desc!.next == undefined) {
-			// 			throw new Error('hih hih');
-			// 	return [];
-			// }
-
 			return desc!.next!;
 		}
 
@@ -766,17 +749,11 @@ export namespace GameStates {
 		// Trace mode: don't calculate if not already known 
 		getNewFollowers(state: StateId): StateId[] {
 			const desc = this.descriptors[state];
-			if (desc == undefined) throw new Error("State not existing");
 
-			if (desc!.next == undefined) {
-				desc!.categ = 'VISITED';
+			desc!.categ = 'VISITED';
 
-				const stateObjS = CardState.fromKeyString(this.strings[state]);
-				desc!.next = this.makeIds(stateObjS.genNextBU());
-			}
-			else {
-				throw new Error('Already visited!');
-			}
+			const stateObjS = CardState.fromKeyString(this.strings[state]);
+			desc!.next = this.makeIds(stateObjS.genNextBU());
 
 			return desc!.next!;
 		}
@@ -801,8 +778,6 @@ export namespace GameStates {
 					nextIds.push(newId)	
 				}
 			}
-
-			//nextIds.sort((a,b) => a-b);
 
 			return nextIds;
 		}
@@ -843,36 +818,23 @@ export namespace GameStates {
 			return this.descriptors.filter(d => d.next == undefined);
 		}
 
-		rateNonfinals(): void {			
-			this.descriptors.forEach(x => this.processNonfinal(x));
-		}
+			rateNonfinals(): void {			
+				this.descriptors.forEach(x => this.processNonfinal(x));
+			}
 
 		// backtrack from definite states
 		processNonfinal(desc: StateDesc): void {
-			// if (this.IS_DONE(desc) || desc.isFinal() || desc.next == undefined) {
-			// 	throw new Error('doopa');
-			// 	return;
-			// }
+			const fs = this.getOldFollowers(desc.id);
+			const fdiffs = fs.map(x => (this.values_Sparse[x]));
+			const bestResult = bestForPlayer(fdiffs, desc.moves());
 
-			//const fds = this.getFollowerDescs(desc.id);
-
-				const fs = this.getOldFollowers(desc.id);
-
-			//const fdiffs = fds.map(d => undef2nan(this.values_Sparse[d.id]));
-
-				const fdiffs_N = fs.map(x => undef2nan(this.values_Sparse[x]));
-
-
-			const bestResult = bestForPlayer(fdiffs_N, desc.moves());
-
-			if (bestResult != undefined)
+			if (bestResult != undefined) {
 				this.values_Sparse[desc.id] = bestResult;
-
-				if (this.IS_DONE(desc)) desc.categ = 'SOLVED';
+				desc.categ = 'SOLVED';
+			}
 		}
 
 	}
-
 
 
 	const rowBase = new RowBase();
@@ -888,7 +850,6 @@ export namespace GameStates {
 	}
 
 
-
 	export class WavefrontC extends Wavefront {
 		stateBase = new StateBase();
 
@@ -901,7 +862,7 @@ export namespace GameStates {
 		latestList = makeStateList([0]);
 		pointThreshold = 0;
 
-			nothingCtr = 0;
+		nothingCtr = 0;
 
 		// Needed for interface compliance
 		moveImpl(): void {
@@ -911,11 +872,11 @@ export namespace GameStates {
 			if (this.finished) return;
 			console.log('> Step ' + this.stepNum);
 
-				if (this.stateBase.descriptors.length >= MAX_STATES) {
-					console.log("Not going on, " + MAX_STATES + " states reached");
-					this.finished = true;
-					return;
-				}
+			if (this.stateBase.descriptors.length >= MAX_STATES) {
+				console.log("Not going on, " + MAX_STATES + " states reached");
+				this.finished = true;
+				return;
+			}
 
 			this.expand();
 			this.propagateStates();
@@ -964,53 +925,50 @@ export namespace GameStates {
 
 
 		prune(): void {
-				this.stateBase.descriptors.forEach( d => { if (d.categ == 'ACTIVE') d.categ = 'QUIET';} );
+			this.stateBase.descriptors.forEach( d => { if (d.categ == 'ACTIVE') d.categ = 'QUIET';} );
 
-				let currentStep = 0;
-				let currentSet: StateDesc[] = [];
+			let currentStep = 0;
+			let currentSet: StateDesc[] = [];
 
-				while (true) {
-					if (this.stateBase.levelSets[currentStep] == undefined) break;
+			while (true) {
+				if (this.stateBase.levelSets[currentStep] == undefined) break;
 
-					currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s)).filter(x => x.categ == 'VISITED');
+				currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s)).filter(x => x.categ == 'VISITED');
 
-					// get followers
-					const currentStates = makeStateList( currentSet.map(d => d.id) );
-				  const nextStates = this.stateBase.genBatchFollowers(currentStates, true);
+				// get followers
+				const currentStates = makeStateList( currentSet.map(d => d.id) );
+			  const nextStates = this.stateBase.genBatchFollowers(currentStates, true);
 
-				  nextStates.forEach(s => {
-				  	const desc = this.stateBase.getDesc(s);
-				  	if (desc.categ == 'QUIET') desc.categ = 'ACTIVE';
-				  });
+			  nextStates.forEach(s => {
+			  	const desc = this.stateBase.getDesc(s);
+			  	if (desc.categ == 'QUIET') desc.categ = 'ACTIVE';
+			  });
 
-					currentStep++;
-				}
+				currentStep++;
+			}
 		}
 
 
 		backprop(): void {
-				const steps = this.stateBase.descriptors.map(d => d.step);
-				const maxStep = steps.reduce((a,b) => Math.max(a,b), 0);
+			const steps = this.stateBase.descriptors.map(d => d.step);
+			const maxStep = steps.reduce((a,b) => Math.max(a,b), 0);
 
-				let currentStep = maxStep - 1;
-				let currentSet: StateDesc[] = [];
+			let currentStep = maxStep - 1;
+			let currentSet: StateDesc[] = [];
 
-				while (true) {
-					if (currentStep < 0) break;
+			while (true) {
+				if (currentStep < 0) break;
 
-					currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s));
+				currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s));
 
-					currentSet.forEach(d => {
-							if (d.categ == 'VISITED') {
-								//if (this.stateBase.values_Sparse[d.id] == undefined) // TODO: is it always undefined for Visited nodes?
-									this.stateBase.processNonfinal(d);
-								//else throw new Error('visited but solved');
-							}
-						}
-					);
+				currentSet.forEach(d => {
+					if (d.categ == 'VISITED') {
+						this.stateBase.processNonfinal(d);
+					}
+				});
 
-					currentStep--;
-				}
+				currentStep--;
+			}
 		}
 
 
