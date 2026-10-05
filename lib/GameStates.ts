@@ -567,7 +567,7 @@ export namespace GameStates {
 
 
 
-	type StateCategory = 'QUIET' | 'ACTIVE' | 'SELECTED' | 'VISITED' | 'SOLVED' | 'FINAL';
+	type StateCategory = 'QUIET' | 'ACTIVE' | 'SELECTED' | 'COLD' | 'VISITED' | 'SOLVED' | 'FINAL';
 
 
 
@@ -926,14 +926,17 @@ export namespace GameStates {
 
 		prune(): void {
 			this.stateBase.descriptors.forEach( d => { if (d.categ == 'ACTIVE') d.categ = 'QUIET';} );
+			this.stateBase.descriptors.forEach( d => { if (d.categ == 'VISITED') d.categ = 'COLD';} );
 
 			let currentStep = 0;
 			let currentSet: StateDesc[] = [];
 
+				this.stateBase.getDesc(0).categ = 'VISITED';
+
 			while (true) {
 				if (this.stateBase.levelSets[currentStep] == undefined) break;
 
-				currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s)).filter(x => x.categ == 'VISITED');
+				currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s)).filter(x => (x.categ == 'VISITED' || x.categ == 'COLD'));
 
 				// get followers
 				const currentStates = makeStateList( currentSet.map(d => d.id) );
@@ -942,6 +945,7 @@ export namespace GameStates {
 			  nextStates.forEach(s => {
 			  	const desc = this.stateBase.getDesc(s);
 			  	if (desc.categ == 'QUIET') desc.categ = 'ACTIVE';
+			  	if (desc.categ == 'COLD') desc.categ = 'VISITED';
 			  });
 
 				currentStep++;
