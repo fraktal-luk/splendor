@@ -101,6 +101,14 @@ export namespace GameStates {
 
 		static fromKeyString(s: string): PlayerCards { return new PlayerCards(new TokenVec(s.substring(2, 8)), decodeNum2(s), []); }
 
+
+		getNumCards(): number {
+			const gold = parseInt(this.bonuses.str[5]!, 16);
+			const nCards = this.bonuses.sum() - gold;
+			return nCards;
+		}
+
+
 		// If can afford, otherwise undef
 		buyUniversal(c: Card, movesByPlayer: number): PlayerCards | undefined {
 			if (c == 0) return undefined; // 0 is nonexistent card
@@ -555,9 +563,11 @@ export namespace GameStates {
 		// Dont accept losing position or draw if some is unknown
 		if (player == 0) {
 			if (last <= 0 && hasUndef) return undefined;
+			//if (last < 0 && hasUndef) return undefined;  // Player 0 accepts draw
 		}
 		else {
 			if (first >= 0 && hasUndef) return undefined;
+			//if (first > 0 && hasUndef) return undefined;  // Player 1 accepts draw
 		}
 
 		const tmpResult = player == 0 ? last : first;
@@ -717,7 +727,15 @@ export namespace GameStates {
 
 			const newDesc = new StateDesc(newId, cs);
 
-			const value = newDesc.isFinal() ? newDesc.diffP() : NaN;
+				const nC0 = cs.mpc.arr[0].getNumCards();
+				const nC1 = cs.mpc.arr[1].getNumCards();
+
+			let value = newDesc.isFinal() ? newDesc.diffP() : NaN;
+
+				if (value == 0) {
+					if (nC0 > nC1) value = -0.5;
+					if (nC0 < nC1) value = +0.5;
+				}
 
 			if (newDesc.isFinal()) newDesc.categ = 'FINAL';
 
