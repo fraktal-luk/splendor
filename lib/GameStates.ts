@@ -936,7 +936,8 @@ export namespace GameStates {
 			while (true) {
 				if (this.stateBase.levelSets[currentStep] == undefined) break;
 
-				currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s)).filter(x => (x.categ == 'VISITED' || x.categ == 'COLD'));
+				currentSet = this.stateBase.levelSets[currentStep].map(s => this.stateBase.getDesc(s)).filter(x => (x.categ == 'VISITED' //|| x.categ == 'COLD'
+																																																															));
 
 				// get followers
 				const currentStates = makeStateList( currentSet.map(d => d.id) );
@@ -1012,10 +1013,12 @@ export namespace GameStates {
 			console.timeEnd('pruning');
 
 				let nSe = this.stateBase.descriptors.filter(d => d.categ == 'SOLVED').length;
+				let nCe = this.stateBase.descriptors.filter(d => d.categ == 'COLD').length;
 				let nAe = this.stateBase.descriptors.filter(d => d.categ == 'ACTIVE').length;
 				let nQe = this.stateBase.descriptors.filter(d => d.categ == 'QUIET').length;
 
 				console.log(`  Solved ${nSe}` +
+									  `  Cold   ${nCe}` +
 									  `  Active ${nAe}` +
 										`  Quiet  ${nQe}`);
 
@@ -1054,10 +1057,11 @@ export namespace GameStates {
 				const nV = arr.filter(d => d.categ == 'VISITED').length;
 				const nF = arr.filter(d => d.categ == 'FINAL').length;
 				const nS = arr.filter(d => d.categ == 'SOLVED').length;
+				const nC = arr.filter(d => d.categ == 'COLD').length;
 				const nA = arr.filter(d => d.categ == 'ACTIVE').length;
 				const nQ = arr.filter(d => d.categ == 'QUIET').length;
 
-				console.log(`${step}:\t ${arr.length};  \t F\t ${nF},  \t S\t ${nS},  \t V\t ${nV},  \t A\t ${nA},  \t Q\t ${nQ}`);
+				console.log(`${step}:\t ${arr.length};  \t F\t ${nF},  \t S\t ${nS},  \t V\t ${nV},  \t C\t ${nC},  \t A\t ${nA},  \t Q\t ${nQ}`);
 			}
 			);
 
