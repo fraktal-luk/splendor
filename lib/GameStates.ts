@@ -1105,6 +1105,9 @@ export namespace GameStates {
 				const rowAllFollowers = getRowBase().descriptors.map(d => rowFollowersFull(d.next)).flat();
 				fs.writeFileSync(saveDir + '/rfollowers', Int32Array.from(rowAllFollowers));
 
+				const categs = this.stateBase.descriptors.map(d => d.categ[0]).join('');
+				fs.writeFileSync(saveDir + '/categs.txt', categs);
+
 				{
 					const allValues = this.stateBase.values_Sparse;
 					if (allValues[this.stateBase.descriptors.length-1] == undefined)

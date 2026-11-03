@@ -8,7 +8,7 @@ assert(max(revBranching) <= 10)
 
 efs = edgesFrom(eto);
 
-reverseMat = nan(8, nStates);
+reverseMat = nan(10, nStates);
 
 eind = 1;
 

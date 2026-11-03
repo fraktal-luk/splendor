@@ -3,7 +3,7 @@ function [table, labels] = groupSteps(stepValues, values, ranges)
 
     nStates = numel(stepValues);
     
-    assert (max(stepValues) < 30)
+   % assert (max(stepValues) < 30)
     
     table = cell(1, max(stepValues));
     sortedTable = cell(1, max(stepValues));

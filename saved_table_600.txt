@@ -1,0 +1,5439 @@
+> Step 0
+ thr 0, starting with size 1
+  setsize 1
+exp: 1.283ms
+-------------------- Nothing found!
+rating: 0.279ms
+pruning: 0.238ms
+  Solved 0  Cold   0  Active 1  Quiet  0
+   all: 2, (0, 0, 2) done 0, 0.000 // maxPoints = 0 (tip 0)
+> Step 1
+ thr 0, starting with size 1
+  setsize 1
+exp: 0.28ms
+-------------------- Nothing found!
+rating: 0.02ms
+pruning: 0.026ms
+  Solved 0  Cold   0  Active 1  Quiet  0
+   all: 3, (0, 0, 3) done 0, 0.000 // maxPoints = 0 (tip 0)
+> Step 2
+ thr 0, starting with size 1
+  setsize 1
+exp: 0.228ms
+-------------------- Nothing found!
+rating: 0.015ms
+pruning: 0.032ms
+  Solved 0  Cold   0  Active 1  Quiet  0
+   all: 4, (0, 0, 4) done 0, 0.000 // maxPoints = 0 (tip 0)
+> Step 3
+ thr 0, starting with size 1
+  setsize 1
+exp: 0.249ms
+-------------------- Nothing found!
+rating: 0.041ms
+pruning: 0.043ms
+  Solved 0  Cold   0  Active 1  Quiet  0
+   all: 5, (0, 0, 5) done 0, 0.000 // maxPoints = 0 (tip 0)
+> Step 4
+ thr 0, starting with size 1
+  setsize 5
+exp: 0.676ms
+-------------------- Nothing found!
+rating: 0.044ms
+pruning: 0.02ms
+  Solved 0  Cold   0  Active 5  Quiet  0
+   all: 10, (0, 0, 10) done 0, 0.000 // maxPoints = 1 (tip 1)
+> Step 5
+ thr 1, starting with size 1
+  setsize 5
+exp: 0.4ms
+-------------------- Nothing found!
+rating: 0.013ms
+pruning: 0.022ms
+  Solved 0  Cold   0  Active 9  Quiet  0
+   all: 15, (0, 0, 15) done 0, 0.000 // maxPoints = 1 (tip 1)
+> Step 6
+ thr 1, starting with size 5
+  setsize 5
+exp: 1.036ms
+-------------------- Nothing found!
+rating: 0.037ms
+pruning: 0.035ms
+  Solved 0  Cold   0  Active 9  Quiet  0
+   all: 20, (0, 0, 20) done 0, 0.000 // maxPoints = 1 (tip 1)
+> Step 7
+ thr 1, starting with size 5
+  setsize 7
+exp: 0.594ms
+-------------------- Nothing found!
+rating: 0.019ms
+pruning: 0.028ms
+  Solved 0  Cold   0  Active 11  Quiet  0
+   all: 27, (0, 0, 27) done 0, 0.000 // maxPoints = 2 (tip 2)
+> Step 8
+ thr 2, starting with size 1
+  setsize 5
+exp: 0.177ms
+-------------------- Nothing found!
+rating: 0.036ms
+pruning: 0.032ms
+  Solved 0  Cold   0  Active 15  Quiet  0
+   all: 32, (0, 0, 32) done 0, 0.000 // maxPoints = 2 (tip 2)
+> Step 9
+ thr 2, starting with size 5
+  setsize 5
+exp: 0.522ms
+-------------------- Nothing found!
+rating: 0.034ms
+pruning: 0.036ms
+  Solved 0  Cold   0  Active 15  Quiet  0
+   all: 37, (0, 0, 37) done 0, 0.000 // maxPoints = 2 (tip 2)
+> Step 10
+ thr 2, starting with size 5
+  setsize 7
+exp: 0.555ms
+-------------------- Nothing found!
+rating: 0.025ms
+pruning: 0.07ms
+  Solved 0  Cold   0  Active 17  Quiet  0
+   all: 44, (0, 0, 44) done 0, 0.000 // maxPoints = 2 (tip 2)
+> Step 11
+ thr 2, starting with size 7
+  setsize 42
+exp: 1.103ms
+-------------------- Nothing found!
+rating: 0.032ms
+pruning: 0.069ms
+  Solved 0  Cold   0  Active 52  Quiet  0
+   all: 86, (0, 0, 86) done 0, 0.000 // maxPoints = 4 (tip 4)
+> Step 12
+ thr 4, starting with size 7
+  setsize 26
+exp: 0.933ms
+-------------------- Nothing found!
+rating: 0.09ms
+pruning: 0.088ms
+  Solved 0  Cold   0  Active 71  Quiet  0
+   all: 112, (0, 0, 112) done 0, 0.000 // maxPoints = 4 (tip 4)
+> Step 13
+ thr 4, starting with size 26
+  setsize 26
+exp: 2.626ms
+-------------------- Nothing found!
+rating: 0.149ms
+pruning: 0.22ms
+  Solved 0  Cold   0  Active 71  Quiet  0
+   all: 138, (0, 0, 138) done 0, 0.000 // maxPoints = 4 (tip 4)
+> Step 14
+ thr 4, starting with size 26
+  setsize 63
+exp: 3.295ms
+-------------------- Nothing found!
+rating: 0.1ms
+pruning: 0.209ms
+  Solved 0  Cold   0  Active 108  Quiet  0
+   all: 201, (0, 0, 201) done 0, 0.000 // maxPoints = 5 (tip 5)
+> Step 15
+ thr 5, starting with size 1
+  setsize 5
+exp: 0.267ms
+rating: 0.151ms
+pruning: 0.079ms
+  Solved 4  Cold   0  Active 106  Quiet  1
+   all: 206, (5, 4, 197) done 9, 0.044 // maxPoints = 5 (tip 5)
+> Step 16
+ thr 4, starting with size 61
+  setsize 292
+exp: 6.721ms
+-------------------- Nothing found!
+rating: 0.205ms
+pruning: 0.194ms
+  Solved 4  Cold   0  Active 337  Quiet  1
+   all: 498, (5, 4, 489) done 9, 0.018 // maxPoints = 5 (tip 5)
+> Step 17
+ thr 4, starting with size 292
+  setsize 738
+exp: 23.378ms
+-------------------- Nothing found!
+rating: 0.485ms
+pruning: 0.789ms
+  Solved 4  Cold   0  Active 783  Quiet  1
+   all: 1236, (5, 4, 1227) done 9, 0.007 // maxPoints = 5 (tip 5)
+> Step 18
+ thr 5, starting with size 5
+  setsize 11
+exp: 0.796ms
+rating: 0.52ms
+pruning: 0.556ms
+  Solved 13  Cold   0  Active 768  Quiet  11
+   all: 1247, (16, 13, 1218) done 29, 0.023 // maxPoints = 5 (tip 5)
+> Step 19
+ thr 4, starting with size 723
+  setsize 1784
+exp: 56.762ms
+rating: 0.665ms
+pruning: 0.221ms
+  Solved 342  Cold   812  Active 20  Quiet  1576
+   all: 3031, (260, 342, 2429) done 602, 0.199 // maxPoints = 5 (tip 5)
+> Step 20
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.015ms
+-------------------- Nothing found!
+rating: 0.136ms
+pruning: 0.16ms
+  Solved 342  Cold   812  Active 20  Quiet  1576
+   all: 3031, (260, 342, 2429) done 602, 0.199 // maxPoints = 5 (tip 5)
+> Step 21
+ thr 2, starting with size 10
+  setsize 40
+exp: 0.607ms
+-------------------- Nothing found!
+rating: 0.131ms
+pruning: 0.16ms
+  Solved 342  Cold   812  Active 50  Quiet  1576
+   all: 3071, (260, 342, 2469) done 602, 0.196 // maxPoints = 5 (tip 5)
+> Step 22
+ thr 2, starting with size 40
+  setsize 69
+exp: 1.872ms
+rating: 0.182ms
+pruning: 0.176ms
+  Solved 348  Cold   812  Active 50  Quiet  1597
+   all: 3132, (260, 348, 2524) done 608, 0.194 // maxPoints = 5 (tip 5)
+> Step 23
+ thr 3, starting with size 2
+  setsize 9
+exp: 0.156ms
+-------------------- Nothing found!
+rating: 0.168ms
+pruning: 0.268ms
+  Solved 348  Cold   812  Active 57  Quiet  1597
+   all: 3141, (260, 348, 2533) done 608, 0.194 // maxPoints = 5 (tip 5)
+> Step 24
+ thr 5, starting with size 1
+  setsize 1
+exp: 0.106ms
+rating: 0.172ms
+pruning: 0.214ms
+  Solved 350  Cold   812  Active 51  Quiet  1602
+   all: 3142, (261, 350, 2531) done 611, 0.194 // maxPoints = 5 (tip 5)
+> Step 25
+ thr 3, starting with size 3
+  setsize 3
+exp: 0.167ms
+-------------------- Nothing found!
+rating: 0.135ms
+pruning: 0.223ms
+  Solved 350  Cold   812  Active 51  Quiet  1602
+   all: 3145, (261, 350, 2534) done 611, 0.194 // maxPoints = 5 (tip 5)
+> Step 26
+ thr 3, starting with size 3
+  setsize 7
+exp: 0.212ms
+-------------------- Nothing found!
+rating: 0.131ms
+pruning: 0.179ms
+  Solved 350  Cold   812  Active 55  Quiet  1602
+   all: 3152, (261, 350, 2541) done 611, 0.194 // maxPoints = 5 (tip 5)
+> Step 27
+ thr 5, starting with size 1
+  setsize 7
+exp: 0.121ms
+rating: 0.134ms
+pruning: 0.179ms
+  Solved 351  Cold   812  Active 54  Quiet  1602
+   all: 3159, (268, 351, 2540) done 619, 0.196 // maxPoints = 6 (tip 6)
+> Step 28
+ thr 4, starting with size 1
+  setsize 7
+exp: 0.117ms
+rating: 0.144ms
+pruning: 0.213ms
+  Solved 352  Cold   812  Active 53  Quiet  1607
+   all: 3166, (270, 352, 2544) done 622, 0.196 // maxPoints = 6 (tip 6)
+> Step 29
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.016ms
+-------------------- Nothing found!
+rating: 0.165ms
+pruning: 0.183ms
+  Solved 352  Cold   812  Active 53  Quiet  1607
+   all: 3166, (270, 352, 2544) done 622, 0.196 // maxPoints = 6 (tip 6)
+> Step 30
+ thr 3, starting with size 5
+  setsize 35
+exp: 0.372ms
+rating: 0.163ms
+pruning: 0.178ms
+  Solved 367  Cold   844  Active 15  Quiet  1665
+   all: 3201, (280, 367, 2554) done 647, 0.202 // maxPoints = 6 (tip 6)
+> Step 31
+
+
+EXHAUSTED
+
+
+ thr 3, starting with size 0
+  setsize 0
+exp: 0.018ms
+-------------------- Nothing found!
+rating: 0.123ms
+pruning: 0.172ms
+  Solved 367  Cold   844  Active 15  Quiet  1665
+   all: 3201, (280, 367, 2554) done 647, 0.202 // maxPoints = 6 (tip 6)
+> Step 32
+ thr 2, starting with size 5
+  setsize 25
+exp: 0.354ms
+-------------------- Nothing found!
+rating: 0.207ms
+pruning: 0.172ms
+  Solved 367  Cold   844  Active 35  Quiet  1665
+   all: 3226, (280, 367, 2579) done 647, 0.201 // maxPoints = 6 (tip 6)
+> Step 33
+ thr 2, starting with size 25
+  setsize 135
+exp: 1.557ms
+-------------------- Nothing found!
+rating: 0.185ms
+pruning: 0.227ms
+  Solved 367  Cold   844  Active 145  Quiet  1665
+   all: 3361, (280, 367, 2714) done 647, 0.193 // maxPoints = 6 (tip 6)
+> Step 34
+ thr 4, starting with size 25
+  setsize 35
+exp: 1.18ms
+-------------------- Nothing found!
+rating: 0.143ms
+pruning: 0.227ms
+  Solved 367  Cold   844  Active 155  Quiet  1665
+   all: 3396, (280, 367, 2749) done 647, 0.191 // maxPoints = 6 (tip 6)
+> Step 35
+ thr 5, starting with size 5
+  setsize 5
+exp: 0.263ms
+rating: 0.151ms
+pruning: 0.234ms
+  Solved 377  Cold   844  Active 140  Quiet  1675
+   all: 3401, (285, 377, 2739) done 662, 0.195 // maxPoints = 6 (tip 6)
+> Step 36
+ thr 4, starting with size 20
+  setsize 28
+exp: 1.004ms
+-------------------- Nothing found!
+rating: 0.156ms
+pruning: 0.235ms
+  Solved 377  Cold   844  Active 148  Quiet  1675
+   all: 3429, (285, 377, 2767) done 662, 0.193 // maxPoints = 6 (tip 6)
+> Step 37
+ thr 4, starting with size 28
+  setsize 134
+exp: 1.658ms
+-------------------- Nothing found!
+rating: 0.212ms
+pruning: 0.265ms
+  Solved 377  Cold   844  Active 254  Quiet  1675
+   all: 3563, (285, 377, 2901) done 662, 0.186 // maxPoints = 6 (tip 6)
+> Step 38
+ thr 5, starting with size 22
+  setsize 70
+exp: 1.24ms
+rating: 0.327ms
+pruning: 0.236ms
+  Solved 444  Cold   844  Active 161  Quiet  1746
+   all: 3633, (355, 444, 2834) done 799, 0.220 // maxPoints = 6 (tip 6)
+> Step 39
+ thr 4, starting with size 41
+  setsize 161
+exp: 2.25ms
+rating: 0.254ms
+pruning: 0.228ms
+  Solved 477  Cold   849  Active 159  Quiet  1851
+   all: 3794, (372, 477, 2945) done 849, 0.224 // maxPoints = 6 (tip 6)
+> Step 40
+ thr 4, starting with size 63
+  setsize 95
+exp: 2.808ms
+-------------------- Nothing found!
+rating: 0.293ms
+pruning: 0.296ms
+  Solved 477  Cold   849  Active 191  Quiet  1851
+   all: 3889, (372, 477, 3040) done 849, 0.218 // maxPoints = 6 (tip 6)
+> Step 41
+ thr 5, starting with size 12
+  setsize 35
+exp: 0.77ms
+rating: 0.274ms
+pruning: 0.265ms
+  Solved 500  Cold   854  Active 152  Quiet  1878
+   all: 3924, (407, 500, 3017) done 907, 0.231 // maxPoints = 6 (tip 6)
+> Step 42
+ thr 4, starting with size 56
+  setsize 148
+exp: 3.159ms
+rating: 0.445ms
+pruning: 0.289ms
+  Solved 572  Cold   916  Active 93  Quiet  1999
+   all: 4072, (437, 572, 3063) done 1009, 0.248 // maxPoints = 6 (tip 6)
+> Step 43
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.014ms
+-------------------- Nothing found!
+rating: 0.23ms
+pruning: 0.261ms
+  Solved 572  Cold   916  Active 93  Quiet  1999
+   all: 4072, (437, 572, 3063) done 1009, 0.248 // maxPoints = 6 (tip 6)
+> Step 44
+ thr 3, starting with size 1
+  setsize 7
+exp: 0.123ms
+-------------------- Nothing found!
+rating: 0.232ms
+pruning: 0.246ms
+  Solved 572  Cold   916  Active 99  Quiet  1999
+   all: 4079, (437, 572, 3070) done 1009, 0.247 // maxPoints = 6 (tip 6)
+> Step 45
+ thr 5, starting with size 1
+  setsize 4
+exp: 0.105ms
+rating: 0.222ms
+pruning: 0.25ms
+  Solved 573  Cold   916  Active 98  Quiet  1999
+   all: 4083, (441, 573, 3069) done 1014, 0.248 // maxPoints = 6 (tip 6)
+> Step 46
+ thr 4, starting with size 1
+  setsize 4
+exp: 0.12ms
+rating: 0.225ms
+pruning: 0.244ms
+  Solved 574  Cold   916  Active 97  Quiet  2002
+   all: 4087, (442, 574, 3071) done 1016, 0.249 // maxPoints = 6 (tip 6)
+> Step 47
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.034ms
+-------------------- Nothing found!
+rating: 0.296ms
+pruning: 0.257ms
+  Solved 574  Cold   916  Active 97  Quiet  2002
+   all: 4087, (442, 574, 3071) done 1016, 0.249 // maxPoints = 6 (tip 6)
+> Step 48
+ thr 3, starting with size 5
+  setsize 22
+exp: 0.663ms
+rating: 0.238ms
+pruning: 0.271ms
+  Solved 580  Cold   916  Active 92  Quiet  2019
+   all: 4105, (443, 580, 3082) done 1023, 0.249 // maxPoints = 6 (tip 6)
+> Step 49
+
+
+EXHAUSTED
+
+
+ thr 3, starting with size 0
+  setsize 0
+exp: 0.016ms
+-------------------- Nothing found!
+rating: 0.244ms
+pruning: 0.195ms
+  Solved 580  Cold   916  Active 92  Quiet  2019
+   all: 4105, (443, 580, 3082) done 1023, 0.249 // maxPoints = 6 (tip 6)
+> Step 50
+ thr 2, starting with size 82
+  setsize 154
+exp: 3.791ms
+-------------------- Nothing found!
+rating: 0.254ms
+pruning: 0.217ms
+  Solved 580  Cold   916  Active 164  Quiet  2019
+   all: 4259, (443, 580, 3236) done 1023, 0.240 // maxPoints = 6 (tip 6)
+> Step 51
+ thr 4, starting with size 20
+  setsize 60
+exp: 1.091ms
+-------------------- Nothing found!
+rating: 0.287ms
+pruning: 0.244ms
+  Solved 580  Cold   916  Active 204  Quiet  2017
+    DIFFERENCE:
+    580->580
+    202->204
+    2019->2017
+   all: 4317, (443, 580, 3294) done 1023, 0.237 // maxPoints = 6 (tip 6)
+> Step 52
+ thr 4, starting with size 60
+  setsize 60
+exp: 2.594ms
+-------------------- Nothing found!
+rating: 0.26ms
+pruning: 0.245ms
+  Solved 580  Cold   916  Active 204  Quiet  2017
+   all: 4377, (443, 580, 3354) done 1023, 0.234 // maxPoints = 6 (tip 6)
+> Step 53
+ thr 4, starting with size 60
+  setsize 150
+exp: 3.176ms
+rating: 0.499ms
+pruning: 0.331ms
+  Solved 590  Cold   942  Active 243  Quiet  2065
+   all: 4527, (446, 590, 3491) done 1036, 0.229 // maxPoints = 6 (tip 6)
+> Step 54
+ thr 4, starting with size 99
+  setsize 571
+exp: 6.355ms
+rating: 0.531ms
+pruning: 0.485ms
+  Solved 590  Cold   942  Active 713  Quiet  2060
+   all: 5091, (446, 590, 4055) done 1036, 0.203 // maxPoints = 7 (tip 7)
+> Step 55
+ thr 7, starting with size 99
+  setsize 228
+exp: 5.524ms
+rating: 0.848ms
+pruning: 0.427ms
+  Solved 920  Cold   1001  Active 48  Quiet  2626
+   all: 5319, (674, 920, 3725) done 1594, 0.300 // maxPoints = 7 (tip 7)
+> Step 56
+
+
+EXHAUSTED
+
+
+ thr 5, starting with size 0
+  setsize 0
+exp: 0.041ms
+-------------------- Nothing found!
+rating: 0.473ms
+pruning: 0.415ms
+  Solved 920  Cold   1001  Active 48  Quiet  2626
+   all: 5319, (674, 920, 3725) done 1594, 0.300 // maxPoints = 7 (tip 7)
+> Step 57
+ thr 2, starting with size 38
+  setsize 168
+exp: 2.741ms
+rating: 0.452ms
+pruning: 0.445ms
+  Solved 921  Cold   1001  Active 169  Quiet  2627
+   all: 5479, (674, 921, 3884) done 1595, 0.291 // maxPoints = 7 (tip 7)
+> Step 58
+ thr 4, starting with size 20
+  setsize 97
+exp: 1.662ms
+rating: 0.443ms
+pruning: 0.336ms
+  Solved 921  Cold   998  Active 251  Quiet  2615
+   all: 5569, (674, 921, 3974) done 1595, 0.286 // maxPoints = 7 (tip 7)
+> Step 59
+ thr 5, starting with size 17
+  setsize 56
+exp: 0.953ms
+rating: 0.616ms
+pruning: 0.408ms
+  Solved 955  Cold   1001  Active 164  Quiet  2685
+   all: 5625, (730, 955, 3940) done 1685, 0.300 // maxPoints = 7 (tip 7)
+> Step 60
+ thr 4, starting with size 15
+  setsize 54
+exp: 0.933ms
+-------------------- Nothing found!
+rating: 0.374ms
+pruning: 0.535ms
+  Solved 955  Cold   999  Active 204  Quiet  2683
+    DIFFERENCE:
+    955->955
+    202->204
+    2685->2683
+   all: 5678, (730, 955, 3993) done 1685, 0.297 // maxPoints = 7 (tip 7)
+> Step 61
+ thr 4, starting with size 55
+  setsize 93
+exp: 2.585ms
+-------------------- Nothing found!
+rating: 0.348ms
+pruning: 0.329ms
+  Solved 955  Cold   999  Active 241  Quiet  2681
+    DIFFERENCE:
+    955->955
+    239->241
+    2683->2681
+   all: 5768, (730, 955, 4083) done 1685, 0.292 // maxPoints = 7 (tip 7)
+> Step 62
+ thr 5, starting with size 13
+  setsize 41
+exp: 0.773ms
+rating: 0.358ms
+pruning: 0.319ms
+  Solved 977  Cold   999  Active 200  Quiet  2709
+   all: 5806, (768, 977, 4061) done 1745, 0.301 // maxPoints = 7 (tip 7)
+> Step 63
+ thr 4, starting with size 51
+  setsize 177
+exp: 3.295ms
+rating: 0.425ms
+pruning: 0.319ms
+  Solved 1032  Cold   1063  Active 137  Quiet  2873
+   all: 5973, (783, 1032, 4158) done 1815, 0.304 // maxPoints = 7 (tip 7)
+> Step 64
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.026ms
+-------------------- Nothing found!
+rating: 0.587ms
+pruning: 0.312ms
+  Solved 1032  Cold   1063  Active 137  Quiet  2873
+   all: 5973, (783, 1032, 4158) done 1815, 0.304 // maxPoints = 7 (tip 7)
+> Step 65
+ thr 3, starting with size 14
+  setsize 62
+exp: 0.839ms
+rating: 0.319ms
+pruning: 0.358ms
+  Solved 1032  Cold   1061  Active 184  Quiet  2871
+   all: 6032, (783, 1032, 4217) done 1815, 0.301 // maxPoints = 7 (tip 7)
+> Step 66
+ thr 5, starting with size 12
+  setsize 25
+exp: 0.726ms
+rating: 0.394ms
+pruning: 0.344ms
+  Solved 1052  Cold   1063  Active 140  Quiet  2903
+   all: 6057, (808, 1052, 4197) done 1860, 0.307 // maxPoints = 7 (tip 7)
+> Step 67
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.013ms
+-------------------- Nothing found!
+rating: 0.329ms
+pruning: 0.354ms
+  Solved 1052  Cold   1063  Active 140  Quiet  2903
+   all: 6057, (808, 1052, 4197) done 1860, 0.307 // maxPoints = 7 (tip 7)
+> Step 68
+ thr 3, starting with size 17
+  setsize 70
+exp: 1.045ms
+rating: 2.565ms
+pruning: 0.249ms
+  Solved 1074  Cold   1063  Active 110  Quiet  2971
+   all: 6127, (823, 1074, 4230) done 1897, 0.310 // maxPoints = 7 (tip 7)
+> Step 69
+ thr 3, starting with size 2
+  setsize 9
+exp: 0.195ms
+-------------------- Nothing found!
+rating: 0.27ms
+pruning: 0.26ms
+  Solved 1074  Cold   1063  Active 117  Quiet  2971
+   all: 6136, (823, 1074, 4239) done 1897, 0.309 // maxPoints = 7 (tip 7)
+> Step 70
+ thr 3, starting with size 9
+  setsize 45
+exp: 0.626ms
+-------------------- Nothing found!
+rating: 0.307ms
+pruning: 0.233ms
+  Solved 1074  Cold   1063  Active 153  Quiet  2971
+   all: 6181, (823, 1074, 4284) done 1897, 0.307 // maxPoints = 7 (tip 7)
+> Step 71
+ thr 3, starting with size 45
+  setsize 111
+exp: 2.396ms
+-------------------- Nothing found!
+rating: 0.345ms
+pruning: 0.268ms
+  Solved 1074  Cold   1063  Active 219  Quiet  2971
+   all: 6292, (823, 1074, 4395) done 1897, 0.301 // maxPoints = 7 (tip 7)
+> Step 72
+ thr 4, starting with size 20
+  setsize 36
+exp: 1.966ms
+rating: 0.328ms
+pruning: 0.373ms
+  Solved 1078  Cold   1063  Active 223  Quiet  2979
+   all: 6328, (827, 1078, 4423) done 1905, 0.301 // maxPoints = 7 (tip 7)
+> Step 73
+ thr 4, starting with size 24
+  setsize 62
+exp: 1.312ms
+-------------------- Nothing found!
+rating: 0.33ms
+pruning: 0.289ms
+  Solved 1078  Cold   1063  Active 261  Quiet  2979
+   all: 6390, (827, 1078, 4485) done 1905, 0.298 // maxPoints = 7 (tip 7)
+> Step 74
+ thr 4, starting with size 62
+  setsize 233
+exp: 3.892ms
+rating: 0.379ms
+pruning: 0.341ms
+  Solved 1107  Cold   1075  Active 349  Quiet  3047
+   all: 6623, (842, 1107, 4674) done 1949, 0.294 // maxPoints = 7 (tip 7)
+> Step 75
+ thr 4, starting with size 150
+  setsize 464
+exp: 10.275ms
+-------------------- Nothing found!
+rating: 0.436ms
+pruning: 0.521ms
+  Solved 1107  Cold   1075  Active 663  Quiet  3047
+   all: 7087, (842, 1107, 5138) done 1949, 0.275 // maxPoints = 7 (tip 7)
+> Step 76
+ thr 7, starting with size 44
+  setsize 137
+exp: 2.515ms
+rating: 0.588ms
+pruning: 0.326ms
+  Solved 1233  Cold   1210  Active 181  Quiet  3485
+   all: 7224, (979, 1233, 5012) done 2212, 0.306 // maxPoints = 7 (tip 7)
+> Step 77
+
+
+EXHAUSTED
+
+
+ thr 6, starting with size 0
+  setsize 0
+exp: 0.034ms
+-------------------- Nothing found!
+rating: 0.779ms
+pruning: 0.353ms
+  Solved 1233  Cold   1210  Active 181  Quiet  3485
+   all: 7224, (979, 1233, 5012) done 2212, 0.306 // maxPoints = 7 (tip 7)
+> Step 78
+ thr 3, starting with size 73
+  setsize 193
+exp: 3.953ms
+rating: 0.549ms
+pruning: 0.298ms
+  Solved 1273  Cold   1299  Active 105  Quiet  3653
+   all: 7417, (1007, 1273, 5137) done 2280, 0.307 // maxPoints = 7 (tip 7)
+> Step 79
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.013ms
+-------------------- Nothing found!
+rating: 0.331ms
+pruning: 0.29ms
+  Solved 1273  Cold   1299  Active 105  Quiet  3653
+   all: 7417, (1007, 1273, 5137) done 2280, 0.307 // maxPoints = 7 (tip 7)
+> Step 80
+ thr 2, starting with size 95
+  setsize 359
+exp: 5.945ms
+rating: 0.44ms
+pruning: 0.484ms
+  Solved 1280  Cold   1291  Active 362  Quiet  3643
+   all: 7759, (1007, 1280, 5472) done 2287, 0.295 // maxPoints = 7 (tip 7)
+> Step 81
+ thr 3, starting with size 75
+  setsize 287
+exp: 4.016ms
+rating: 0.438ms
+pruning: 0.407ms
+  Solved 1282  Cold   1290  Active 566  Quiet  3648
+   all: 8045, (1009, 1282, 5754) done 2291, 0.285 // maxPoints = 7 (tip 7)
+> Step 82
+ thr 7, starting with size 35
+  setsize 124
+exp: 1.921ms
+rating: 0.504ms
+pruning: 0.396ms
+  Solved 1370  Cold   1299  Active 288  Quiet  3891
+   all: 8154, (1118, 1370, 5666) done 2488, 0.305 // maxPoints = 7 (tip 7)
+> Step 83
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.014ms
+-------------------- Nothing found!
+rating: 0.422ms
+pruning: 0.377ms
+  Solved 1370  Cold   1299  Active 288  Quiet  3891
+   all: 8154, (1118, 1370, 5666) done 2488, 0.305 // maxPoints = 7 (tip 7)
+> Step 84
+ thr 3, starting with size 32
+  setsize 42
+exp: 2.038ms
+-------------------- Nothing found!
+rating: 0.553ms
+pruning: 0.401ms
+  Solved 1370  Cold   1299  Active 298  Quiet  3891
+   all: 8196, (1118, 1370, 5708) done 2488, 0.304 // maxPoints = 7 (tip 7)
+> Step 85
+ thr 3, starting with size 42
+  setsize 171
+exp: 2.563ms
+rating: 0.511ms
+pruning: 0.446ms
+  Solved 1385  Cold   1299  Active 407  Quiet  3906
+   all: 8367, (1123, 1385, 5859) done 2508, 0.300 // maxPoints = 7 (tip 7)
+> Step 86
+ thr 4, starting with size 11
+  setsize 53
+exp: 0.85ms
+-------------------- Nothing found!
+rating: 0.586ms
+pruning: 0.501ms
+  Solved 1385  Cold   1299  Active 449  Quiet  3906
+   all: 8420, (1123, 1385, 5912) done 2508, 0.298 // maxPoints = 7 (tip 7)
+> Step 87
+ thr 6, starting with size 6
+  setsize 7
+exp: 0.334ms
+rating: 0.472ms
+pruning: 0.55ms
+  Solved 1397  Cold   1299  Active 416  Quiet  3933
+   all: 8427, (1130, 1397, 5900) done 2527, 0.300 // maxPoints = 7 (tip 7)
+> Step 88
+ thr 4, starting with size 20
+  setsize 24
+exp: 1.091ms
+-------------------- Nothing found!
+rating: 0.538ms
+pruning: 0.521ms
+  Solved 1397  Cold   1299  Active 420  Quiet  3933
+   all: 8451, (1130, 1397, 5924) done 2527, 0.299 // maxPoints = 7 (tip 7)
+> Step 89
+ thr 4, starting with size 24
+  setsize 63
+exp: 1.346ms
+-------------------- Nothing found!
+rating: 0.503ms
+pruning: 0.481ms
+  Solved 1397  Cold   1299  Active 459  Quiet  3933
+   all: 8514, (1130, 1397, 5987) done 2527, 0.297 // maxPoints = 7 (tip 7)
+> Step 90
+ thr 6, starting with size 5
+  setsize 18
+exp: 0.361ms
+rating: 0.48ms
+pruning: 0.465ms
+  Solved 1415  Cold   1332  Active 401  Quiet  3986
+   all: 8532, (1148, 1415, 5969) done 2563, 0.300 // maxPoints = 7 (tip 7)
+> Step 91
+
+
+EXHAUSTED
+
+
+ thr 5, starting with size 0
+  setsize 0
+exp: 0.021ms
+-------------------- Nothing found!
+rating: 0.451ms
+pruning: 0.444ms
+  Solved 1415  Cold   1332  Active 401  Quiet  3986
+   all: 8532, (1148, 1415, 5969) done 2563, 0.300 // maxPoints = 7 (tip 7)
+> Step 92
+ thr 4, starting with size 5
+  setsize 25
+exp: 0.338ms
+-------------------- Nothing found!
+rating: 0.434ms
+pruning: 0.478ms
+  Solved 1415  Cold   1332  Active 421  Quiet  3986
+   all: 8557, (1148, 1415, 5994) done 2563, 0.300 // maxPoints = 7 (tip 7)
+> Step 93
+ thr 4, starting with size 25
+  setsize 84
+exp: 1.425ms
+-------------------- Nothing found!
+rating: 0.506ms
+pruning: 0.495ms
+  Solved 1415  Cold   1332  Active 480  Quiet  3986
+   all: 8641, (1148, 1415, 6078) done 2563, 0.297 // maxPoints = 7 (tip 7)
+> Step 94
+ thr 6, starting with size 5
+  setsize 18
+exp: 0.387ms
+rating: 0.464ms
+pruning: 0.451ms
+  Solved 1424  Cold   1332  Active 459  Quiet  4002
+   all: 8659, (1166, 1424, 6069) done 2590, 0.299 // maxPoints = 7 (tip 7)
+> Step 95
+ thr 5, starting with size 1
+  setsize 7
+exp: 0.107ms
+rating: 0.537ms
+pruning: 0.511ms
+  Solved 1425  Cold   1332  Active 458  Quiet  4002
+   all: 8666, (1173, 1425, 6068) done 2598, 0.300 // maxPoints = 7 (tip 7)
+> Step 96
+ thr 4, starting with size 62
+  setsize 247
+exp: 3.639ms
+rating: 0.502ms
+pruning: 0.456ms
+  Solved 1450  Cold   1398  Active 396  Quiet  4225
+   all: 8913, (1197, 1450, 6266) done 2647, 0.297 // maxPoints = 7 (tip 7)
+> Step 97
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.025ms
+-------------------- Nothing found!
+rating: 0.501ms
+pruning: 0.481ms
+  Solved 1450  Cold   1398  Active 396  Quiet  4225
+   all: 8913, (1197, 1450, 6266) done 2647, 0.297 // maxPoints = 7 (tip 7)
+> Step 98
+ thr 3, starting with size 140
+  setsize 434
+exp: 7.49ms
+-------------------- Nothing found!
+rating: 0.575ms
+pruning: 0.574ms
+  Solved 1450  Cold   1398  Active 690  Quiet  4225
+   all: 9347, (1197, 1450, 6700) done 2647, 0.283 // maxPoints = 7 (tip 7)
+> Step 99
+ thr 3, starting with size 434
+  setsize 1291
+exp: 22.905ms
+rating: 0.682ms
+pruning: 0.613ms
+  Solved 1519  Cold   1484  Active 1228  Quiet  4487
+   all: 10618, (1234, 1519, 7865) done 2753, 0.259 // maxPoints = 7 (tip 7)
+> Step 100
+ thr 4, starting with size 170
+  setsize 445
+exp: 8.416ms
+rating: 0.671ms
+pruning: 0.686ms
+  Solved 1519  Cold   1484  Active 1500  Quiet  4487
+   all: 11060, (1234, 1519, 8307) done 2753, 0.249 // maxPoints = 7 (tip 7)
+> Step 101
+ thr 6, starting with size 36
+  setsize 88
+exp: 1.959ms
+rating: 0.753ms
+pruning: 0.748ms
+  Solved 1591  Cold   1484  Active 1383  Quiet  4568
+   all: 11148, (1322, 1591, 8235) done 2913, 0.261 // maxPoints = 7 (tip 7)
+> Step 102
+
+
+EXHAUSTED
+
+
+ thr 5, starting with size 0
+  setsize 0
+exp: 0.012ms
+-------------------- Nothing found!
+rating: 0.701ms
+pruning: 0.738ms
+  Solved 1591  Cold   1484  Active 1383  Quiet  4568
+   all: 11148, (1322, 1591, 8235) done 2913, 0.261 // maxPoints = 7 (tip 7)
+> Step 103
+ thr 4, starting with size 325
+  setsize 878
+exp: 16.494ms
+rating: 0.956ms
+pruning: 1.02ms
+  Solved 1591  Cold   1454  Active 2030  Quiet  4465
+   all: 12017, (1322, 1591, 9104) done 2913, 0.242 // maxPoints = 7 (tip 7)
+> Step 104
+ thr 4, starting with size 972
+  setsize 2945
+exp: 52.101ms
+rating: 1.766ms
+pruning: 2.163ms
+  Solved 1591  Cold   1449  Active 4001  Quiet  4446
+   all: 14941, (1322, 1591, 12028) done 2913, 0.195 // maxPoints = 7 (tip 7)
+> Step 105
+ thr 6, starting with size 356
+  setsize 1018
+exp: 21.804ms
+rating: 1.534ms
+pruning: 1.045ms
+  Solved 2405  Cold   1836  Active 2058  Quiet  6033
+   all: 15952, (2333, 2405, 11214) done 4738, 0.297 // maxPoints = 7 (tip 7)
+> Step 106
+ thr 5, starting with size 16
+  setsize 95
+exp: 1.11ms
+rating: 1.046ms
+pruning: 1.312ms
+  Solved 2421  Cold   1836  Active 2042  Quiet  6033
+   all: 16046, (2427, 2421, 11198) done 4848, 0.302 // maxPoints = 7 (tip 7)
+> Step 107
+ thr 4, starting with size 984
+  setsize 3447
+exp: 54.627ms
+rating: 2.014ms
+pruning: 1.116ms
+  Solved 3189  Cold   2676  Active 1049  Quiet  8846
+   all: 19455, (3032, 3189, 13234) done 6221, 0.320 // maxPoints = 7 (tip 7)
+> Step 108
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.024ms
+-------------------- Nothing found!
+rating: 1.164ms
+pruning: 0.994ms
+  Solved 3189  Cold   2676  Active 1049  Quiet  8846
+   all: 19455, (3032, 3189, 13234) done 6221, 0.320 // maxPoints = 7 (tip 7)
+> Step 109
+ thr 3, starting with size 793
+  setsize 2154
+exp: 39.982ms
+-------------------- Nothing found!
+rating: 1.935ms
+pruning: 1.621ms
+  Solved 3189  Cold   2676  Active 2410  Quiet  8846
+   all: 21609, (3032, 3189, 15388) done 6221, 0.288 // maxPoints = 7 (tip 7)
+> Step 110
+ thr 6, starting with size 17
+  setsize 28
+exp: 0.825ms
+rating: 1.582ms
+pruning: 4.141ms
+  Solved 3223  Cold   2676  Active 2356  Quiet  8883
+   all: 21637, (3060, 3223, 15354) done 6283, 0.290 // maxPoints = 7 (tip 7)
+> Step 111
+ thr 5, starting with size 124
+  setsize 377
+exp: 6.706ms
+rating: 1.677ms
+pruning: 0.949ms
+  Solved 3647  Cold   3451  Active 638  Quiet  10477
+   all: 22014, (3437, 3647, 14930) done 7084, 0.322 // maxPoints = 7 (tip 7)
+> Step 112
+ thr 4, starting with size 6
+  setsize 46
+exp: 0.464ms
+rating: 1.082ms
+pruning: 0.811ms
+  Solved 3653  Cold   3451  Active 632  Quiet  10517
+   all: 22060, (3443, 3653, 14964) done 7096, 0.322 // maxPoints = 7 (tip 7)
+> Step 113
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.031ms
+-------------------- Nothing found!
+rating: 1.126ms
+pruning: 0.92ms
+  Solved 3653  Cold   3451  Active 632  Quiet  10517
+   all: 22060, (3443, 3653, 14964) done 7096, 0.322 // maxPoints = 7 (tip 7)
+> Step 114
+ thr 3, starting with size 410
+  setsize 1508
+exp: 24.142ms
+rating: 1.398ms
+pruning: 1.194ms
+  Solved 3749  Cold   3474  Active 1133  Quiet  10895
+   all: 23379, (3473, 3749, 16157) done 7222, 0.309 // maxPoints = 7 (tip 7)
+> Step 115
+ thr 4, starting with size 245
+  setsize 823
+exp: 13.389ms
+rating: 1.34ms
+pruning: 1.178ms
+  Solved 3749  Cold   3467  Active 1654  Quiet  10873
+   all: 24123, (3473, 3749, 16901) done 7222, 0.299 // maxPoints = 7 (tip 7)
+> Step 116
+ thr 7, starting with size 4
+  setsize 24
+exp: 0.317ms
+rating: 1.391ms
+pruning: 1.172ms
+  Solved 3757  Cold   3467  Active 1636  Quiet  10887
+   all: 24147, (3497, 3757, 16893) done 7254, 0.300 // maxPoints = 7 (tip 7)
+> Step 117
+ thr 6, starting with size 59
+  setsize 195
+exp: 3.027ms
+rating: 1.435ms
+pruning: 1.072ms
+  Solved 3921  Cold   3636  Active 1101  Quiet  11363
+   all: 24333, (3683, 3921, 16729) done 7604, 0.312 // maxPoints = 7 (tip 7)
+> Step 118
+
+
+EXHAUSTED
+
+
+ thr 5, starting with size 0
+  setsize 0
+exp: 0.025ms
+-------------------- Nothing found!
+rating: 1.38ms
+pruning: 1.294ms
+  Solved 3921  Cold   3636  Active 1101  Quiet  11363
+   all: 24333, (3683, 3921, 16729) done 7604, 0.312 // maxPoints = 7 (tip 7)
+> Step 119
+ thr 4, starting with size 213
+  setsize 640
+exp: 11.578ms
+rating: 1.563ms
+pruning: 1.33ms
+  Solved 3931  Cold   3644  Active 1472  Quiet  11358
+   all: 24918, (3689, 3931, 17298) done 7620, 0.306 // maxPoints = 7 (tip 7)
+> Step 120
+ thr 6, starting with size 2
+  setsize 6
+exp: 0.182ms
+rating: 1.458ms
+pruning: 1.233ms
+  Solved 3937  Cold   3662  Active 1426  Quiet  11402
+   all: 24924, (3695, 3937, 17292) done 7632, 0.306 // maxPoints = 7 (tip 7)
+> Step 121
+
+
+EXHAUSTED
+
+
+ thr 5, starting with size 0
+  setsize 0
+exp: 0.052ms
+-------------------- Nothing found!
+rating: 1.461ms
+pruning: 1.287ms
+  Solved 3937  Cold   3662  Active 1426  Quiet  11402
+   all: 24924, (3695, 3937, 17292) done 7632, 0.306 // maxPoints = 7 (tip 7)
+> Step 122
+ thr 4, starting with size 538
+  setsize 1838
+exp: 28.503ms
+rating: 1.549ms
+pruning: 1.413ms
+  Solved 3943  Cold   3660  Active 2657  Quiet  11387
+   all: 26681, (3698, 3943, 19040) done 7641, 0.286 // maxPoints = 7 (tip 7)
+> Step 123
+ thr 7, starting with size 12
+  setsize 49
+exp: 0.796ms
+rating: 1.55ms
+pruning: 1.555ms
+  Solved 3971  Cold   3722  Active 2471  Quiet  11561
+   all: 26730, (3747, 3971, 19012) done 7718, 0.289 // maxPoints = 7 (tip 7)
+> Step 124
+ thr 6, starting with size 92
+  setsize 282
+exp: 4.819ms
+rating: 1.734ms
+pruning: 1.25ms
+  Solved 4191  Cold   4021  Active 1560  Quiet  12380
+   all: 27004, (4021, 4191, 18792) done 8212, 0.304 // maxPoints = 7 (tip 7)
+> Step 125
+ thr 5, starting with size 6
+  setsize 45
+exp: 0.5ms
+rating: 1.555ms
+pruning: 1.471ms
+  Solved 4197  Cold   4021  Active 1554  Quiet  12380
+   all: 27049, (4066, 4197, 18786) done 8263, 0.305 // maxPoints = 7 (tip 7)
+> Step 126
+ thr 4, starting with size 666
+  setsize 2395
+exp: 37.384ms
+rating: 2.142ms
+pruning: 1.681ms
+  Solved 4442  Cold   4629  Active 1136  Quiet  14133
+   all: 29413, (4429, 4442, 20542) done 8871, 0.302 // maxPoints = 7 (tip 7)
+> Step 127
+ thr 4, starting with size 248
+  setsize 821
+exp: 14.011ms
+rating: 1.782ms
+pruning: 1.591ms
+  Solved 4442  Cold   4624  Active 1711  Quiet  14107
+   all: 30210, (4429, 4442, 21339) done 8871, 0.294 // maxPoints = 7 (tip 7)
+> Step 128
+ thr 6, starting with size 46
+  setsize 151
+exp: 2.801ms
+rating: 1.706ms
+pruning: 1.336ms
+  Solved 4546  Cold   4690  Active 1418  Quiet  14354
+   all: 30348, (4567, 4546, 21235) done 9113, 0.300 // maxPoints = 7 (tip 7)
+> Step 129
+ thr 5, starting with size 7
+  setsize 54
+exp: 0.578ms
+rating: 1.542ms
+pruning: 1.361ms
+  Solved 4553  Cold   4690  Active 1411  Quiet  14354
+   all: 30401, (4620, 4553, 21228) done 9173, 0.302 // maxPoints = 7 (tip 7)
+> Step 130
+ thr 4, starting with size 523
+  setsize 1952
+exp: 31.528ms
+rating: 2.435ms
+pruning: 1.742ms
+  Solved 4777  Cold   5253  Active 888  Quiet  15785
+   all: 32165, (4953, 4777, 22435) done 9730, 0.303 // maxPoints = 7 (tip 7)
+> Step 131
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.019ms
+-------------------- Nothing found!
+rating: 1.586ms
+pruning: 1.712ms
+  Solved 4777  Cold   5253  Active 888  Quiet  15785
+   all: 32165, (4953, 4777, 22435) done 9730, 0.303 // maxPoints = 7 (tip 7)
+> Step 132
+ thr 3, starting with size 666
+  setsize 2273
+exp: 40.957ms
+-------------------- Nothing found!
+rating: 2.269ms
+pruning: 2.341ms
+  Solved 4777  Cold   5253  Active 2495  Quiet  15785
+   all: 34438, (4953, 4777, 24708) done 9730, 0.283 // maxPoints = 7 (tip 7)
+> Step 133
+ thr 7, starting with size 11
+  setsize 73
+exp: 0.888ms
+rating: 2.392ms
+pruning: 2ms
+  Solved 4815  Cold   5523  Active 1832  Quiet  16437
+   all: 34504, (5019, 4815, 24670) done 9834, 0.285 // maxPoints = 7 (tip 7)
+> Step 134
+ thr 6, starting with size 18
+  setsize 99
+exp: 1.254ms
+rating: 2.151ms
+pruning: 1.941ms
+  Solved 4859  Cold   5555  Active 1721  Quiet  16530
+   all: 34603, (5118, 4859, 24626) done 9977, 0.288 // maxPoints = 7 (tip 7)
+> Step 135
+ thr 5, starting with size 181
+  setsize 658
+exp: 11.397ms
+rating: 2.306ms
+pruning: 1.771ms
+  Solved 5139  Cold   5657  Active 1124  Quiet  16946
+   all: 35239, (5754, 5139, 24346) done 10893, 0.309 // maxPoints = 7 (tip 7)
+> Step 136
+ thr 4, starting with size 28
+  setsize 211
+exp: 2.088ms
+rating: 1.855ms
+pruning: 1.366ms
+  Solved 5167  Cold   5657  Active 1096  Quiet  17097
+   all: 35424, (5788, 5167, 24469) done 10955, 0.309 // maxPoints = 7 (tip 7)
+> Step 137
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.02ms
+-------------------- Nothing found!
+rating: 1.697ms
+pruning: 1.557ms
+  Solved 5167  Cold   5657  Active 1096  Quiet  17097
+   all: 35424, (5788, 5167, 24469) done 10955, 0.309 // maxPoints = 7 (tip 7)
+> Step 138
+ thr 3, starting with size 878
+  setsize 4057
+exp: 53.224ms
+rating: 2.201ms
+pruning: 1.833ms
+  Solved 5307  Cold   6183  Active 1823  Quiet  19082
+   all: 39088, (5862, 5307, 27919) done 11169, 0.286 // maxPoints = 7 (tip 7)
+> Step 139
+ thr 4, starting with size 488
+  setsize 1857
+exp: 27.175ms
+rating: 2.332ms
+pruning: 2.26ms
+  Solved 5348  Cold   6260  Active 2847  Quiet  19256
+   all: 40834, (5922, 5348, 29564) done 11270, 0.276 // maxPoints = 7 (tip 7)
+> Step 140
+ thr 6, starting with size 90
+  setsize 396
+exp: 5.238ms
+rating: 2.612ms
+pruning: 2.375ms
+  Solved 5503  Cold   6271  Active 2523  Quiet  19490
+   all: 41217, (6305, 5503, 29409) done 11808, 0.286 // maxPoints = 7 (tip 7)
+> Step 141
+ thr 5, starting with size 17
+  setsize 122
+exp: 1.319ms
+rating: 2.594ms
+pruning: 5.281ms
+  Solved 5520  Cold   6271  Active 2506  Quiet  19490
+   all: 41339, (6427, 5520, 29392) done 11947, 0.289 // maxPoints = 7 (tip 7)
+> Step 142
+ thr 4, starting with size 1179
+  setsize 4878
+exp: 69.027ms
+rating: 2.86ms
+pruning: 3.127ms
+  Solved 5818  Cold   6278  Active 4562  Quiet  20290
+   all: 45877, (6930, 5818, 33129) done 12748, 0.278 // maxPoints = 7 (tip 7)
+> Step 143
+ thr 6, starting with size 91
+  setsize 321
+exp: 5.215ms
+rating: 2.925ms
+pruning: 2.686ms
+  Solved 5985  Cold   6369  Active 3994  Quiet  20767
+   all: 46184, (7237, 5985, 32962) done 13222, 0.286 // maxPoints = 8 (tip 8)
+> Step 144
+ thr 5, starting with size 6
+  setsize 46
+exp: 0.541ms
+rating: 2.721ms
+pruning: 2.662ms
+  Solved 5991  Cold   6369  Active 3988  Quiet  20767
+   all: 46230, (7283, 5991, 32956) done 13274, 0.287 // maxPoints = 8 (tip 8)
+> Step 145
+ thr 4, starting with size 2709
+  setsize 10056
+exp: 154.999ms
+rating: 4.271ms
+pruning: 4.042ms
+  Solved 6491  Cold   7782  Active 5901  Quiet  24734
+   all: 55539, (8003, 6491, 41045) done 14494, 0.261 // maxPoints = 8 (tip 8)
+> Step 146
+ thr 7, starting with size 14
+  setsize 48
+exp: 0.942ms
+rating: 3.726ms
+pruning: 6.972ms
+  Solved 6523  Cold   7800  Active 5806  Quiet  24815
+   all: 55587, (8051, 6523, 41013) done 14574, 0.262 // maxPoints = 8 (tip 8)
+> Step 147
+ thr 6, starting with size 230
+  setsize 678
+exp: 13.087ms
+rating: 3.647ms
+pruning: 3.384ms
+  Solved 6977  Cold   7966  Active 4556  Quiet  25835
+   all: 56201, (8665, 6977, 40559) done 15642, 0.278 // maxPoints = 8 (tip 8)
+> Step 148
+ thr 5, starting with size 38
+  setsize 249
+exp: 3.207ms
+rating: 3.749ms
+pruning: 3.511ms
+  Solved 7015  Cold   7966  Active 4518  Quiet  25835
+   all: 56441, (8905, 7015, 40521) done 15920, 0.282 // maxPoints = 8 (tip 8)
+> Step 149
+ thr 4, starting with size 3295
+  setsize 11448
+exp: 199.473ms
+rating: 5.874ms
+pruning: 4.053ms
+  Solved 8357  Cold   10975  Active 2524  Quiet  33349
+   all: 66708, (10357, 8357, 47994) done 18714, 0.281 // maxPoints = 8 (tip 8)
+> Step 150
+ thr 7, starting with size 7
+  setsize 19
+exp: 0.478ms
+rating: 4.128ms
+pruning: 3.954ms
+  Solved 8373  Cold   11009  Active 2402  Quiet  33464
+   all: 66727, (10376, 8373, 47978) done 18749, 0.281 // maxPoints = 8 (tip 8)
+> Step 151
+ thr 6, starting with size 15
+  setsize 65
+exp: 0.961ms
+rating: 3.861ms
+pruning: 3.669ms
+  Solved 8401  Cold   11059  Active 2174  Quiet  33677
+   all: 66785, (10434, 8401, 47950) done 18835, 0.282 // maxPoints = 8 (tip 8)
+> Step 152
+ thr 5, starting with size 2
+  setsize 16
+exp: 0.241ms
+rating: 4.089ms
+pruning: 6.958ms
+  Solved 8403  Cold   11059  Active 2172  Quiet  33677
+   all: 66800, (10449, 8403, 47948) done 18852, 0.282 // maxPoints = 8 (tip 8)
+> Step 153
+ thr 4, starting with size 1024
+  setsize 4006
+exp: 58.608ms
+rating: 4.476ms
+pruning: 3.583ms
+  Solved 8624  Cold   11664  Active 2830  Quiet  35230
+   all: 70377, (10791, 8624, 50962) done 19415, 0.276 // maxPoints = 8 (tip 8)
+> Step 154
+ thr 7, starting with size 37
+  setsize 115
+exp: 2.103ms
+rating: 4.249ms
+pruning: 3.531ms
+  Solved 8691  Cold   11726  Active 2509  Quiet  35514
+   all: 70490, (10904, 8691, 50895) done 19595, 0.278 // maxPoints = 8 (tip 8)
+> Step 155
+ thr 6, starting with size 41
+  setsize 157
+exp: 2.378ms
+rating: 4.127ms
+pruning: 3.474ms
+  Solved 8776  Cold   11878  Active 1951  Quiet  36031
+   all: 70640, (11054, 8776, 50810) done 19830, 0.281 // maxPoints = 8 (tip 8)
+> Step 156
+ thr 5, starting with size 3
+  setsize 24
+exp: 0.32ms
+rating: 4.339ms
+pruning: 3.754ms
+  Solved 8779  Cold   11878  Active 1948  Quiet  36031
+   all: 70664, (11078, 8779, 50807) done 19857, 0.281 // maxPoints = 8 (tip 8)
+> Step 157
+ thr 4, starting with size 800
+  setsize 3209
+exp: 48.647ms
+rating: 3.969ms
+pruning: 3.199ms
+  Solved 8964  Cold   12787  Active 1148  Quiet  38631
+   all: 73500, (11314, 8964, 53222) done 20278, 0.276 // maxPoints = 8 (tip 8)
+> Step 158
+
+
+EXHAUSTED
+
+
+ thr 7, starting with size 0
+  setsize 0
+exp: 0.021ms
+-------------------- Nothing found!
+rating: 3.777ms
+pruning: 3.278ms
+  Solved 8964  Cold   12787  Active 1148  Quiet  38631
+   all: 73500, (11314, 8964, 53222) done 20278, 0.276 // maxPoints = 8 (tip 8)
+> Step 159
+ thr 3, starting with size 930
+  setsize 3083
+exp: 55.148ms
+-------------------- Nothing found!
+rating: 4.346ms
+pruning: 4.248ms
+  Solved 8964  Cold   12787  Active 3301  Quiet  38631
+   all: 76583, (11314, 8964, 56305) done 20278, 0.265 // maxPoints = 8 (tip 8)
+> Step 160
+ thr 6, starting with size 37
+  setsize 156
+exp: 2.393ms
+rating: 4.382ms
+pruning: 4.239ms
+  Solved 9030  Cold   12787  Active 3147  Quiet  38748
+   all: 76730, (11461, 9030, 56239) done 20491, 0.267 // maxPoints = 8 (tip 8)
+> Step 161
+ thr 5, starting with size 380
+  setsize 1605
+exp: 26.347ms
+rating: 4.814ms
+pruning: 3.547ms
+  Solved 9581  Cold   12801  Active 2244  Quiet  39271
+   all: 78311, (13042, 9581, 55688) done 22623, 0.289 // maxPoints = 8 (tip 8)
+> Step 162
+ thr 4, starting with size 113
+  setsize 727
+exp: 8.457ms
+rating: 3.937ms
+pruning: 3.593ms
+  Solved 9694  Cold   12801  Active 2131  Quiet  39832
+   all: 78997, (13167, 9694, 56136) done 22861, 0.289 // maxPoints = 8 (tip 8)
+> Step 163
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.022ms
+-------------------- Nothing found!
+rating: 3.965ms
+pruning: 3.546ms
+  Solved 9694  Cold   12801  Active 2131  Quiet  39832
+   all: 78997, (13167, 9694, 56136) done 22861, 0.289 // maxPoints = 8 (tip 8)
+> Step 164
+ thr 3, starting with size 1913
+  setsize 7335
+exp: 138.646ms
+rating: 27.803ms
+pruning: 8.862ms
+  Solved 9914  Cold   9930  Active 13052  Quiet  33339
+   all: 85481, (13310, 9914, 62257) done 23224, 0.272 // maxPoints = 8 (tip 8)
+> Step 165
+ thr 4, starting with size 8519
+  setsize 31385
+exp: 564.8ms
+rating: 11.8ms
+pruning: 10.828ms
+  Solved 11844  Cold   12024  Active 24060  Quiet  39351
+   all: 113635, (15925, 11844, 85866) done 27769, 0.244 // maxPoints = 9 (tip 9)
+> Step 166
+ thr 7, starting with size 341
+  setsize 1304
+exp: 19.945ms
+rating: 9.814ms
+pruning: 11.112ms
+  Solved 12504  Cold   12472  Active 21735  Quiet  41335
+   all: 114868, (17158, 12504, 85206) done 29662, 0.258 // maxPoints = 9 (tip 9)
+> Step 167
+ thr 6, starting with size 1007
+  setsize 3864
+exp: 62.11ms
+rating: 10.299ms
+pruning: 9.784ms
+  Solved 14523  Cold   13663  Active 15617  Quiet  46446
+   all: 118544, (20834, 14523, 83187) done 35357, 0.298 // maxPoints = 9 (tip 9)
+> Step 168
+ thr 5, starting with size 136
+  setsize 945
+exp: 9.319ms
+rating: 9.413ms
+pruning: 10.235ms
+  Solved 14659  Cold   13663  Active 15481  Quiet  46446
+   all: 119469, (21759, 14659, 83051) done 36418, 0.305 // maxPoints = 9 (tip 9)
+> Step 169
+ thr 4, starting with size 10999
+  setsize 42923
+exp: 654.955ms
+rating: 13.473ms
+pruning: 10.738ms
+  Solved 18824  Cold   19888  Active 17846  Quiet  66505
+   all: 158041, (26908, 18824, 112309) done 45732, 0.289 // maxPoints = 9 (tip 9)
+> Step 170
+
+
+EXHAUSTED
+
+
+ thr 8, starting with size 0
+  setsize 0
+exp: 0.041ms
+-------------------- Nothing found!
+rating: 9.725ms
+pruning: 10.734ms
+  Solved 18830  Cold   19925  Active 17750  Quiet  66601
+    DIFFERENCE:
+    18824->18830
+    17846->17750
+    66505->66601
+   all: 158041, (26908, 18830, 112303) done 45738, 0.289 // maxPoints = 9 (tip 9)
+> Step 171
+ thr 7, starting with size 244
+  setsize 879
+exp: 13.524ms
+rating: 10.366ms
+pruning: 10.675ms
+  Solved 19246  Cold   20131  Active 16258  Quiet  67849
+   all: 158852, (27719, 19246, 111887) done 46965, 0.296 // maxPoints = 9 (tip 9)
+> Step 172
+ thr 6, starting with size 305
+  setsize 1361
+exp: 17.578ms
+rating: 10ms
+pruning: 10.186ms
+  Solved 19781  Cold   20568  Active 14227  Quiet  69575
+   all: 160132, (28999, 19781, 111352) done 48780, 0.305 // maxPoints = 9 (tip 9)
+> Step 173
+ thr 5, starting with size 51
+  setsize 355
+exp: 3.523ms
+rating: 10.752ms
+pruning: 10.801ms
+  Solved 19838  Cold   20568  Active 14155  Quiet  69596
+   all: 160476, (29343, 19838, 111295) done 49181, 0.306 // maxPoints = 9 (tip 9)
+> Step 174
+ thr 4, starting with size 9959
+  setsize 40027
+exp: 596.905ms
+rating: 15.952ms
+pruning: 17.7ms
+  Solved 21828  Cold   20857  Active 35092  Quiet  71485
+   all: 195863, (31945, 21828, 142090) done 53773, 0.275 // maxPoints = 9 (tip 9)
+> Step 175
+ thr 8, starting with size 29
+  setsize 99
+exp: 1.75ms
+rating: 18.653ms
+pruning: 17.356ms
+  Solved 21916  Cold   20977  Active 34496  Quiet  72052
+   all: 195962, (32044, 21916, 142002) done 53960, 0.275 // maxPoints = 9 (tip 9)
+> Step 176
+ thr 7, starting with size 820
+  setsize 2928
+exp: 49.145ms
+rating: 16.477ms
+pruning: 16.641ms
+  Solved 23461  Cold   21938  Active 29347  Quiet  76381
+   all: 198689, (34771, 23461, 140457) done 58232, 0.293 // maxPoints = 9 (tip 9)
+> Step 177
+ thr 6, starting with size 953
+  setsize 3843
+exp: 61.762ms
+rating: 14.845ms
+pruning: 13.734ms
+  Solved 25464  Cold   25065  Active 19361  Quiet  85414
+   all: 202197, (38279, 25464, 138454) done 63743, 0.315 // maxPoints = 9 (tip 9)
+> Step 178
+ thr 5, starting with size 149
+  setsize 1044
+exp: 10.427ms
+rating: 13.768ms
+pruning: 14.456ms
+  Solved 25625  Cold   25067  Active 19168  Quiet  85458
+   all: 203196, (39278, 25625, 138293) done 64903, 0.319 // maxPoints = 9 (tip 9)
+> Step 179
+ thr 4, starting with size 15002
+  setsize 61187
+exp: 911.478ms
+rating: 24.792ms
+pruning: 16.599ms
+  Solved 31354  Cold   38630  Active 9657  Quiet  126525
+   all: 257552, (47076, 31354, 179122) done 78430, 0.305 // maxPoints = 9 (tip 9)
+> Step 180
+ thr 8, starting with size 5
+  setsize 21
+exp: 0.424ms
+rating: 14.719ms
+pruning: 14.361ms
+  Solved 31364  Cold   38632  Active 9623  Quiet  126554
+   all: 257573, (47097, 31364, 179112) done 78461, 0.305 // maxPoints = 9 (tip 9)
+> Step 181
+ thr 7, starting with size 155
+  setsize 598
+exp: 9.881ms
+rating: 14.846ms
+pruning: 14.294ms
+  Solved 31621  Cold   38866  Active 8291  Quiet  127731
+   all: 258138, (47662, 31621, 178855) done 79283, 0.307 // maxPoints = 9 (tip 9)
+> Step 182
+ thr 6, starting with size 116
+  setsize 671
+exp: 8.044ms
+rating: 14.382ms
+pruning: 14.544ms
+  Solved 31805  Cold   39126  Active 7266  Quiet  128640
+   all: 258788, (48312, 31805, 178671) done 80117, 0.310 // maxPoints = 9 (tip 9)
+> Step 183
+ thr 5, starting with size 40
+  setsize 236
+exp: 2.821ms
+rating: 14.179ms
+pruning: 13.658ms
+  Solved 31856  Cold   39130  Active 7173  Quiet  128693
+   all: 259021, (48545, 31856, 178620) done 80401, 0.310 // maxPoints = 9 (tip 9)
+> Step 184
+ thr 4, starting with size 3133
+  setsize 14022
+exp: 236.738ms
+rating: 27.185ms
+pruning: 16.795ms
+  Solved 32647  Cold   39278  Active 14436  Quiet  129669
+   all: 271524, (49676, 32647, 189201) done 82323, 0.303 // maxPoints = 9 (tip 9)
+> Step 185
+ thr 8, starting with size 31
+  setsize 121
+exp: 2.111ms
+rating: 17.528ms
+pruning: 17.054ms
+  Solved 32732  Cold   39377  Active 13957  Quiet  130117
+   all: 271645, (49797, 32732, 189116) done 82529, 0.304 // maxPoints = 9 (tip 9)
+> Step 186
+ thr 7, starting with size 423
+  setsize 1657
+exp: 26.632ms
+rating: 18.046ms
+pruning: 16.904ms
+  Solved 33394  Cold   40182  Active 10101  Quiet  133550
+   all: 273152, (51304, 33394, 188454) done 84698, 0.310 // maxPoints = 9 (tip 9)
+> Step 187
+ thr 6, starting with size 214
+  setsize 1145
+exp: 14.685ms
+rating: 16.286ms
+pruning: 15.614ms
+  Solved 33731  Cold   40423  Active 8801  Quiet  134636
+   all: 274234, (52386, 33731, 188117) done 86117, 0.314 // maxPoints = 9 (tip 9)
+> Step 188
+ thr 5, starting with size 40
+  setsize 297
+exp: 3.411ms
+rating: 24.633ms
+pruning: 26.842ms
+  Solved 33775  Cold   40423  Active 8747  Quiet  134650
+   all: 274520, (52672, 33775, 188073) done 86447, 0.315 // maxPoints = 9 (tip 9)
+> Step 189
+ thr 4, starting with size 4707
+  setsize 20538
+exp: 302.858ms
+rating: 24.675ms
+pruning: 15.818ms
+  Solved 35766  Cold   44927  Active 3974  Quiet  149661
+   all: 292785, (55992, 35766, 201027) done 91758, 0.313 // maxPoints = 9 (tip 9)
+> Step 190
+
+
+EXHAUSTED
+
+
+ thr 8, starting with size 0
+  setsize 0
+exp: 0.033ms
+-------------------- Nothing found!
+rating: 16.644ms
+pruning: 15.074ms
+  Solved 35766  Cold   44927  Active 3974  Quiet  149661
+   all: 292785, (55992, 35766, 201027) done 91758, 0.313 // maxPoints = 9 (tip 9)
+> Step 191
+ thr 3, starting with size 3756
+  setsize 13877
+exp: 242.828ms
+-------------------- Nothing found!
+rating: 19.262ms
+pruning: 20.54ms
+  Solved 35766  Cold   44927  Active 14095  Quiet  149661
+   all: 306662, (55992, 35766, 214904) done 91758, 0.299 // maxPoints = 9 (tip 9)
+> Step 192
+ thr 7, starting with size 157
+  setsize 817
+exp: 15.415ms
+rating: 17.837ms
+pruning: 19.728ms
+  Solved 36169  Cold   45522  Active 11751  Quiet  151848
+   all: 307330, (56660, 36169, 214501) done 92829, 0.302 // maxPoints = 9 (tip 9)
+> Step 193
+ thr 6, starting with size 233
+  setsize 1048
+exp: 16.127ms
+rating: 19.318ms
+pruning: 15.69ms
+  Solved 36660  Cold   50253  Active 1071  Quiet  162295
+   all: 308284, (57614, 36660, 214010) done 94274, 0.306 // maxPoints = 9 (tip 9)
+> Step 194
+ thr 5, starting with size 122
+  setsize 826
+exp: 8.895ms
+rating: 23.225ms
+pruning: 14.65ms
+  Solved 36804  Cold   50253  Active 876  Quiet  162368
+   all: 309093, (58423, 36804, 213866) done 95227, 0.308 // maxPoints = 9 (tip 9)
+> Step 195
+ thr 4, starting with size 112
+  setsize 775
+exp: 8.259ms
+rating: 16.265ms
+pruning: 15.402ms
+  Solved 36916  Cold   50253  Active 764  Quiet  162966
+   all: 309836, (58568, 36916, 214352) done 95484, 0.308 // maxPoints = 9 (tip 9)
+> Step 196
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.038ms
+-------------------- Nothing found!
+rating: 21.396ms
+pruning: 21.511ms
+  Solved 36916  Cold   50253  Active 764  Quiet  162966
+   all: 309836, (58568, 36916, 214352) done 95484, 0.308 // maxPoints = 9 (tip 9)
+> Step 197
+ thr 3, starting with size 546
+  setsize 3792
+exp: 48.039ms
+rating: 18.324ms
+pruning: 17.671ms
+  Solved 37192  Cold   50479  Active 1505  Quiet  164988
+   all: 313384, (58807, 37192, 217385) done 95999, 0.306 // maxPoints = 9 (tip 9)
+> Step 198
+ thr 4, starting with size 413
+  setsize 2291
+exp: 30.931ms
+rating: 23.514ms
+pruning: 18.136ms
+  Solved 37192  Cold   50479  Active 3361  Quiet  164987
+   all: 315652, (58807, 37192, 219653) done 95999, 0.304 // maxPoints = 9 (tip 9)
+> Step 199
+ thr 7, starting with size 36
+  setsize 176
+exp: 2.564ms
+rating: 17.493ms
+pruning: 23.678ms
+  Solved 37253  Cold   50479  Active 3213  Quiet  165099
+   all: 315828, (58983, 37253, 219592) done 96236, 0.305 // maxPoints = 9 (tip 9)
+> Step 200
+ thr 6, starting with size 318
+  setsize 1492
+exp: 20.544ms
+rating: 17.612ms
+pruning: 18.305ms
+  Solved 37787  Cold   50507  Active 1776  Quiet  166218
+   all: 317320, (60475, 37787, 219058) done 98262, 0.310 // maxPoints = 9 (tip 9)
+> Step 201
+ thr 5, starting with size 52
+  setsize 364
+exp: 3.611ms
+rating: 16.81ms
+pruning: 15.153ms
+  Solved 37839  Cold   50507  Active 1724  Quiet  166218
+   all: 317684, (60839, 37839, 219006) done 98678, 0.311 // maxPoints = 9 (tip 9)
+> Step 202
+ thr 4, starting with size 632
+  setsize 3476
+exp: 53.548ms
+rating: 17.746ms
+pruning: 15.493ms
+  Solved 38373  Cold   50601  Active 1487  Quiet  168348
+   all: 321119, (61749, 38373, 220997) done 100122, 0.312 // maxPoints = 9 (tip 9)
+> Step 203
+ thr 4, starting with size 562
+  setsize 2177
+exp: 36.228ms
+rating: 17.452ms
+pruning: 16.095ms
+  Solved 38373  Cold   50583  Active 3105  Quiet  168275
+   all: 323226, (61749, 38373, 223104) done 100122, 0.310 // maxPoints = 9 (tip 9)
+> Step 204
+ thr 7, starting with size 20
+  setsize 64
+exp: 1.813ms
+rating: 17.713ms
+pruning: 14.889ms
+  Solved 38420  Cold   50624  Active 2900  Quiet  168460
+   all: 323290, (61813, 38420, 223057) done 100233, 0.310 // maxPoints = 9 (tip 9)
+> Step 205
+ thr 6, starting with size 86
+  setsize 303
+exp: 6.117ms
+rating: 16.971ms
+pruning: 15.901ms
+  Solved 38578  Cold   50720  Active 2360  Quiet  168914
+   all: 323579, (62102, 38578, 222899) done 100680, 0.311 // maxPoints = 9 (tip 9)
+> Step 206
+ thr 5, starting with size 22
+  setsize 149
+exp: 3.159ms
+rating: 20.288ms
+pruning: 18.753ms
+  Solved 38600  Cold   50720  Active 2338  Quiet  168914
+   all: 323725, (62248, 38600, 222877) done 100848, 0.312 // maxPoints = 9 (tip 9)
+> Step 207
+ thr 4, starting with size 1413
+  setsize 5307
+exp: 88.493ms
+rating: 18.519ms
+pruning: 14.969ms
+  Solved 39264  Cold   52017  Active 925  Quiet  173023
+   all: 328768, (63182, 39264, 226322) done 102446, 0.312 // maxPoints = 9 (tip 9)
+> Step 208
+
+
+EXHAUSTED
+
+
+ thr 7, starting with size 0
+  setsize 0
+exp: 0.025ms
+-------------------- Nothing found!
+rating: 18.084ms
+pruning: 14.992ms
+  Solved 39264  Cold   52017  Active 925  Quiet  173023
+   all: 328768, (63182, 39264, 226322) done 102446, 0.312 // maxPoints = 9 (tip 9)
+> Step 209
+ thr 3, starting with size 707
+  setsize 4120
+exp: 47.37ms
+-------------------- Nothing found!
+rating: 17.337ms
+pruning: 15.384ms
+  Solved 39264  Cold   52017  Active 4338  Quiet  173023
+   all: 332888, (63182, 39264, 230442) done 102446, 0.308 // maxPoints = 9 (tip 9)
+> Step 210
+ thr 7, starting with size 94
+  setsize 546
+exp: 6.579ms
+rating: 21.889ms
+pruning: 20.817ms
+  Solved 39485  Cold   52250  Active 2564  Quiet  174703
+   all: 333335, (63629, 39485, 230221) done 103114, 0.309 // maxPoints = 9 (tip 9)
+> Step 211
+ thr 6, starting with size 85
+  setsize 456
+exp: 6.347ms
+rating: 20.715ms
+pruning: 16.43ms
+  Solved 39639  Cold   52250  Active 2163  Quiet  175019
+   all: 333759, (64053, 39639, 230067) done 103692, 0.311 // maxPoints = 9 (tip 9)
+> Step 212
+ thr 5, starting with size 371
+  setsize 2285
+exp: 27.333ms
+rating: 18.929ms
+pruning: 19.928ms
+  Solved 40053  Cold   52250  Active 1639  Quiet  175172
+   all: 335995, (66289, 40053, 229653) done 106342, 0.316 // maxPoints = 9 (tip 9)
+> Step 213
+ thr 4, starting with size 270
+  setsize 1736
+exp: 20.703ms
+rating: 18.501ms
+pruning: 16.966ms
+  Solved 40321  Cold   52250  Active 1378  Quiet  176452
+   all: 337615, (66620, 40321, 230674) done 106941, 0.317 // maxPoints = 9 (tip 9)
+> Step 214
+ thr 4, starting with size 9
+  setsize 16
+exp: 0.812ms
+-------------------- Nothing found!
+rating: 30.696ms
+pruning: 31.119ms
+  Solved 40321  Cold   52250  Active 1385  Quiet  176452
+   all: 337631, (66620, 40321, 230690) done 106941, 0.317 // maxPoints = 9 (tip 9)
+> Step 215
+ thr 4, starting with size 16
+  setsize 59
+exp: 1.856ms
+rating: 18.867ms
+pruning: 16.136ms
+  Solved 40329  Cold   52269  Active 1369  Quiet  176507
+   all: 337690, (66624, 40329, 230737) done 106953, 0.317 // maxPoints = 9 (tip 9)
+> Step 216
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.053ms
+-------------------- Nothing found!
+rating: 24.779ms
+pruning: 17.728ms
+  Solved 40329  Cold   52269  Active 1369  Quiet  176507
+   all: 337690, (66624, 40329, 230737) done 106953, 0.317 // maxPoints = 9 (tip 9)
+> Step 217
+ thr 3, starting with size 1151
+  setsize 7342
+exp: 91.582ms
+rating: 19.642ms
+pruning: 19.758ms
+  Solved 40770  Cold   52251  Active 4720  Quiet  178452
+   all: 344537, (67024, 40770, 236743) done 107794, 0.313 // maxPoints = 9 (tip 9)
+> Step 218
+ thr 4, starting with size 1962
+  setsize 9177
+exp: 128.238ms
+rating: 19.668ms
+pruning: 18.363ms
+  Solved 40913  Cold   52313  Active 11053  Quiet  178715
+   all: 353265, (67194, 40913, 245158) done 108107, 0.306 // maxPoints = 9 (tip 9)
+> Step 219
+ thr 7, starting with size 165
+  setsize 759
+exp: 10.982ms
+rating: 19.783ms
+pruning: 18.743ms
+  Solved 41203  Cold   52362  Active 10298  Quiet  179305
+   all: 354016, (67945, 41203, 244868) done 109148, 0.308 // maxPoints = 9 (tip 9)
+> Step 220
+ thr 6, starting with size 916
+  setsize 3788
+exp: 56.192ms
+rating: 21.281ms
+pruning: 18.67ms
+  Solved 42739  Cold   52711  Active 5997  Quiet  182690
+   all: 357770, (71699, 42739, 243332) done 114438, 0.320 // maxPoints = 9 (tip 9)
+> Step 221
+ thr 5, starting with size 153
+  setsize 1051
+exp: 11.043ms
+rating: 20.69ms
+pruning: 18.973ms
+  Solved 42897  Cold   52711  Active 5818  Quiet  182716
+   all: 358817, (72746, 42897, 243174) done 115643, 0.322 // maxPoints = 9 (tip 9)
+> Step 222
+ thr 4, starting with size 3072
+  setsize 14289
+exp: 226.296ms
+rating: 22.417ms
+pruning: 19.258ms
+  Solved 44634  Cold   53673  Active 6020  Quiet  190491
+   all: 372550, (75430, 44634, 252486) done 120064, 0.322 // maxPoints = 9 (tip 9)
+> Step 223
+ thr 7, starting with size 42
+  setsize 144
+exp: 4.532ms
+rating: 21.681ms
+pruning: 20.621ms
+  Solved 44721  Cold   53776  Active 5637  Quiet  190832
+   all: 372691, (75571, 44721, 252399) done 120292, 0.323 // maxPoints = 9 (tip 9)
+> Step 224
+ thr 6, starting with size 51
+  setsize 198
+exp: 3.614ms
+rating: 25.156ms
+pruning: 20.876ms
+  Solved 44815  Cold   53840  Active 5380  Quiet  191038
+   all: 372881, (75761, 44815, 252305) done 120576, 0.323 // maxPoints = 9 (tip 9)
+> Step 225
+ thr 5, starting with size 5
+  setsize 37
+exp: 0.473ms
+rating: 20.324ms
+pruning: 18.136ms
+  Solved 44820  Cold   53840  Active 5375  Quiet  191038
+   all: 372918, (75798, 44820, 252300) done 120618, 0.323 // maxPoints = 9 (tip 9)
+> Step 226
+ thr 4, starting with size 2930
+  setsize 11831
+exp: 173.277ms
+rating: 20.894ms
+pruning: 19.442ms
+  Solved 45164  Cold   53897  Active 12486  Quiet  191315
+   all: 383667, (76229, 45164, 262274) done 121393, 0.316 // maxPoints = 9 (tip 9)
+> Step 227
+ thr 7, starting with size 175
+  setsize 649
+exp: 9.721ms
+rating: 20.284ms
+pruning: 18.962ms
+  Solved 45492  Cold   54198  Active 11144  Quiet  192482
+   all: 384288, (76850, 45492, 261946) done 122342, 0.318 // maxPoints = 9 (tip 9)
+> Step 228
+ thr 6, starting with size 478
+  setsize 1842
+exp: 28.957ms
+rating: 21.399ms
+pruning: 17.676ms
+  Solved 46343  Cold   55582  Active 6736  Quiet  196412
+   all: 386054, (78616, 46343, 261095) done 124959, 0.324 // maxPoints = 9 (tip 9)
+> Step 229
+ thr 5, starting with size 39
+  setsize 301
+exp: 3.072ms
+rating: 20.163ms
+pruning: 19.352ms
+  Solved 46382  Cold   55582  Active 6697  Quiet  196412
+   all: 386355, (78917, 46382, 261056) done 125299, 0.324 // maxPoints = 9 (tip 9)
+> Step 230
+ thr 4, starting with size 4252
+  setsize 16687
+exp: 254.18ms
+rating: 25.462ms
+pruning: 22.502ms
+  Solved 47698  Cold   60018  Active 2445  Quiet  210080
+   all: 401764, (80658, 47698, 273408) done 128356, 0.319 // maxPoints = 9 (tip 9)
+> Step 231
+
+
+EXHAUSTED
+
+
+ thr 8, starting with size 0
+  setsize 0
+exp: 0.03ms
+-------------------- Nothing found!
+rating: 22.815ms
+pruning: 22.437ms
+  Solved 47698  Cold   60018  Active 2445  Quiet  210080
+   all: 401764, (80658, 47698, 273408) done 128356, 0.319 // maxPoints = 9 (tip 9)
+> Step 232
+ thr 3, starting with size 2227
+  setsize 12361
+exp: 175.801ms
+rating: 21.665ms
+pruning: 20.913ms
+  Solved 47698  Cold   60006  Active 12604  Quiet  210039
+   all: 414109, (80658, 47698, 285753) done 128356, 0.310 // maxPoints = 9 (tip 9)
+> Step 233
+ thr 7, starting with size 311
+  setsize 1728
+exp: 20.856ms
+rating: 23.703ms
+pruning: 22.77ms
+  Solved 48438  Cold   60591  Active 8102  Quiet  214230
+   all: 415507, (82056, 48438, 285013) done 130494, 0.314 // maxPoints = 9 (tip 9)
+> Step 234
+ thr 6, starting with size 396
+  setsize 1925
+exp: 26.111ms
+rating: 23.284ms
+pruning: 21.368ms
+  Solved 49206  Cold   61844  Active 1368  Quiet  220568
+   all: 417203, (83752, 49206, 284245) done 132958, 0.319 // maxPoints = 9 (tip 9)
+> Step 235
+ thr 5, starting with size 222
+  setsize 1385
+exp: 16.898ms
+rating: 23.398ms
+pruning: 22.62ms
+  Solved 49459  Cold   61844  Active 1020  Quiet  220694
+   all: 418557, (85106, 49459, 283992) done 134565, 0.321 // maxPoints = 9 (tip 9)
+> Step 236
+ thr 4, starting with size 154
+  setsize 1015
+exp: 11.328ms
+rating: 22.775ms
+pruning: 19.754ms
+  Solved 49613  Cold   61844  Active 866  Quiet  221470
+   all: 419522, (85295, 49613, 284614) done 134908, 0.322 // maxPoints = 9 (tip 9)
+> Step 237
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.029ms
+-------------------- Nothing found!
+rating: 21.612ms
+pruning: 19.531ms
+  Solved 49613  Cold   61844  Active 866  Quiet  221470
+   all: 419522, (85295, 49613, 284614) done 134908, 0.322 // maxPoints = 9 (tip 9)
+> Step 238
+ thr 3, starting with size 648
+  setsize 4387
+exp: 46.654ms
+rating: 22.008ms
+pruning: 20.032ms
+  Solved 49884  Cold   62047  Active 2323  Quiet  223266
+   all: 423694, (85566, 49884, 288244) done 135450, 0.320 // maxPoints = 9 (tip 9)
+> Step 239
+ thr 4, starting with size 581
+  setsize 3594
+exp: 42.132ms
+-------------------- Nothing found!
+rating: 30.538ms
+pruning: 20.971ms
+  Solved 49884  Cold   62031  Active 5372  Quiet  223204
+    DIFFERENCE:
+    49884->49884
+    5310->5372
+    223266->223204
+   all: 427262, (85566, 49884, 291812) done 135450, 0.317 // maxPoints = 9 (tip 9)
+> Step 240
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.315ms
+rating: 21.624ms
+pruning: 19.697ms
+  Solved 50014  Cold   62031  Active 5057  Quiet  223437
+   all: 427683, (85987, 50014, 291682) done 136001, 0.318 // maxPoints = 9 (tip 9)
+> Step 241
+ thr 6, starting with size 546
+  setsize 2411
+exp: 35.898ms
+rating: 22.88ms
+pruning: 19.892ms
+  Solved 50880  Cold   62034  Active 2854  Quiet  225094
+   all: 430094, (88398, 50880, 290816) done 139278, 0.324 // maxPoints = 9 (tip 9)
+> Step 242
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.17ms
+rating: 21.681ms
+pruning: 19.386ms
+  Solved 50989  Cold   62034  Active 2723  Quiet  225121
+   all: 430801, (89105, 50989, 290707) done 140094, 0.325 // maxPoints = 9 (tip 9)
+> Step 243
+ thr 4, starting with size 981
+  setsize 5841
+exp: 63.848ms
+rating: 23.311ms
+pruning: 20.603ms
+  Solved 51891  Cold   62053  Active 2428  Quiet  228652
+   all: 436602, (90689, 51891, 294022) done 142580, 0.327 // maxPoints = 9 (tip 9)
+> Step 244
+ thr 4, starting with size 914
+  setsize 3451
+exp: 54.141ms
+rating: 23.415ms
+pruning: 21.009ms
+  Solved 51948  Cold   62111  Active 4521  Quiet  228909
+   all: 439942, (90765, 51948, 297229) done 142713, 0.324 // maxPoints = 9 (tip 9)
+> Step 245
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.465ms
+rating: 22.255ms
+pruning: 20.395ms
+  Solved 52004  Cold   62231  Active 4157  Quiet  229249
+   all: 440017, (90840, 52004, 297173) done 142844, 0.325 // maxPoints = 9 (tip 9)
+> Step 246
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.453ms
+rating: 23.048ms
+pruning: 20.309ms
+  Solved 52304  Cold   62648  Active 2709  Quiet  230534
+   all: 440551, (91374, 52304, 296873) done 143678, 0.326 // maxPoints = 9 (tip 9)
+> Step 247
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.166ms
+rating: 22.355ms
+pruning: 20.235ms
+  Solved 52318  Cold   62648  Active 2695  Quiet  230534
+   all: 440659, (91482, 52318, 296859) done 143800, 0.326 // maxPoints = 9 (tip 9)
+> Step 248
+ thr 4, starting with size 1181
+  setsize 4468
+exp: 72.59ms
+rating: 23.533ms
+pruning: 18.898ms
+  Solved 52707  Cold   63859  Active 1514  Quiet  234370
+   all: 445038, (92025, 52707, 300306) done 144732, 0.325 // maxPoints = 9 (tip 9)
+> Step 249
+
+
+EXHAUSTED
+
+
+ thr 7, starting with size 0
+  setsize 0
+exp: 0.035ms
+-------------------- Nothing found!
+rating: 20.703ms
+pruning: 18.13ms
+  Solved 52707  Cold   63859  Active 1514  Quiet  234370
+   all: 445038, (92025, 52707, 300306) done 144732, 0.325 // maxPoints = 9 (tip 9)
+> Step 250
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 84.084ms
+-------------------- Nothing found!
+rating: 30.297ms
+pruning: 20.946ms
+  Solved 52707  Cold   63859  Active 8196  Quiet  234370
+   all: 453016, (92025, 52707, 308284) done 144732, 0.319 // maxPoints = 9 (tip 9)
+> Step 251
+ thr 7, starting with size 199
+  setsize 1157
+exp: 13.5ms
+rating: 22.227ms
+pruning: 19.415ms
+  Solved 53181  Cold   64457  Active 3950  Quiet  238417
+   all: 453965, (92974, 53181, 307810) done 146155, 0.322 // maxPoints = 9 (tip 9)
+> Step 252
+ thr 6, starting with size 202
+  setsize 1100
+exp: 13.12ms
+rating: 22.164ms
+pruning: 19.503ms
+  Solved 53558  Cold   64801  Active 1368  Quiet  240797
+   all: 454939, (93948, 53558, 307433) done 147506, 0.324 // maxPoints = 9 (tip 9)
+> Step 253
+ thr 5, starting with size 222
+  setsize 1385
+exp: 15.208ms
+rating: 22.565ms
+pruning: 19.254ms
+  Solved 53811  Cold   64801  Active 1020  Quiet  240923
+   all: 456293, (95302, 53811, 307180) done 149113, 0.327 // maxPoints = 9 (tip 9)
+> Step 254
+ thr 4, starting with size 154
+  setsize 1015
+exp: 10.567ms
+rating: 21.591ms
+pruning: 24.885ms
+  Solved 53965  Cold   64801  Active 866  Quiet  241699
+   all: 457258, (95491, 53965, 307802) done 149456, 0.327 // maxPoints = 9 (tip 9)
+> Step 255
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.02ms
+-------------------- Nothing found!
+rating: 21.173ms
+pruning: 18.622ms
+  Solved 53965  Cold   64801  Active 866  Quiet  241699
+   all: 457258, (95491, 53965, 307802) done 149456, 0.327 // maxPoints = 9 (tip 9)
+> Step 256
+ thr 3, starting with size 648
+  setsize 4387
+exp: 44.408ms
+rating: 22.418ms
+pruning: 21.874ms
+  Solved 54228  Cold   65004  Active 2323  Quiet  243497
+   all: 461432, (95762, 54228, 311442) done 149990, 0.325 // maxPoints = 9 (tip 9)
+> Step 257
+ thr 4, starting with size 581
+  setsize 3594
+exp: 38.071ms
+-------------------- Nothing found!
+rating: 25.463ms
+pruning: 20.391ms
+  Solved 54228  Cold   65004  Active 5336  Quiet  243497
+   all: 465026, (95762, 54228, 315036) done 149990, 0.323 // maxPoints = 9 (tip 9)
+> Step 258
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.201ms
+rating: 22.83ms
+pruning: 20.771ms
+  Solved 54358  Cold   65004  Active 5021  Quiet  243730
+   all: 465447, (96183, 54358, 314906) done 150541, 0.323 // maxPoints = 9 (tip 9)
+> Step 259
+ thr 6, starting with size 546
+  setsize 2411
+exp: 31.383ms
+rating: 26.761ms
+pruning: 24.196ms
+  Solved 55224  Cold   65004  Active 2823  Quiet  245382
+   all: 467858, (98594, 55224, 314040) done 153818, 0.329 // maxPoints = 9 (tip 9)
+> Step 260
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.17ms
+rating: 23.031ms
+pruning: 21.213ms
+  Solved 55333  Cold   65004  Active 2692  Quiet  245409
+   all: 468565, (99301, 55333, 313931) done 154634, 0.330 // maxPoints = 9 (tip 9)
+> Step 261
+ thr 4, starting with size 950
+  setsize 5648
+exp: 67.818ms
+rating: 24.149ms
+pruning: 20.018ms
+  Solved 56235  Cold   65023  Active 2250  Quiet  248965
+   all: 474213, (100885, 56235, 317093) done 157120, 0.331 // maxPoints = 9 (tip 9)
+> Step 262
+ thr 4, starting with size 736
+  setsize 2839
+exp: 42.643ms
+-------------------- Nothing found!
+rating: 23.991ms
+pruning: 20.986ms
+  Solved 56235  Cold   65023  Active 4353  Quiet  248965
+   all: 477052, (100885, 56235, 319932) done 157120, 0.329 // maxPoints = 9 (tip 9)
+> Step 263
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.405ms
+rating: 22.562ms
+pruning: 20.061ms
+  Solved 56291  Cold   65100  Active 4069  Quiet  249225
+   all: 477127, (100960, 56291, 319876) done 157251, 0.330 // maxPoints = 9 (tip 9)
+> Step 264
+ thr 6, starting with size 163
+  setsize 534
+exp: 8.945ms
+rating: 23.972ms
+pruning: 22.876ms
+  Solved 56591  Cold   65489  Active 2634  Quiet  250497
+   all: 477661, (101494, 56591, 319576) done 158085, 0.331 // maxPoints = 9 (tip 9)
+> Step 265
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.163ms
+rating: 23.353ms
+pruning: 21.562ms
+  Solved 56605  Cold   65489  Active 2620  Quiet  250497
+   all: 477769, (101602, 56605, 319562) done 158207, 0.331 // maxPoints = 9 (tip 9)
+> Step 266
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 69.753ms
+rating: 27.905ms
+pruning: 26.227ms
+  Solved 57010  Cold   66573  Active 1514  Quiet  253855
+   all: 481699, (102174, 57010, 322515) done 159184, 0.330 // maxPoints = 9 (tip 9)
+> Step 267
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.04ms
+-------------------- Nothing found!
+rating: 33.15ms
+pruning: 26.121ms
+  Solved 57010  Cold   66573  Active 1514  Quiet  253855
+   all: 481699, (102174, 57010, 322515) done 159184, 0.330 // maxPoints = 9 (tip 9)
+> Step 268
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 96.839ms
+-------------------- Nothing found!
+rating: 30.636ms
+pruning: 26.511ms
+  Solved 57010  Cold   66573  Active 8196  Quiet  253855
+   all: 489677, (102174, 57010, 330493) done 159184, 0.325 // maxPoints = 9 (tip 9)
+> Step 269
+ thr 7, starting with size 199
+  setsize 1157
+exp: 17.901ms
+rating: 30.08ms
+pruning: 23.373ms
+  Solved 57484  Cold   67171  Active 3950  Quiet  257902
+   all: 490626, (103123, 57484, 330019) done 160607, 0.327 // maxPoints = 9 (tip 9)
+> Step 270
+ thr 6, starting with size 202
+  setsize 1100
+exp: 17.788ms
+rating: 31.325ms
+pruning: 22.072ms
+  Solved 57861  Cold   67515  Active 1368  Quiet  260282
+   all: 491600, (104097, 57861, 329642) done 161958, 0.329 // maxPoints = 9 (tip 9)
+> Step 271
+ thr 5, starting with size 222
+  setsize 1385
+exp: 18.404ms
+rating: 25.505ms
+pruning: 22.64ms
+  Solved 58114  Cold   67515  Active 1020  Quiet  260408
+   all: 492954, (105451, 58114, 329389) done 163565, 0.332 // maxPoints = 9 (tip 9)
+> Step 272
+ thr 4, starting with size 154
+  setsize 1015
+exp: 10.687ms
+rating: 23.263ms
+pruning: 20.365ms
+  Solved 58268  Cold   67515  Active 866  Quiet  261184
+   all: 493919, (105640, 58268, 330011) done 163908, 0.332 // maxPoints = 9 (tip 9)
+> Step 273
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.075ms
+-------------------- Nothing found!
+rating: 25.983ms
+pruning: 20.974ms
+  Solved 58268  Cold   67515  Active 866  Quiet  261184
+   all: 493919, (105640, 58268, 330011) done 163908, 0.332 // maxPoints = 9 (tip 9)
+> Step 274
+ thr 3, starting with size 648
+  setsize 4387
+exp: 50.269ms
+rating: 25.795ms
+pruning: 23.494ms
+  Solved 58531  Cold   67718  Active 2323  Quiet  262982
+   all: 498093, (105911, 58531, 333651) done 164442, 0.330 // maxPoints = 9 (tip 9)
+> Step 275
+ thr 4, starting with size 581
+  setsize 3594
+exp: 38.775ms
+-------------------- Nothing found!
+rating: 24.988ms
+pruning: 21.888ms
+  Solved 58531  Cold   67718  Active 5336  Quiet  262982
+   all: 501687, (105911, 58531, 337245) done 164442, 0.328 // maxPoints = 9 (tip 9)
+> Step 276
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.101ms
+rating: 24.845ms
+pruning: 26.453ms
+  Solved 58661  Cold   67718  Active 5021  Quiet  263215
+   all: 502108, (106332, 58661, 337115) done 164993, 0.329 // maxPoints = 9 (tip 9)
+> Step 277
+ thr 6, starting with size 546
+  setsize 2411
+exp: 33.423ms
+rating: 32.8ms
+pruning: 27.299ms
+  Solved 59527  Cold   67718  Active 2823  Quiet  264867
+   all: 504519, (108743, 59527, 336249) done 168270, 0.334 // maxPoints = 9 (tip 9)
+> Step 278
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.258ms
+rating: 25.853ms
+pruning: 23.726ms
+  Solved 59636  Cold   67718  Active 2692  Quiet  264894
+   all: 505226, (109450, 59636, 336140) done 169086, 0.335 // maxPoints = 9 (tip 9)
+> Step 279
+ thr 4, starting with size 950
+  setsize 5648
+exp: 64.339ms
+rating: 26.852ms
+pruning: 23.611ms
+  Solved 60538  Cold   67737  Active 2250  Quiet  268450
+   all: 510874, (111034, 60538, 339302) done 171572, 0.336 // maxPoints = 9 (tip 9)
+> Step 280
+ thr 4, starting with size 736
+  setsize 2839
+exp: 44.727ms
+-------------------- Nothing found!
+rating: 26.498ms
+pruning: 23.652ms
+  Solved 60538  Cold   67737  Active 4353  Quiet  268450
+   all: 513713, (111034, 60538, 342141) done 171572, 0.334 // maxPoints = 9 (tip 9)
+> Step 281
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.453ms
+rating: 26.598ms
+pruning: 23.769ms
+  Solved 60594  Cold   67814  Active 4069  Quiet  268710
+   all: 513788, (111109, 60594, 342085) done 171703, 0.334 // maxPoints = 9 (tip 9)
+> Step 282
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.641ms
+rating: 26.337ms
+pruning: 23.173ms
+  Solved 60894  Cold   68203  Active 2634  Quiet  269982
+   all: 514322, (111643, 60894, 341785) done 172537, 0.335 // maxPoints = 9 (tip 9)
+> Step 283
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.192ms
+rating: 26.193ms
+pruning: 23.317ms
+  Solved 60908  Cold   68203  Active 2620  Quiet  269982
+   all: 514430, (111751, 60908, 341771) done 172659, 0.336 // maxPoints = 9 (tip 9)
+> Step 284
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 65.551ms
+rating: 26.994ms
+pruning: 23.514ms
+  Solved 61313  Cold   69287  Active 1514  Quiet  273340
+   all: 518360, (112323, 61313, 344724) done 173636, 0.335 // maxPoints = 9 (tip 9)
+> Step 285
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.021ms
+-------------------- Nothing found!
+rating: 25.562ms
+pruning: 22.841ms
+  Solved 61313  Cold   69287  Active 1514  Quiet  273340
+   all: 518360, (112323, 61313, 344724) done 173636, 0.335 // maxPoints = 9 (tip 9)
+> Step 286
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 130.43ms
+-------------------- Nothing found!
+rating: 26.356ms
+pruning: 24.359ms
+  Solved 61313  Cold   69287  Active 8196  Quiet  273340
+   all: 526338, (112323, 61313, 352702) done 173636, 0.330 // maxPoints = 9 (tip 9)
+> Step 287
+ thr 7, starting with size 199
+  setsize 1157
+exp: 13.212ms
+rating: 26.935ms
+pruning: 23.552ms
+  Solved 61787  Cold   69885  Active 3950  Quiet  277387
+   all: 527287, (113272, 61787, 352228) done 175059, 0.332 // maxPoints = 9 (tip 9)
+> Step 288
+ thr 6, starting with size 202
+  setsize 1100
+exp: 16.625ms
+rating: 26.428ms
+pruning: 22.786ms
+  Solved 62164  Cold   70229  Active 1368  Quiet  279767
+   all: 528261, (114246, 62164, 351851) done 176410, 0.334 // maxPoints = 9 (tip 9)
+> Step 289
+ thr 5, starting with size 222
+  setsize 1385
+exp: 15.242ms
+rating: 26.399ms
+pruning: 23.683ms
+  Solved 62417  Cold   70229  Active 1020  Quiet  279893
+   all: 529615, (115600, 62417, 351598) done 178017, 0.336 // maxPoints = 9 (tip 9)
+> Step 290
+ thr 4, starting with size 154
+  setsize 1015
+exp: 10.755ms
+rating: 26.381ms
+pruning: 23.785ms
+  Solved 62571  Cold   70229  Active 866  Quiet  280669
+   all: 530580, (115789, 62571, 352220) done 178360, 0.336 // maxPoints = 9 (tip 9)
+> Step 291
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.02ms
+-------------------- Nothing found!
+rating: 26.675ms
+pruning: 23.84ms
+  Solved 62571  Cold   70229  Active 866  Quiet  280669
+   all: 530580, (115789, 62571, 352220) done 178360, 0.336 // maxPoints = 9 (tip 9)
+> Step 292
+ thr 3, starting with size 648
+  setsize 4387
+exp: 43.865ms
+rating: 26.111ms
+pruning: 22.443ms
+  Solved 62834  Cold   70432  Active 2323  Quiet  282467
+   all: 534754, (116060, 62834, 355860) done 178894, 0.335 // maxPoints = 9 (tip 9)
+> Step 293
+ thr 4, starting with size 581
+  setsize 3594
+exp: 37.317ms
+-------------------- Nothing found!
+rating: 26.77ms
+pruning: 22.667ms
+  Solved 62834  Cold   70432  Active 5336  Quiet  282467
+   all: 538348, (116060, 62834, 359454) done 178894, 0.332 // maxPoints = 9 (tip 9)
+> Step 294
+ thr 7, starting with size 82
+  setsize 421
+exp: 4.925ms
+rating: 25.342ms
+pruning: 22.925ms
+  Solved 62964  Cold   70432  Active 5021  Quiet  282700
+   all: 538769, (116481, 62964, 359324) done 179445, 0.333 // maxPoints = 9 (tip 9)
+> Step 295
+ thr 6, starting with size 546
+  setsize 2411
+exp: 30.832ms
+rating: 26.889ms
+pruning: 22.425ms
+  Solved 63830  Cold   70432  Active 2823  Quiet  284352
+   all: 541180, (118892, 63830, 358458) done 182722, 0.338 // maxPoints = 9 (tip 9)
+> Step 296
+ thr 5, starting with size 104
+  setsize 707
+exp: 6.902ms
+rating: 27.402ms
+pruning: 22.514ms
+  Solved 63939  Cold   70432  Active 2692  Quiet  284379
+   all: 541887, (119599, 63939, 358349) done 183538, 0.339 // maxPoints = 9 (tip 9)
+> Step 297
+ thr 4, starting with size 950
+  setsize 5648
+exp: 62.688ms
+rating: 26.135ms
+pruning: 22.789ms
+  Solved 64841  Cold   70451  Active 2250  Quiet  287935
+   all: 547535, (121183, 64841, 361511) done 186024, 0.340 // maxPoints = 9 (tip 9)
+> Step 298
+ thr 4, starting with size 736
+  setsize 2839
+exp: 45.675ms
+-------------------- Nothing found!
+rating: 45.517ms
+pruning: 61.749ms
+  Solved 64841  Cold   70451  Active 4353  Quiet  287935
+   all: 550374, (121183, 64841, 364350) done 186024, 0.338 // maxPoints = 9 (tip 9)
+> Step 299
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.875ms
+rating: 27.749ms
+pruning: 22.897ms
+  Solved 64897  Cold   70528  Active 4069  Quiet  288195
+   all: 550449, (121258, 64897, 364294) done 186155, 0.338 // maxPoints = 9 (tip 9)
+> Step 300
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.141ms
+rating: 26.879ms
+pruning: 23.118ms
+  Solved 65197  Cold   70917  Active 2634  Quiet  289467
+   all: 550983, (121792, 65197, 363994) done 186989, 0.339 // maxPoints = 9 (tip 9)
+> Step 301
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.081ms
+rating: 25.959ms
+pruning: 22.646ms
+  Solved 65211  Cold   70917  Active 2620  Quiet  289467
+   all: 551091, (121900, 65211, 363980) done 187111, 0.340 // maxPoints = 9 (tip 9)
+> Step 302
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 61.521ms
+rating: 28.673ms
+pruning: 28.351ms
+  Solved 65616  Cold   72001  Active 1514  Quiet  292825
+   all: 555021, (122472, 65616, 366933) done 188088, 0.339 // maxPoints = 9 (tip 9)
+> Step 303
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.048ms
+-------------------- Nothing found!
+rating: 31.107ms
+pruning: 31.797ms
+  Solved 65616  Cold   72001  Active 1514  Quiet  292825
+   all: 555021, (122472, 65616, 366933) done 188088, 0.339 // maxPoints = 9 (tip 9)
+> Step 304
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 99.134ms
+-------------------- Nothing found!
+rating: 33.219ms
+pruning: 36.133ms
+  Solved 65616  Cold   72001  Active 8196  Quiet  292825
+   all: 562999, (122472, 65616, 374911) done 188088, 0.334 // maxPoints = 9 (tip 9)
+> Step 305
+ thr 7, starting with size 199
+  setsize 1157
+exp: 14.369ms
+rating: 34.578ms
+pruning: 39.98ms
+  Solved 66090  Cold   72599  Active 3950  Quiet  296872
+   all: 563948, (123421, 66090, 374437) done 189511, 0.336 // maxPoints = 9 (tip 9)
+> Step 306
+ thr 6, starting with size 202
+  setsize 1100
+exp: 14.508ms
+rating: 33.728ms
+pruning: 33.954ms
+  Solved 66467  Cold   72943  Active 1368  Quiet  299252
+   all: 564922, (124395, 66467, 374060) done 190862, 0.338 // maxPoints = 9 (tip 9)
+> Step 307
+ thr 5, starting with size 222
+  setsize 1385
+exp: 16.05ms
+rating: 29.815ms
+pruning: 32.15ms
+  Solved 66720  Cold   72943  Active 1020  Quiet  299378
+   all: 566276, (125749, 66720, 373807) done 192469, 0.340 // maxPoints = 9 (tip 9)
+> Step 308
+ thr 4, starting with size 154
+  setsize 1015
+exp: 11.849ms
+rating: 30.815ms
+pruning: 32.536ms
+  Solved 66874  Cold   72943  Active 866  Quiet  300154
+   all: 567241, (125938, 66874, 374429) done 192812, 0.340 // maxPoints = 9 (tip 9)
+> Step 309
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.021ms
+-------------------- Nothing found!
+rating: 31.231ms
+pruning: 33.294ms
+  Solved 66874  Cold   72943  Active 866  Quiet  300154
+   all: 567241, (125938, 66874, 374429) done 192812, 0.340 // maxPoints = 9 (tip 9)
+> Step 310
+ thr 3, starting with size 648
+  setsize 4387
+exp: 50.567ms
+rating: 39.333ms
+pruning: 36.054ms
+  Solved 67137  Cold   73146  Active 2323  Quiet  301952
+   all: 571415, (126209, 67137, 378069) done 193346, 0.338 // maxPoints = 9 (tip 9)
+> Step 311
+ thr 4, starting with size 581
+  setsize 3594
+exp: 42.037ms
+-------------------- Nothing found!
+rating: 49.683ms
+pruning: 28.738ms
+  Solved 67137  Cold   73146  Active 5336  Quiet  301952
+   all: 575009, (126209, 67137, 381663) done 193346, 0.336 // maxPoints = 9 (tip 9)
+> Step 312
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.707ms
+rating: 39.049ms
+pruning: 31.075ms
+  Solved 67267  Cold   73146  Active 5021  Quiet  302185
+   all: 575430, (126630, 67267, 381533) done 193897, 0.337 // maxPoints = 9 (tip 9)
+> Step 313
+ thr 6, starting with size 546
+  setsize 2411
+exp: 33.298ms
+rating: 36.716ms
+pruning: 26.265ms
+  Solved 68133  Cold   73146  Active 2823  Quiet  303837
+   all: 577841, (129041, 68133, 380667) done 197174, 0.341 // maxPoints = 9 (tip 9)
+> Step 314
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.174ms
+rating: 36.932ms
+pruning: 27.507ms
+  Solved 68242  Cold   73146  Active 2692  Quiet  303864
+   all: 578548, (129748, 68242, 380558) done 197990, 0.342 // maxPoints = 9 (tip 9)
+> Step 315
+ thr 4, starting with size 950
+  setsize 5648
+exp: 66.687ms
+rating: 42.708ms
+pruning: 29.288ms
+  Solved 69144  Cold   73165  Active 2250  Quiet  307420
+   all: 584196, (131332, 69144, 383720) done 200476, 0.343 // maxPoints = 9 (tip 9)
+> Step 316
+ thr 4, starting with size 736
+  setsize 2839
+exp: 50.289ms
+-------------------- Nothing found!
+rating: 41.104ms
+pruning: 32.276ms
+  Solved 69144  Cold   73165  Active 4353  Quiet  307420
+   all: 587035, (131332, 69144, 386559) done 200476, 0.342 // maxPoints = 9 (tip 9)
+> Step 317
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.554ms
+rating: 36.137ms
+pruning: 31.203ms
+  Solved 69200  Cold   73242  Active 4069  Quiet  307680
+   all: 587110, (131407, 69200, 386503) done 200607, 0.342 // maxPoints = 9 (tip 9)
+> Step 318
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.87ms
+rating: 33.385ms
+pruning: 29.311ms
+  Solved 69500  Cold   73631  Active 2634  Quiet  308952
+   all: 587644, (131941, 69500, 386203) done 201441, 0.343 // maxPoints = 9 (tip 9)
+> Step 319
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.202ms
+rating: 33.617ms
+pruning: 30.732ms
+  Solved 69514  Cold   73631  Active 2620  Quiet  308952
+   all: 587752, (132049, 69514, 386189) done 201563, 0.343 // maxPoints = 9 (tip 9)
+> Step 320
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 71.888ms
+rating: 36.221ms
+pruning: 31.333ms
+  Solved 69919  Cold   74715  Active 1514  Quiet  312310
+   all: 591682, (132621, 69919, 389142) done 202540, 0.342 // maxPoints = 9 (tip 9)
+> Step 321
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.036ms
+-------------------- Nothing found!
+rating: 33.292ms
+pruning: 32.456ms
+  Solved 69919  Cold   74715  Active 1514  Quiet  312310
+   all: 591682, (132621, 69919, 389142) done 202540, 0.342 // maxPoints = 9 (tip 9)
+> Step 322
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 116.747ms
+-------------------- Nothing found!
+rating: 35.394ms
+pruning: 32.971ms
+  Solved 69919  Cold   74715  Active 8196  Quiet  312310
+   all: 599660, (132621, 69919, 397120) done 202540, 0.338 // maxPoints = 9 (tip 9)
+> Step 323
+ thr 7, starting with size 199
+  setsize 1157
+exp: 16.046ms
+rating: 36.353ms
+pruning: 31.923ms
+  Solved 70393  Cold   75313  Active 3950  Quiet  316357
+   all: 600609, (133570, 70393, 396646) done 203963, 0.340 // maxPoints = 9 (tip 9)
+> Step 324
+ thr 6, starting with size 202
+  setsize 1100
+exp: 16.123ms
+rating: 35.991ms
+pruning: 30.815ms
+  Solved 70770  Cold   75657  Active 1368  Quiet  318737
+   all: 601583, (134544, 70770, 396269) done 205314, 0.341 // maxPoints = 9 (tip 9)
+> Step 325
+ thr 5, starting with size 222
+  setsize 1385
+exp: 17.795ms
+rating: 35.802ms
+pruning: 30.257ms
+  Solved 71023  Cold   75657  Active 1020  Quiet  318863
+   all: 602937, (135898, 71023, 396016) done 206921, 0.343 // maxPoints = 9 (tip 9)
+> Step 326
+ thr 4, starting with size 154
+  setsize 1015
+exp: 12.199ms
+rating: 37.966ms
+pruning: 33.881ms
+  Solved 71177  Cold   75657  Active 866  Quiet  319639
+   all: 603902, (136087, 71177, 396638) done 207264, 0.343 // maxPoints = 9 (tip 9)
+> Step 327
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.037ms
+-------------------- Nothing found!
+rating: 35.721ms
+pruning: 31.891ms
+  Solved 71177  Cold   75657  Active 866  Quiet  319639
+   all: 603902, (136087, 71177, 396638) done 207264, 0.343 // maxPoints = 9 (tip 9)
+> Step 328
+ thr 3, starting with size 648
+  setsize 4387
+exp: 53.621ms
+rating: 40.451ms
+pruning: 36.754ms
+  Solved 71440  Cold   75860  Active 2323  Quiet  321437
+   all: 608076, (136358, 71440, 400278) done 207798, 0.342 // maxPoints = 9 (tip 9)
+> Step 329
+ thr 4, starting with size 581
+  setsize 3594
+exp: 42.221ms
+-------------------- Nothing found!
+rating: 37.634ms
+pruning: 32.071ms
+  Solved 71440  Cold   75860  Active 5336  Quiet  321437
+   all: 611670, (136358, 71440, 403872) done 207798, 0.340 // maxPoints = 9 (tip 9)
+> Step 330
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.427ms
+rating: 31.862ms
+pruning: 31.194ms
+  Solved 71570  Cold   75860  Active 5021  Quiet  321670
+   all: 612091, (136779, 71570, 403742) done 208349, 0.340 // maxPoints = 9 (tip 9)
+> Step 331
+ thr 6, starting with size 546
+  setsize 2411
+exp: 36.025ms
+rating: 39.124ms
+pruning: 36.37ms
+  Solved 72436  Cold   75860  Active 2823  Quiet  323322
+   all: 614502, (139190, 72436, 402876) done 211626, 0.344 // maxPoints = 9 (tip 9)
+> Step 332
+ thr 5, starting with size 104
+  setsize 707
+exp: 8.472ms
+rating: 37.607ms
+pruning: 41.489ms
+  Solved 72545  Cold   75860  Active 2692  Quiet  323349
+   all: 615209, (139897, 72545, 402767) done 212442, 0.345 // maxPoints = 9 (tip 9)
+> Step 333
+ thr 4, starting with size 950
+  setsize 5648
+exp: 69.55ms
+rating: 34.932ms
+pruning: 36.938ms
+  Solved 73447  Cold   75879  Active 2250  Quiet  326905
+   all: 620857, (141481, 73447, 405929) done 214928, 0.346 // maxPoints = 9 (tip 9)
+> Step 334
+ thr 4, starting with size 736
+  setsize 2839
+exp: 47.044ms
+-------------------- Nothing found!
+rating: 42.568ms
+pruning: 31.671ms
+  Solved 73447  Cold   75879  Active 4353  Quiet  326905
+   all: 623696, (141481, 73447, 408768) done 214928, 0.345 // maxPoints = 9 (tip 9)
+> Step 335
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.643ms
+rating: 45.128ms
+pruning: 36.872ms
+  Solved 73503  Cold   75956  Active 4069  Quiet  327165
+   all: 623771, (141556, 73503, 408712) done 215059, 0.345 // maxPoints = 9 (tip 9)
+> Step 336
+ thr 6, starting with size 163
+  setsize 534
+exp: 14.929ms
+rating: 57.678ms
+pruning: 38.365ms
+  Solved 73803  Cold   76345  Active 2634  Quiet  328437
+   all: 624305, (142090, 73803, 408412) done 215893, 0.346 // maxPoints = 9 (tip 9)
+> Step 337
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.195ms
+rating: 36.626ms
+pruning: 32.598ms
+  Solved 73817  Cold   76345  Active 2620  Quiet  328437
+   all: 624413, (142198, 73817, 408398) done 216015, 0.346 // maxPoints = 9 (tip 9)
+> Step 338
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 66.908ms
+rating: 33.864ms
+pruning: 29.91ms
+  Solved 74222  Cold   77429  Active 1514  Quiet  331795
+   all: 628343, (142770, 74222, 411351) done 216992, 0.345 // maxPoints = 9 (tip 9)
+> Step 339
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.02ms
+-------------------- Nothing found!
+rating: 32.796ms
+pruning: 29.078ms
+  Solved 74222  Cold   77429  Active 1514  Quiet  331795
+   all: 628343, (142770, 74222, 411351) done 216992, 0.345 // maxPoints = 9 (tip 9)
+> Step 340
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 88.482ms
+-------------------- Nothing found!
+rating: 34.884ms
+pruning: 31.49ms
+  Solved 74222  Cold   77429  Active 8196  Quiet  331795
+   all: 636321, (142770, 74222, 419329) done 216992, 0.341 // maxPoints = 9 (tip 9)
+> Step 341
+ thr 7, starting with size 199
+  setsize 1157
+exp: 13.617ms
+rating: 41.447ms
+pruning: 29.956ms
+  Solved 74696  Cold   78027  Active 3950  Quiet  335842
+   all: 637270, (143719, 74696, 418855) done 218415, 0.343 // maxPoints = 9 (tip 9)
+> Step 342
+ thr 6, starting with size 202
+  setsize 1100
+exp: 13.424ms
+rating: 33.597ms
+pruning: 30.152ms
+  Solved 75073  Cold   78371  Active 1368  Quiet  338222
+   all: 638244, (144693, 75073, 418478) done 219766, 0.344 // maxPoints = 9 (tip 9)
+> Step 343
+ thr 5, starting with size 222
+  setsize 1385
+exp: 15.521ms
+rating: 33.83ms
+pruning: 30.238ms
+  Solved 75326  Cold   78371  Active 1020  Quiet  338348
+   all: 639598, (146047, 75326, 418225) done 221373, 0.346 // maxPoints = 9 (tip 9)
+> Step 344
+ thr 4, starting with size 154
+  setsize 1015
+exp: 11.854ms
+rating: 36.125ms
+pruning: 32.456ms
+  Solved 75480  Cold   78371  Active 866  Quiet  339124
+   all: 640563, (146236, 75480, 418847) done 221716, 0.346 // maxPoints = 9 (tip 9)
+> Step 345
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.036ms
+-------------------- Nothing found!
+rating: 44.167ms
+pruning: 40.568ms
+  Solved 75480  Cold   78371  Active 866  Quiet  339124
+   all: 640563, (146236, 75480, 418847) done 221716, 0.346 // maxPoints = 9 (tip 9)
+> Step 346
+ thr 3, starting with size 648
+  setsize 4387
+exp: 56.084ms
+rating: 33.291ms
+pruning: 28.981ms
+  Solved 75743  Cold   78574  Active 2323  Quiet  340922
+   all: 644737, (146507, 75743, 422487) done 222250, 0.345 // maxPoints = 9 (tip 9)
+> Step 347
+ thr 4, starting with size 581
+  setsize 3594
+exp: 41.968ms
+-------------------- Nothing found!
+rating: 44.139ms
+pruning: 33.983ms
+  Solved 75743  Cold   78574  Active 5336  Quiet  340922
+   all: 648331, (146507, 75743, 426081) done 222250, 0.343 // maxPoints = 9 (tip 9)
+> Step 348
+ thr 7, starting with size 82
+  setsize 421
+exp: 6.822ms
+rating: 42.367ms
+pruning: 41.982ms
+  Solved 75873  Cold   78574  Active 5021  Quiet  341155
+   all: 648752, (146928, 75873, 425951) done 222801, 0.343 // maxPoints = 9 (tip 9)
+> Step 349
+ thr 6, starting with size 546
+  setsize 2411
+exp: 32.991ms
+rating: 39.345ms
+pruning: 28.507ms
+  Solved 76739  Cold   78574  Active 2823  Quiet  342807
+   all: 651163, (149339, 76739, 425085) done 226078, 0.347 // maxPoints = 9 (tip 9)
+> Step 350
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.238ms
+rating: 41.078ms
+pruning: 30.843ms
+  Solved 76848  Cold   78574  Active 2692  Quiet  342834
+   all: 651870, (150046, 76848, 424976) done 226894, 0.348 // maxPoints = 9 (tip 9)
+> Step 351
+ thr 4, starting with size 950
+  setsize 5648
+exp: 61.395ms
+rating: 33.048ms
+pruning: 31.639ms
+  Solved 77750  Cold   78593  Active 2250  Quiet  346390
+   all: 657518, (151630, 77750, 428138) done 229380, 0.349 // maxPoints = 9 (tip 9)
+> Step 352
+ thr 4, starting with size 736
+  setsize 2839
+exp: 45.119ms
+-------------------- Nothing found!
+rating: 37.301ms
+pruning: 34.178ms
+  Solved 77750  Cold   78593  Active 4353  Quiet  346390
+   all: 660357, (151630, 77750, 430977) done 229380, 0.347 // maxPoints = 9 (tip 9)
+> Step 353
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.555ms
+rating: 34.578ms
+pruning: 31.908ms
+  Solved 77806  Cold   78670  Active 4069  Quiet  346650
+   all: 660432, (151705, 77806, 430921) done 229511, 0.348 // maxPoints = 9 (tip 9)
+> Step 354
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.539ms
+rating: 34.325ms
+pruning: 30.705ms
+  Solved 78106  Cold   79059  Active 2634  Quiet  347922
+   all: 660966, (152239, 78106, 430621) done 230345, 0.348 // maxPoints = 9 (tip 9)
+> Step 355
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.163ms
+rating: 34.593ms
+pruning: 32.498ms
+  Solved 78120  Cold   79059  Active 2620  Quiet  347922
+   all: 661074, (152347, 78120, 430607) done 230467, 0.349 // maxPoints = 9 (tip 9)
+> Step 356
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 64.479ms
+rating: 36.027ms
+pruning: 32.291ms
+  Solved 78525  Cold   80143  Active 1514  Quiet  351280
+   all: 665004, (152919, 78525, 433560) done 231444, 0.348 // maxPoints = 9 (tip 9)
+> Step 357
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.038ms
+-------------------- Nothing found!
+rating: 34.467ms
+pruning: 36.605ms
+  Solved 78525  Cold   80143  Active 1514  Quiet  351280
+   all: 665004, (152919, 78525, 433560) done 231444, 0.348 // maxPoints = 9 (tip 9)
+> Step 358
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 89.119ms
+-------------------- Nothing found!
+rating: 42.065ms
+pruning: 31.772ms
+  Solved 78525  Cold   80143  Active 8196  Quiet  351280
+   all: 672982, (152919, 78525, 441538) done 231444, 0.344 // maxPoints = 9 (tip 9)
+> Step 359
+ thr 7, starting with size 199
+  setsize 1157
+exp: 13.411ms
+rating: 36.274ms
+pruning: 31.289ms
+  Solved 78999  Cold   80741  Active 3950  Quiet  355327
+   all: 673931, (153868, 78999, 441064) done 232867, 0.346 // maxPoints = 9 (tip 9)
+> Step 360
+ thr 6, starting with size 202
+  setsize 1100
+exp: 13.41ms
+rating: 35.207ms
+pruning: 30.979ms
+  Solved 79376  Cold   81085  Active 1368  Quiet  357707
+   all: 674905, (154842, 79376, 440687) done 234218, 0.347 // maxPoints = 9 (tip 9)
+> Step 361
+ thr 5, starting with size 222
+  setsize 1385
+exp: 15.651ms
+rating: 36.161ms
+pruning: 31.778ms
+  Solved 79629  Cold   81085  Active 1020  Quiet  357833
+   all: 676259, (156196, 79629, 440434) done 235825, 0.349 // maxPoints = 9 (tip 9)
+> Step 362
+ thr 4, starting with size 154
+  setsize 1015
+exp: 11.059ms
+rating: 40.103ms
+pruning: 35.701ms
+  Solved 79783  Cold   81085  Active 866  Quiet  358609
+   all: 677224, (156385, 79783, 441056) done 236168, 0.349 // maxPoints = 9 (tip 9)
+> Step 363
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.033ms
+-------------------- Nothing found!
+rating: 33.599ms
+pruning: 29.405ms
+  Solved 79783  Cold   81085  Active 866  Quiet  358609
+   all: 677224, (156385, 79783, 441056) done 236168, 0.349 // maxPoints = 9 (tip 9)
+> Step 364
+ thr 3, starting with size 648
+  setsize 4387
+exp: 43.274ms
+rating: 34.143ms
+pruning: 30.156ms
+  Solved 80046  Cold   81288  Active 2323  Quiet  360407
+   all: 681398, (156656, 80046, 444696) done 236702, 0.347 // maxPoints = 9 (tip 9)
+> Step 365
+ thr 4, starting with size 581
+  setsize 3594
+exp: 38.028ms
+-------------------- Nothing found!
+rating: 39.366ms
+pruning: 29.784ms
+  Solved 80046  Cold   81288  Active 5336  Quiet  360407
+   all: 684992, (156656, 80046, 448290) done 236702, 0.346 // maxPoints = 9 (tip 9)
+> Step 366
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.111ms
+rating: 39.757ms
+pruning: 30.064ms
+  Solved 80176  Cold   81288  Active 5021  Quiet  360640
+   all: 685413, (157077, 80176, 448160) done 237253, 0.346 // maxPoints = 9 (tip 9)
+> Step 367
+ thr 6, starting with size 546
+  setsize 2411
+exp: 31.727ms
+rating: 33.702ms
+pruning: 29.358ms
+  Solved 81042  Cold   81288  Active 2823  Quiet  362292
+   all: 687824, (159488, 81042, 447294) done 240530, 0.350 // maxPoints = 9 (tip 9)
+> Step 368
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.119ms
+rating: 33.131ms
+pruning: 30.205ms
+  Solved 81151  Cold   81288  Active 2692  Quiet  362319
+   all: 688531, (160195, 81151, 447185) done 241346, 0.351 // maxPoints = 9 (tip 9)
+> Step 369
+ thr 4, starting with size 950
+  setsize 5648
+exp: 60.587ms
+rating: 35.447ms
+pruning: 32.081ms
+  Solved 82053  Cold   81307  Active 2250  Quiet  365875
+   all: 694179, (161779, 82053, 450347) done 243832, 0.351 // maxPoints = 9 (tip 9)
+> Step 370
+ thr 4, starting with size 736
+  setsize 2839
+exp: 44.793ms
+-------------------- Nothing found!
+rating: 37.953ms
+pruning: 32.893ms
+  Solved 82053  Cold   81307  Active 4353  Quiet  365875
+   all: 697018, (161779, 82053, 453186) done 243832, 0.350 // maxPoints = 9 (tip 9)
+> Step 371
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.482ms
+rating: 35.966ms
+pruning: 32.67ms
+  Solved 82109  Cold   81384  Active 4069  Quiet  366135
+   all: 697093, (161854, 82109, 453130) done 243963, 0.350 // maxPoints = 9 (tip 9)
+> Step 372
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.464ms
+rating: 36.076ms
+pruning: 37.018ms
+  Solved 82409  Cold   81773  Active 2634  Quiet  367407
+   all: 697627, (162388, 82409, 452830) done 244797, 0.351 // maxPoints = 9 (tip 9)
+> Step 373
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.137ms
+rating: 43.64ms
+pruning: 36.525ms
+  Solved 82423  Cold   81773  Active 2620  Quiet  367407
+   all: 697735, (162496, 82423, 452816) done 244919, 0.351 // maxPoints = 9 (tip 9)
+> Step 374
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 83.896ms
+rating: 39.409ms
+pruning: 35.411ms
+  Solved 82828  Cold   82857  Active 1514  Quiet  370765
+   all: 701665, (163068, 82828, 455769) done 245896, 0.350 // maxPoints = 9 (tip 9)
+> Step 375
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.026ms
+-------------------- Nothing found!
+rating: 41.018ms
+pruning: 36.071ms
+  Solved 82828  Cold   82857  Active 1514  Quiet  370765
+   all: 701665, (163068, 82828, 455769) done 245896, 0.350 // maxPoints = 9 (tip 9)
+> Step 376
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 108.314ms
+-------------------- Nothing found!
+rating: 42.976ms
+pruning: 40.207ms
+  Solved 82828  Cold   82857  Active 8196  Quiet  370765
+   all: 709643, (163068, 82828, 463747) done 245896, 0.347 // maxPoints = 9 (tip 9)
+> Step 377
+ thr 7, starting with size 199
+  setsize 1157
+exp: 13.753ms
+rating: 38.289ms
+pruning: 35.566ms
+  Solved 83302  Cold   83455  Active 3950  Quiet  374812
+   all: 710592, (164017, 83302, 463273) done 247319, 0.348 // maxPoints = 9 (tip 9)
+> Step 378
+ thr 6, starting with size 202
+  setsize 1100
+exp: 14.133ms
+rating: 39.343ms
+pruning: 33.755ms
+  Solved 83679  Cold   83799  Active 1368  Quiet  377192
+   all: 711566, (164991, 83679, 462896) done 248670, 0.349 // maxPoints = 9 (tip 9)
+> Step 379
+ thr 5, starting with size 222
+  setsize 1385
+exp: 16.88ms
+rating: 39.875ms
+pruning: 38.657ms
+  Solved 83932  Cold   83799  Active 1020  Quiet  377318
+   all: 712920, (166345, 83932, 462643) done 250277, 0.351 // maxPoints = 9 (tip 9)
+> Step 380
+ thr 4, starting with size 154
+  setsize 1015
+exp: 11.745ms
+rating: 44.77ms
+pruning: 33.274ms
+  Solved 84086  Cold   83799  Active 866  Quiet  378094
+   all: 713885, (166534, 84086, 463265) done 250620, 0.351 // maxPoints = 9 (tip 9)
+> Step 381
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.018ms
+-------------------- Nothing found!
+rating: 38.716ms
+pruning: 35.798ms
+  Solved 84086  Cold   83799  Active 866  Quiet  378094
+   all: 713885, (166534, 84086, 463265) done 250620, 0.351 // maxPoints = 9 (tip 9)
+> Step 382
+ thr 3, starting with size 648
+  setsize 4387
+exp: 48.478ms
+rating: 40.213ms
+pruning: 37.702ms
+  Solved 84349  Cold   84002  Active 2323  Quiet  379892
+   all: 718059, (166805, 84349, 466905) done 251154, 0.350 // maxPoints = 9 (tip 9)
+> Step 383
+ thr 4, starting with size 581
+  setsize 3594
+exp: 45.739ms
+-------------------- Nothing found!
+rating: 40.324ms
+pruning: 34.247ms
+  Solved 84349  Cold   84002  Active 5336  Quiet  379892
+   all: 721653, (166805, 84349, 470499) done 251154, 0.348 // maxPoints = 9 (tip 9)
+> Step 384
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.929ms
+rating: 40.372ms
+pruning: 35.763ms
+  Solved 84479  Cold   84002  Active 5021  Quiet  380125
+   all: 722074, (167226, 84479, 470369) done 251705, 0.349 // maxPoints = 9 (tip 9)
+> Step 385
+ thr 6, starting with size 546
+  setsize 2411
+exp: 34.981ms
+rating: 38.663ms
+pruning: 32.805ms
+  Solved 85345  Cold   84002  Active 2823  Quiet  381777
+   all: 724485, (169637, 85345, 469503) done 254982, 0.352 // maxPoints = 9 (tip 9)
+> Step 386
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.955ms
+rating: 43.602ms
+pruning: 34.421ms
+  Solved 85454  Cold   84002  Active 2692  Quiet  381804
+   all: 725192, (170344, 85454, 469394) done 255798, 0.353 // maxPoints = 9 (tip 9)
+> Step 387
+ thr 4, starting with size 950
+  setsize 5648
+exp: 62.747ms
+rating: 45.055ms
+pruning: 32.849ms
+  Solved 86356  Cold   84021  Active 2250  Quiet  385360
+   all: 730840, (171928, 86356, 472556) done 258284, 0.353 // maxPoints = 9 (tip 9)
+> Step 388
+ thr 4, starting with size 736
+  setsize 2839
+exp: 47.581ms
+-------------------- Nothing found!
+rating: 37.849ms
+pruning: 34.08ms
+  Solved 86356  Cold   84021  Active 4353  Quiet  385360
+   all: 733679, (171928, 86356, 475395) done 258284, 0.352 // maxPoints = 9 (tip 9)
+> Step 389
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.424ms
+rating: 38.25ms
+pruning: 33.086ms
+  Solved 86412  Cold   84098  Active 4069  Quiet  385620
+   all: 733754, (172003, 86412, 475339) done 258415, 0.352 // maxPoints = 9 (tip 9)
+> Step 390
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.691ms
+rating: 38.647ms
+pruning: 37.62ms
+  Solved 86712  Cold   84487  Active 2634  Quiet  386892
+   all: 734288, (172537, 86712, 475039) done 259249, 0.353 // maxPoints = 9 (tip 9)
+> Step 391
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.154ms
+rating: 37.331ms
+pruning: 34.591ms
+  Solved 86726  Cold   84487  Active 2620  Quiet  386892
+   all: 734396, (172645, 86726, 475025) done 259371, 0.353 // maxPoints = 9 (tip 9)
+> Step 392
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 64.603ms
+rating: 38.801ms
+pruning: 34.156ms
+  Solved 87131  Cold   85571  Active 1514  Quiet  390250
+   all: 738326, (173217, 87131, 477978) done 260348, 0.353 // maxPoints = 9 (tip 9)
+> Step 393
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.036ms
+-------------------- Nothing found!
+rating: 43.941ms
+pruning: 31.978ms
+  Solved 87131  Cold   85571  Active 1514  Quiet  390250
+   all: 738326, (173217, 87131, 477978) done 260348, 0.353 // maxPoints = 9 (tip 9)
+> Step 394
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 93.172ms
+-------------------- Nothing found!
+rating: 40.797ms
+pruning: 35.201ms
+  Solved 87131  Cold   85571  Active 8196  Quiet  390250
+   all: 746304, (173217, 87131, 485956) done 260348, 0.349 // maxPoints = 9 (tip 9)
+> Step 395
+ thr 7, starting with size 199
+  setsize 1157
+exp: 13.29ms
+rating: 37.933ms
+pruning: 35.459ms
+  Solved 87605  Cold   86169  Active 3950  Quiet  394297
+   all: 747253, (174166, 87605, 485482) done 261771, 0.350 // maxPoints = 9 (tip 9)
+> Step 396
+ thr 6, starting with size 202
+  setsize 1100
+exp: 13.425ms
+rating: 38.371ms
+pruning: 33.552ms
+  Solved 87982  Cold   86513  Active 1368  Quiet  396677
+   all: 748227, (175140, 87982, 485105) done 263122, 0.352 // maxPoints = 9 (tip 9)
+> Step 397
+ thr 5, starting with size 222
+  setsize 1385
+exp: 15.736ms
+rating: 38.513ms
+pruning: 34.116ms
+  Solved 88235  Cold   86513  Active 1020  Quiet  396803
+   all: 749581, (176494, 88235, 484852) done 264729, 0.353 // maxPoints = 9 (tip 9)
+> Step 398
+ thr 4, starting with size 154
+  setsize 1015
+exp: 11.67ms
+rating: 45.101ms
+pruning: 35.035ms
+  Solved 88389  Cold   86513  Active 866  Quiet  397579
+   all: 750546, (176683, 88389, 485474) done 265072, 0.353 // maxPoints = 9 (tip 9)
+> Step 399
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.039ms
+-------------------- Nothing found!
+rating: 41.068ms
+pruning: 35.327ms
+  Solved 88389  Cold   86513  Active 866  Quiet  397579
+   all: 750546, (176683, 88389, 485474) done 265072, 0.353 // maxPoints = 9 (tip 9)
+> Step 400
+ thr 3, starting with size 648
+  setsize 4387
+exp: 50.751ms
+rating: 38.968ms
+pruning: 34.278ms
+  Solved 88652  Cold   86716  Active 2323  Quiet  399377
+   all: 754720, (176954, 88652, 489114) done 265606, 0.352 // maxPoints = 9 (tip 9)
+> Step 401
+ thr 4, starting with size 581
+  setsize 3594
+exp: 44.513ms
+-------------------- Nothing found!
+rating: 50.695ms
+pruning: 39.501ms
+  Solved 88652  Cold   86716  Active 5336  Quiet  399377
+   all: 758314, (176954, 88652, 492708) done 265606, 0.350 // maxPoints = 9 (tip 9)
+> Step 402
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.454ms
+rating: 42.775ms
+pruning: 38.478ms
+  Solved 88782  Cold   86716  Active 5021  Quiet  399610
+   all: 758735, (177375, 88782, 492578) done 266157, 0.351 // maxPoints = 9 (tip 9)
+> Step 403
+ thr 6, starting with size 546
+  setsize 2411
+exp: 36.442ms
+rating: 49.6ms
+pruning: 39.561ms
+  Solved 89648  Cold   86716  Active 2823  Quiet  401262
+   all: 761146, (179786, 89648, 491712) done 269434, 0.354 // maxPoints = 9 (tip 9)
+> Step 404
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.572ms
+rating: 46.899ms
+pruning: 43.19ms
+  Solved 89757  Cold   86716  Active 2692  Quiet  401289
+   all: 761853, (180493, 89757, 491603) done 270250, 0.355 // maxPoints = 9 (tip 9)
+> Step 405
+ thr 4, starting with size 950
+  setsize 5648
+exp: 71.12ms
+rating: 48.408ms
+pruning: 38.921ms
+  Solved 90659  Cold   86735  Active 2250  Quiet  404845
+   all: 767501, (182077, 90659, 494765) done 272736, 0.355 // maxPoints = 9 (tip 9)
+> Step 406
+ thr 4, starting with size 736
+  setsize 2839
+exp: 54.609ms
+-------------------- Nothing found!
+rating: 42.623ms
+pruning: 41.2ms
+  Solved 90659  Cold   86735  Active 4353  Quiet  404845
+   all: 770340, (182077, 90659, 497604) done 272736, 0.354 // maxPoints = 9 (tip 9)
+> Step 407
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.699ms
+rating: 45.476ms
+pruning: 36.188ms
+  Solved 90715  Cold   86812  Active 4069  Quiet  405105
+   all: 770415, (182152, 90715, 497548) done 272867, 0.354 // maxPoints = 9 (tip 9)
+> Step 408
+ thr 6, starting with size 163
+  setsize 534
+exp: 10.512ms
+rating: 43.517ms
+pruning: 35.499ms
+  Solved 91015  Cold   87201  Active 2634  Quiet  406377
+   all: 770949, (182686, 91015, 497248) done 273701, 0.355 // maxPoints = 9 (tip 9)
+> Step 409
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.162ms
+rating: 44.808ms
+pruning: 35.03ms
+  Solved 91029  Cold   87201  Active 2620  Quiet  406377
+   all: 771057, (182794, 91029, 497234) done 273823, 0.355 // maxPoints = 9 (tip 9)
+> Step 410
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 64.243ms
+rating: 40.547ms
+pruning: 39.475ms
+  Solved 91434  Cold   88285  Active 1514  Quiet  409735
+   all: 774987, (183366, 91434, 500187) done 274800, 0.355 // maxPoints = 9 (tip 9)
+> Step 411
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.024ms
+-------------------- Nothing found!
+rating: 46.95ms
+pruning: 35.769ms
+  Solved 91434  Cold   88285  Active 1514  Quiet  409735
+   all: 774987, (183366, 91434, 500187) done 274800, 0.355 // maxPoints = 9 (tip 9)
+> Step 412
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 101.85ms
+-------------------- Nothing found!
+rating: 47.299ms
+pruning: 45.863ms
+  Solved 91434  Cold   88285  Active 8196  Quiet  409735
+   all: 782965, (183366, 91434, 508165) done 274800, 0.351 // maxPoints = 9 (tip 9)
+> Step 413
+ thr 7, starting with size 199
+  setsize 1157
+exp: 14.447ms
+rating: 40.248ms
+pruning: 34.157ms
+  Solved 91908  Cold   88883  Active 3950  Quiet  413782
+   all: 783914, (184315, 91908, 507691) done 276223, 0.352 // maxPoints = 9 (tip 9)
+> Step 414
+ thr 6, starting with size 202
+  setsize 1100
+exp: 12.756ms
+rating: 38.724ms
+pruning: 35.505ms
+  Solved 92285  Cold   89227  Active 1368  Quiet  416162
+   all: 784888, (185289, 92285, 507314) done 277574, 0.354 // maxPoints = 9 (tip 9)
+> Step 415
+ thr 5, starting with size 222
+  setsize 1385
+exp: 16.802ms
+rating: 41.045ms
+pruning: 35.224ms
+  Solved 92538  Cold   89227  Active 1020  Quiet  416288
+   all: 786242, (186643, 92538, 507061) done 279181, 0.355 // maxPoints = 9 (tip 9)
+> Step 416
+ thr 4, starting with size 154
+  setsize 1015
+exp: 11.937ms
+rating: 41.068ms
+pruning: 33.938ms
+  Solved 92692  Cold   89227  Active 866  Quiet  417064
+   all: 787207, (186832, 92692, 507683) done 279524, 0.355 // maxPoints = 9 (tip 9)
+> Step 417
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.024ms
+-------------------- Nothing found!
+rating: 37.711ms
+pruning: 32.962ms
+  Solved 92692  Cold   89227  Active 866  Quiet  417064
+   all: 787207, (186832, 92692, 507683) done 279524, 0.355 // maxPoints = 9 (tip 9)
+> Step 418
+ thr 3, starting with size 648
+  setsize 4387
+exp: 45.733ms
+rating: 39.123ms
+pruning: 34.014ms
+  Solved 92955  Cold   89430  Active 2323  Quiet  418862
+   all: 791381, (187103, 92955, 511323) done 280058, 0.354 // maxPoints = 9 (tip 9)
+> Step 419
+ thr 4, starting with size 581
+  setsize 3594
+exp: 40.846ms
+-------------------- Nothing found!
+rating: 39.994ms
+pruning: 35.198ms
+  Solved 92955  Cold   89430  Active 5336  Quiet  418862
+   all: 794975, (187103, 92955, 514917) done 280058, 0.352 // maxPoints = 9 (tip 9)
+> Step 420
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.768ms
+rating: 38.204ms
+pruning: 34.198ms
+  Solved 93085  Cold   89430  Active 5021  Quiet  419095
+   all: 795396, (187524, 93085, 514787) done 280609, 0.353 // maxPoints = 9 (tip 9)
+> Step 421
+ thr 6, starting with size 546
+  setsize 2411
+exp: 32.278ms
+rating: 40.538ms
+pruning: 34.757ms
+  Solved 93951  Cold   89430  Active 2823  Quiet  420747
+   all: 797807, (189935, 93951, 513921) done 283886, 0.356 // maxPoints = 9 (tip 9)
+> Step 422
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.114ms
+rating: 39.887ms
+pruning: 35.128ms
+  Solved 94060  Cold   89430  Active 2692  Quiet  420774
+   all: 798514, (190642, 94060, 513812) done 284702, 0.357 // maxPoints = 9 (tip 9)
+> Step 423
+ thr 4, starting with size 950
+  setsize 5648
+exp: 66.592ms
+rating: 40.384ms
+pruning: 34.423ms
+  Solved 94962  Cold   89449  Active 2250  Quiet  424330
+   all: 804162, (192226, 94962, 516974) done 287188, 0.357 // maxPoints = 9 (tip 9)
+> Step 424
+ thr 4, starting with size 736
+  setsize 2839
+exp: 43.095ms
+-------------------- Nothing found!
+rating: 40.493ms
+pruning: 35.369ms
+  Solved 94962  Cold   89449  Active 4353  Quiet  424330
+   all: 807001, (192226, 94962, 519813) done 287188, 0.356 // maxPoints = 9 (tip 9)
+> Step 425
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.398ms
+rating: 39.291ms
+pruning: 35.849ms
+  Solved 95018  Cold   89526  Active 4069  Quiet  424590
+   all: 807076, (192301, 95018, 519757) done 287319, 0.356 // maxPoints = 9 (tip 9)
+> Step 426
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.719ms
+rating: 46.043ms
+pruning: 42.91ms
+  Solved 95318  Cold   89915  Active 2634  Quiet  425862
+   all: 807610, (192835, 95318, 519457) done 288153, 0.357 // maxPoints = 9 (tip 9)
+> Step 427
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.149ms
+rating: 41.333ms
+pruning: 35.941ms
+  Solved 95332  Cold   89915  Active 2620  Quiet  425862
+   all: 807718, (192943, 95332, 519443) done 288275, 0.357 // maxPoints = 9 (tip 9)
+> Step 428
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 64.851ms
+rating: 45.433ms
+pruning: 38.392ms
+  Solved 95737  Cold   90999  Active 1514  Quiet  429220
+   all: 811648, (193515, 95737, 522396) done 289252, 0.356 // maxPoints = 9 (tip 9)
+> Step 429
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.026ms
+-------------------- Nothing found!
+rating: 48.482ms
+pruning: 48.251ms
+  Solved 95737  Cold   90999  Active 1514  Quiet  429220
+   all: 811648, (193515, 95737, 522396) done 289252, 0.356 // maxPoints = 9 (tip 9)
+> Step 430
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 99.07ms
+-------------------- Nothing found!
+rating: 45.304ms
+pruning: 40.016ms
+  Solved 95737  Cold   90999  Active 8196  Quiet  429220
+   all: 819626, (193515, 95737, 530374) done 289252, 0.353 // maxPoints = 9 (tip 9)
+> Step 431
+ thr 7, starting with size 199
+  setsize 1157
+exp: 13.286ms
+rating: 41.707ms
+pruning: 36.793ms
+  Solved 96211  Cold   91597  Active 3950  Quiet  433267
+   all: 820575, (194464, 96211, 529900) done 290675, 0.354 // maxPoints = 9 (tip 9)
+> Step 432
+ thr 6, starting with size 202
+  setsize 1100
+exp: 14.485ms
+rating: 44.74ms
+pruning: 38.873ms
+  Solved 96588  Cold   91941  Active 1368  Quiet  435647
+   all: 821549, (195438, 96588, 529523) done 292026, 0.355 // maxPoints = 9 (tip 9)
+> Step 433
+ thr 5, starting with size 222
+  setsize 1385
+exp: 15.81ms
+rating: 44.297ms
+pruning: 41.485ms
+  Solved 96841  Cold   91941  Active 1020  Quiet  435773
+   all: 822903, (196792, 96841, 529270) done 293633, 0.357 // maxPoints = 9 (tip 9)
+> Step 434
+ thr 4, starting with size 154
+  setsize 1015
+exp: 10.76ms
+rating: 41.752ms
+pruning: 41.951ms
+  Solved 96995  Cold   91941  Active 866  Quiet  436549
+   all: 823868, (196981, 96995, 529892) done 293976, 0.357 // maxPoints = 9 (tip 9)
+> Step 435
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.023ms
+-------------------- Nothing found!
+rating: 42.457ms
+pruning: 37.09ms
+  Solved 96995  Cold   91941  Active 866  Quiet  436549
+   all: 823868, (196981, 96995, 529892) done 293976, 0.357 // maxPoints = 9 (tip 9)
+> Step 436
+ thr 3, starting with size 648
+  setsize 4387
+exp: 45.216ms
+rating: 42.406ms
+pruning: 42.967ms
+  Solved 97258  Cold   92144  Active 2323  Quiet  438347
+   all: 828042, (197252, 97258, 533532) done 294510, 0.356 // maxPoints = 9 (tip 9)
+> Step 437
+ thr 4, starting with size 581
+  setsize 3594
+exp: 40.327ms
+-------------------- Nothing found!
+rating: 43.923ms
+pruning: 38.884ms
+  Solved 97258  Cold   92144  Active 5336  Quiet  438347
+   all: 831636, (197252, 97258, 537126) done 294510, 0.354 // maxPoints = 9 (tip 9)
+> Step 438
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.272ms
+rating: 48.324ms
+pruning: 42.258ms
+  Solved 97388  Cold   92144  Active 5021  Quiet  438580
+   all: 832057, (197673, 97388, 536996) done 295061, 0.355 // maxPoints = 9 (tip 9)
+> Step 439
+ thr 6, starting with size 546
+  setsize 2411
+exp: 31.282ms
+rating: 40.97ms
+pruning: 35.159ms
+  Solved 98254  Cold   92144  Active 2823  Quiet  440232
+   all: 834468, (200084, 98254, 536130) done 298338, 0.358 // maxPoints = 9 (tip 9)
+> Step 440
+ thr 5, starting with size 104
+  setsize 707
+exp: 6.901ms
+rating: 45.825ms
+pruning: 34.715ms
+  Solved 98363  Cold   92144  Active 2692  Quiet  440259
+   all: 835175, (200791, 98363, 536021) done 299154, 0.358 // maxPoints = 9 (tip 9)
+> Step 441
+ thr 4, starting with size 950
+  setsize 5648
+exp: 59.523ms
+rating: 41.65ms
+pruning: 37.11ms
+  Solved 99265  Cold   92163  Active 2250  Quiet  443815
+   all: 840823, (202375, 99265, 539183) done 301640, 0.359 // maxPoints = 9 (tip 9)
+> Step 442
+ thr 4, starting with size 736
+  setsize 2839
+exp: 43.54ms
+-------------------- Nothing found!
+rating: 51.015ms
+pruning: 43.366ms
+  Solved 99265  Cold   92163  Active 4353  Quiet  443815
+   all: 843662, (202375, 99265, 542022) done 301640, 0.358 // maxPoints = 9 (tip 9)
+> Step 443
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.527ms
+rating: 42.169ms
+pruning: 36.505ms
+  Solved 99321  Cold   92240  Active 4069  Quiet  444075
+   all: 843737, (202450, 99321, 541966) done 301771, 0.358 // maxPoints = 9 (tip 9)
+> Step 444
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.055ms
+rating: 40.064ms
+pruning: 34.982ms
+  Solved 99621  Cold   92629  Active 2634  Quiet  445347
+   all: 844271, (202984, 99621, 541666) done 302605, 0.358 // maxPoints = 9 (tip 9)
+> Step 445
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.129ms
+rating: 42.58ms
+pruning: 37.94ms
+  Solved 99635  Cold   92629  Active 2620  Quiet  445347
+   all: 844379, (203092, 99635, 541652) done 302727, 0.359 // maxPoints = 9 (tip 9)
+> Step 446
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 61.544ms
+rating: 40.34ms
+pruning: 35.919ms
+  Solved 100040  Cold   93713  Active 1514  Quiet  448705
+   all: 848309, (203664, 100040, 544605) done 303704, 0.358 // maxPoints = 9 (tip 9)
+> Step 447
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.023ms
+-------------------- Nothing found!
+rating: 39.971ms
+pruning: 39.681ms
+  Solved 100040  Cold   93713  Active 1514  Quiet  448705
+   all: 848309, (203664, 100040, 544605) done 303704, 0.358 // maxPoints = 9 (tip 9)
+> Step 448
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 95.503ms
+-------------------- Nothing found!
+rating: 41.82ms
+pruning: 38.723ms
+  Solved 100040  Cold   93713  Active 8196  Quiet  448705
+   all: 856287, (203664, 100040, 552583) done 303704, 0.355 // maxPoints = 9 (tip 9)
+> Step 449
+ thr 7, starting with size 199
+  setsize 1157
+exp: 12.766ms
+rating: 47.669ms
+pruning: 38.529ms
+  Solved 100514  Cold   94311  Active 3950  Quiet  452752
+   all: 857236, (204613, 100514, 552109) done 305127, 0.356 // maxPoints = 9 (tip 9)
+> Step 450
+ thr 6, starting with size 202
+  setsize 1100
+exp: 12.894ms
+rating: 43.065ms
+pruning: 35.79ms
+  Solved 100891  Cold   94655  Active 1368  Quiet  455132
+   all: 858210, (205587, 100891, 551732) done 306478, 0.357 // maxPoints = 9 (tip 9)
+> Step 451
+ thr 5, starting with size 222
+  setsize 1385
+exp: 15.843ms
+rating: 42.489ms
+pruning: 36.511ms
+  Solved 101144  Cold   94655  Active 1020  Quiet  455258
+   all: 859564, (206941, 101144, 551479) done 308085, 0.358 // maxPoints = 9 (tip 9)
+> Step 452
+ thr 4, starting with size 154
+  setsize 1015
+exp: 10.6ms
+rating: 43.989ms
+pruning: 35.583ms
+  Solved 101298  Cold   94655  Active 866  Quiet  456034
+   all: 860529, (207130, 101298, 552101) done 308428, 0.358 // maxPoints = 9 (tip 9)
+> Step 453
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.023ms
+-------------------- Nothing found!
+rating: 43.419ms
+pruning: 36.355ms
+  Solved 101298  Cold   94655  Active 866  Quiet  456034
+   all: 860529, (207130, 101298, 552101) done 308428, 0.358 // maxPoints = 9 (tip 9)
+> Step 454
+ thr 3, starting with size 648
+  setsize 4387
+exp: 44.56ms
+rating: 41.741ms
+pruning: 36.633ms
+  Solved 101561  Cold   94858  Active 2323  Quiet  457832
+   all: 864703, (207401, 101561, 555741) done 308962, 0.357 // maxPoints = 9 (tip 9)
+> Step 455
+ thr 4, starting with size 581
+  setsize 3594
+exp: 39.426ms
+-------------------- Nothing found!
+rating: 46.515ms
+pruning: 47.44ms
+  Solved 101561  Cold   94858  Active 5336  Quiet  457832
+   all: 868297, (207401, 101561, 559335) done 308962, 0.356 // maxPoints = 9 (tip 9)
+> Step 456
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.158ms
+rating: 43.216ms
+pruning: 37.676ms
+  Solved 101691  Cold   94858  Active 5021  Quiet  458065
+   all: 868718, (207822, 101691, 559205) done 309513, 0.356 // maxPoints = 9 (tip 9)
+> Step 457
+ thr 6, starting with size 546
+  setsize 2411
+exp: 32.103ms
+rating: 47.67ms
+pruning: 37.496ms
+  Solved 102557  Cold   94858  Active 2823  Quiet  459717
+   all: 871129, (210233, 102557, 558339) done 312790, 0.359 // maxPoints = 9 (tip 9)
+> Step 458
+ thr 5, starting with size 104
+  setsize 707
+exp: 6.918ms
+rating: 42.186ms
+pruning: 37.622ms
+  Solved 102666  Cold   94858  Active 2692  Quiet  459744
+   all: 871836, (210940, 102666, 558230) done 313606, 0.360 // maxPoints = 9 (tip 9)
+> Step 459
+ thr 4, starting with size 950
+  setsize 5648
+exp: 63.486ms
+rating: 50.362ms
+pruning: 38.156ms
+  Solved 103568  Cold   94877  Active 2250  Quiet  463300
+   all: 877484, (212524, 103568, 561392) done 316092, 0.360 // maxPoints = 9 (tip 9)
+> Step 460
+ thr 4, starting with size 736
+  setsize 2839
+exp: 43.79ms
+-------------------- Nothing found!
+rating: 43.205ms
+pruning: 38.648ms
+  Solved 103568  Cold   94877  Active 4353  Quiet  463300
+   all: 880323, (212524, 103568, 564231) done 316092, 0.359 // maxPoints = 9 (tip 9)
+> Step 461
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.412ms
+rating: 44.878ms
+pruning: 38.496ms
+  Solved 103624  Cold   94954  Active 4069  Quiet  463560
+   all: 880398, (212599, 103624, 564175) done 316223, 0.359 // maxPoints = 9 (tip 9)
+> Step 462
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.172ms
+rating: 44.911ms
+pruning: 38.829ms
+  Solved 103924  Cold   95343  Active 2634  Quiet  464832
+   all: 880932, (213133, 103924, 563875) done 317057, 0.360 // maxPoints = 9 (tip 9)
+> Step 463
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.097ms
+rating: 42.363ms
+pruning: 37.537ms
+  Solved 103938  Cold   95343  Active 2620  Quiet  464832
+   all: 881040, (213241, 103938, 563861) done 317179, 0.360 // maxPoints = 9 (tip 9)
+> Step 464
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 62.031ms
+rating: 43.885ms
+pruning: 44.498ms
+  Solved 104343  Cold   96427  Active 1514  Quiet  468190
+   all: 884970, (213813, 104343, 566814) done 318156, 0.360 // maxPoints = 9 (tip 9)
+> Step 465
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.034ms
+-------------------- Nothing found!
+rating: 50.929ms
+pruning: 48.64ms
+  Solved 104343  Cold   96427  Active 1514  Quiet  468190
+   all: 884970, (213813, 104343, 566814) done 318156, 0.360 // maxPoints = 9 (tip 9)
+> Step 466
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 112.51ms
+-------------------- Nothing found!
+rating: 62.077ms
+pruning: 50.006ms
+  Solved 104343  Cold   96427  Active 8196  Quiet  468190
+   all: 892948, (213813, 104343, 574792) done 318156, 0.356 // maxPoints = 9 (tip 9)
+> Step 467
+ thr 7, starting with size 199
+  setsize 1157
+exp: 14.835ms
+rating: 51.199ms
+pruning: 45.067ms
+  Solved 104817  Cold   97025  Active 3950  Quiet  472237
+   all: 893897, (214762, 104817, 574318) done 319579, 0.358 // maxPoints = 9 (tip 9)
+> Step 468
+ thr 6, starting with size 202
+  setsize 1100
+exp: 13.883ms
+rating: 53.625ms
+pruning: 40.916ms
+  Solved 105194  Cold   97369  Active 1368  Quiet  474617
+   all: 894871, (215736, 105194, 573941) done 320930, 0.359 // maxPoints = 9 (tip 9)
+> Step 469
+ thr 5, starting with size 222
+  setsize 1385
+exp: 17.666ms
+rating: 49.666ms
+pruning: 46.119ms
+  Solved 105447  Cold   97369  Active 1020  Quiet  474743
+   all: 896225, (217090, 105447, 573688) done 322537, 0.360 // maxPoints = 9 (tip 9)
+> Step 470
+ thr 4, starting with size 154
+  setsize 1015
+exp: 13.593ms
+rating: 50.806ms
+pruning: 45.213ms
+  Solved 105601  Cold   97369  Active 866  Quiet  475519
+   all: 897190, (217279, 105601, 574310) done 322880, 0.360 // maxPoints = 9 (tip 9)
+> Step 471
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.028ms
+-------------------- Nothing found!
+rating: 49.623ms
+pruning: 48.311ms
+  Solved 105601  Cold   97369  Active 866  Quiet  475519
+   all: 897190, (217279, 105601, 574310) done 322880, 0.360 // maxPoints = 9 (tip 9)
+> Step 472
+ thr 3, starting with size 648
+  setsize 4387
+exp: 64.153ms
+rating: 48.097ms
+pruning: 43.695ms
+  Solved 105864  Cold   97572  Active 2323  Quiet  477317
+   all: 901364, (217550, 105864, 577950) done 323414, 0.359 // maxPoints = 9 (tip 9)
+> Step 473
+ thr 4, starting with size 581
+  setsize 3594
+exp: 42.405ms
+-------------------- Nothing found!
+rating: 49.194ms
+pruning: 44.164ms
+  Solved 105864  Cold   97572  Active 5336  Quiet  477317
+   all: 904958, (217550, 105864, 581544) done 323414, 0.357 // maxPoints = 9 (tip 9)
+> Step 474
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.831ms
+rating: 50.587ms
+pruning: 56.168ms
+  Solved 105994  Cold   97572  Active 5021  Quiet  477550
+   all: 905379, (217971, 105994, 581414) done 323965, 0.358 // maxPoints = 9 (tip 9)
+> Step 475
+ thr 6, starting with size 546
+  setsize 2411
+exp: 34.724ms
+rating: 49.461ms
+pruning: 44.987ms
+  Solved 106860  Cold   97572  Active 2823  Quiet  479202
+   all: 907790, (220382, 106860, 580548) done 327242, 0.360 // maxPoints = 9 (tip 9)
+> Step 476
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.745ms
+rating: 62.934ms
+pruning: 48.512ms
+  Solved 106969  Cold   97572  Active 2692  Quiet  479229
+   all: 908497, (221089, 106969, 580439) done 328058, 0.361 // maxPoints = 9 (tip 9)
+> Step 477
+ thr 4, starting with size 950
+  setsize 5648
+exp: 67.522ms
+rating: 73.658ms
+pruning: 55.031ms
+  Solved 107871  Cold   97591  Active 2250  Quiet  482785
+   all: 914145, (222673, 107871, 583601) done 330544, 0.362 // maxPoints = 9 (tip 9)
+> Step 478
+ thr 4, starting with size 736
+  setsize 2839
+exp: 52.547ms
+-------------------- Nothing found!
+rating: 59.404ms
+pruning: 48.029ms
+  Solved 107871  Cold   97591  Active 4353  Quiet  482785
+   all: 916984, (222673, 107871, 586440) done 330544, 0.360 // maxPoints = 9 (tip 9)
+> Step 479
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.461ms
+rating: 52.385ms
+pruning: 45.339ms
+  Solved 107927  Cold   97668  Active 4069  Quiet  483045
+   all: 917059, (222748, 107927, 586384) done 330675, 0.361 // maxPoints = 9 (tip 9)
+> Step 480
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.933ms
+rating: 48.872ms
+pruning: 41.787ms
+  Solved 108227  Cold   98057  Active 2634  Quiet  484317
+   all: 917593, (223282, 108227, 586084) done 331509, 0.361 // maxPoints = 9 (tip 9)
+> Step 481
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.147ms
+rating: 49.65ms
+pruning: 48.361ms
+  Solved 108241  Cold   98057  Active 2620  Quiet  484317
+   all: 917701, (223390, 108241, 586070) done 331631, 0.361 // maxPoints = 9 (tip 9)
+> Step 482
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 67.648ms
+rating: 48.901ms
+pruning: 45.482ms
+  Solved 108646  Cold   99141  Active 1514  Quiet  487675
+   all: 921631, (223962, 108646, 589023) done 332608, 0.361 // maxPoints = 9 (tip 9)
+> Step 483
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.046ms
+-------------------- Nothing found!
+rating: 55.885ms
+pruning: 44.477ms
+  Solved 108646  Cold   99141  Active 1514  Quiet  487675
+   all: 921631, (223962, 108646, 589023) done 332608, 0.361 // maxPoints = 9 (tip 9)
+> Step 484
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 100.935ms
+-------------------- Nothing found!
+rating: 64.412ms
+pruning: 58.052ms
+  Solved 108646  Cold   99141  Active 8196  Quiet  487675
+   all: 929609, (223962, 108646, 597001) done 332608, 0.358 // maxPoints = 9 (tip 9)
+> Step 485
+ thr 7, starting with size 199
+  setsize 1157
+exp: 15.71ms
+rating: 61.166ms
+pruning: 46.079ms
+  Solved 109120  Cold   99739  Active 3950  Quiet  491722
+   all: 930558, (224911, 109120, 596527) done 334031, 0.359 // maxPoints = 9 (tip 9)
+> Step 486
+ thr 6, starting with size 202
+  setsize 1100
+exp: 14.902ms
+rating: 53.147ms
+pruning: 45.434ms
+  Solved 109497  Cold   100083  Active 1368  Quiet  494102
+   all: 931532, (225885, 109497, 596150) done 335382, 0.360 // maxPoints = 9 (tip 9)
+> Step 487
+ thr 5, starting with size 222
+  setsize 1385
+exp: 18.174ms
+rating: 56.984ms
+pruning: 49.98ms
+  Solved 109750  Cold   100083  Active 1020  Quiet  494228
+   all: 932886, (227239, 109750, 595897) done 336989, 0.361 // maxPoints = 9 (tip 9)
+> Step 488
+ thr 4, starting with size 154
+  setsize 1015
+exp: 12.828ms
+rating: 51.603ms
+pruning: 51.208ms
+  Solved 109904  Cold   100083  Active 866  Quiet  495004
+   all: 933851, (227428, 109904, 596519) done 337332, 0.361 // maxPoints = 9 (tip 9)
+> Step 489
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.023ms
+-------------------- Nothing found!
+rating: 51.476ms
+pruning: 50.308ms
+  Solved 109904  Cold   100083  Active 866  Quiet  495004
+   all: 933851, (227428, 109904, 596519) done 337332, 0.361 // maxPoints = 9 (tip 9)
+> Step 490
+ thr 3, starting with size 648
+  setsize 4387
+exp: 55.506ms
+rating: 62.273ms
+pruning: 50.373ms
+  Solved 110167  Cold   100286  Active 2323  Quiet  496802
+   all: 938025, (227699, 110167, 600159) done 337866, 0.360 // maxPoints = 9 (tip 9)
+> Step 491
+ thr 4, starting with size 581
+  setsize 3594
+exp: 47.255ms
+-------------------- Nothing found!
+rating: 55.165ms
+pruning: 49.603ms
+  Solved 110167  Cold   100286  Active 5336  Quiet  496802
+   all: 941619, (227699, 110167, 603753) done 337866, 0.359 // maxPoints = 9 (tip 9)
+> Step 492
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.788ms
+rating: 62.22ms
+pruning: 59.167ms
+  Solved 110297  Cold   100286  Active 5021  Quiet  497035
+   all: 942040, (228120, 110297, 603623) done 338417, 0.359 // maxPoints = 9 (tip 9)
+> Step 493
+ thr 6, starting with size 546
+  setsize 2411
+exp: 37.26ms
+rating: 55.703ms
+pruning: 48.251ms
+  Solved 111163  Cold   100286  Active 2823  Quiet  498687
+   all: 944451, (230531, 111163, 602757) done 341694, 0.362 // maxPoints = 9 (tip 9)
+> Step 494
+ thr 5, starting with size 104
+  setsize 707
+exp: 8.777ms
+rating: 51.427ms
+pruning: 47.718ms
+  Solved 111272  Cold   100286  Active 2692  Quiet  498714
+   all: 945158, (231238, 111272, 602648) done 342510, 0.362 // maxPoints = 9 (tip 9)
+> Step 495
+ thr 4, starting with size 950
+  setsize 5648
+exp: 69.668ms
+rating: 56.152ms
+pruning: 53.039ms
+  Solved 112174  Cold   100305  Active 2250  Quiet  502270
+   all: 950806, (232822, 112174, 605810) done 344996, 0.363 // maxPoints = 9 (tip 9)
+> Step 496
+ thr 4, starting with size 736
+  setsize 2839
+exp: 55.456ms
+-------------------- Nothing found!
+rating: 54.43ms
+pruning: 56.011ms
+  Solved 112174  Cold   100305  Active 4353  Quiet  502270
+   all: 953645, (232822, 112174, 608649) done 344996, 0.362 // maxPoints = 9 (tip 9)
+> Step 497
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.524ms
+rating: 62.824ms
+pruning: 48.44ms
+  Solved 112230  Cold   100382  Active 4069  Quiet  502530
+   all: 953720, (232897, 112230, 608593) done 345127, 0.362 // maxPoints = 9 (tip 9)
+> Step 498
+ thr 6, starting with size 163
+  setsize 534
+exp: 10.791ms
+rating: 61.151ms
+pruning: 49.777ms
+  Solved 112530  Cold   100771  Active 2634  Quiet  503802
+   all: 954254, (233431, 112530, 608293) done 345961, 0.363 // maxPoints = 9 (tip 9)
+> Step 499
+ thr 5, starting with size 14
+  setsize 108
+exp: 2.158ms
+rating: 55.149ms
+pruning: 48.736ms
+  Solved 112544  Cold   100771  Active 2620  Quiet  503802
+   all: 954362, (233539, 112544, 608279) done 346083, 0.363 // maxPoints = 9 (tip 9)
+> Step 500
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 70.701ms
+rating: 56.086ms
+pruning: 60.831ms
+  Solved 112949  Cold   101855  Active 1514  Quiet  507160
+   all: 958292, (234111, 112949, 611232) done 347060, 0.362 // maxPoints = 9 (tip 9)
+> Step 501
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.028ms
+-------------------- Nothing found!
+rating: 55.551ms
+pruning: 55.695ms
+  Solved 112949  Cold   101855  Active 1514  Quiet  507160
+   all: 958292, (234111, 112949, 611232) done 347060, 0.362 // maxPoints = 9 (tip 9)
+> Step 502
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 112.04ms
+-------------------- Nothing found!
+rating: 58.418ms
+pruning: 52.347ms
+  Solved 112949  Cold   101855  Active 8196  Quiet  507160
+   all: 966270, (234111, 112949, 619210) done 347060, 0.359 // maxPoints = 9 (tip 9)
+> Step 503
+ thr 7, starting with size 199
+  setsize 1157
+exp: 192.731ms
+rating: 60.835ms
+pruning: 47.411ms
+  Solved 113423  Cold   102453  Active 3950  Quiet  511207
+   all: 967219, (235060, 113423, 618736) done 348483, 0.360 // maxPoints = 9 (tip 9)
+> Step 504
+ thr 6, starting with size 202
+  setsize 1100
+exp: 14.842ms
+rating: 59.874ms
+pruning: 57.564ms
+  Solved 113800  Cold   102797  Active 1368  Quiet  513587
+   all: 968193, (236034, 113800, 618359) done 349834, 0.361 // maxPoints = 9 (tip 9)
+> Step 505
+ thr 5, starting with size 222
+  setsize 1385
+exp: 18.826ms
+rating: 58.611ms
+pruning: 50.715ms
+  Solved 114053  Cold   102797  Active 1020  Quiet  513713
+   all: 969547, (237388, 114053, 618106) done 351441, 0.362 // maxPoints = 9 (tip 9)
+> Step 506
+ thr 4, starting with size 154
+  setsize 1015
+exp: 12.206ms
+rating: 59.412ms
+pruning: 49.275ms
+  Solved 114207  Cold   102797  Active 866  Quiet  514489
+   all: 970512, (237577, 114207, 618728) done 351784, 0.362 // maxPoints = 9 (tip 9)
+> Step 507
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.029ms
+-------------------- Nothing found!
+rating: 58.826ms
+pruning: 49.365ms
+  Solved 114207  Cold   102797  Active 866  Quiet  514489
+   all: 970512, (237577, 114207, 618728) done 351784, 0.362 // maxPoints = 9 (tip 9)
+> Step 508
+ thr 3, starting with size 648
+  setsize 4387
+exp: 53.641ms
+rating: 55.959ms
+pruning: 51.26ms
+  Solved 114470  Cold   103000  Active 2323  Quiet  516287
+   all: 974686, (237848, 114470, 622368) done 352318, 0.361 // maxPoints = 9 (tip 9)
+> Step 509
+ thr 4, starting with size 581
+  setsize 3594
+exp: 44.685ms
+-------------------- Nothing found!
+rating: 67.721ms
+pruning: 46.897ms
+  Solved 114470  Cold   103000  Active 5336  Quiet  516287
+   all: 978280, (237848, 114470, 625962) done 352318, 0.360 // maxPoints = 9 (tip 9)
+> Step 510
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.59ms
+rating: 61.533ms
+pruning: 51.515ms
+  Solved 114600  Cold   103000  Active 5021  Quiet  516520
+   all: 978701, (238269, 114600, 625832) done 352869, 0.361 // maxPoints = 9 (tip 9)
+> Step 511
+ thr 6, starting with size 546
+  setsize 2411
+exp: 37.486ms
+rating: 58.727ms
+pruning: 48.595ms
+  Solved 115466  Cold   103000  Active 2823  Quiet  518172
+   all: 981112, (240680, 115466, 624966) done 356146, 0.363 // maxPoints = 9 (tip 9)
+> Step 512
+ thr 5, starting with size 104
+  setsize 707
+exp: 8.062ms
+rating: 64.639ms
+pruning: 52.489ms
+  Solved 115575  Cold   103000  Active 2692  Quiet  518199
+   all: 981819, (241387, 115575, 624857) done 356962, 0.364 // maxPoints = 9 (tip 9)
+> Step 513
+ thr 4, starting with size 950
+  setsize 5648
+exp: 72.844ms
+rating: 66.481ms
+pruning: 59.914ms
+  Solved 116477  Cold   103019  Active 2250  Quiet  521755
+   all: 987467, (242971, 116477, 628019) done 359448, 0.364 // maxPoints = 9 (tip 9)
+> Step 514
+ thr 4, starting with size 736
+  setsize 2839
+exp: 50.19ms
+-------------------- Nothing found!
+rating: 60.027ms
+pruning: 49.791ms
+  Solved 116477  Cold   103019  Active 4353  Quiet  521755
+   all: 990306, (242971, 116477, 630858) done 359448, 0.363 // maxPoints = 9 (tip 9)
+> Step 515
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.555ms
+rating: 60.943ms
+pruning: 52.735ms
+  Solved 116533  Cold   103096  Active 4069  Quiet  522015
+   all: 990381, (243046, 116533, 630802) done 359579, 0.363 // maxPoints = 9 (tip 9)
+> Step 516
+ thr 6, starting with size 163
+  setsize 534
+exp: 10.075ms
+rating: 61.207ms
+pruning: 57.665ms
+  Solved 116833  Cold   103485  Active 2634  Quiet  523287
+   all: 990915, (243580, 116833, 630502) done 360413, 0.364 // maxPoints = 9 (tip 9)
+> Step 517
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.234ms
+rating: 54.616ms
+pruning: 48.355ms
+  Solved 116847  Cold   103485  Active 2620  Quiet  523287
+   all: 991023, (243688, 116847, 630488) done 360535, 0.364 // maxPoints = 9 (tip 9)
+> Step 518
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 69.897ms
+rating: 52.892ms
+pruning: 49.129ms
+  Solved 117252  Cold   104569  Active 1514  Quiet  526645
+   all: 994953, (244260, 117252, 633441) done 361512, 0.363 // maxPoints = 9 (tip 9)
+> Step 519
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.024ms
+-------------------- Nothing found!
+rating: 52.436ms
+pruning: 53.638ms
+  Solved 117252  Cold   104569  Active 1514  Quiet  526645
+   all: 994953, (244260, 117252, 633441) done 361512, 0.363 // maxPoints = 9 (tip 9)
+> Step 520
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 97.311ms
+-------------------- Nothing found!
+rating: 56.545ms
+pruning: 56.653ms
+  Solved 117252  Cold   104569  Active 8196  Quiet  526645
+   all: 1002931, (244260, 117252, 641419) done 361512, 0.360 // maxPoints = 9 (tip 9)
+> Step 521
+ thr 7, starting with size 199
+  setsize 1157
+exp: 18.77ms
+rating: 52.294ms
+pruning: 47.526ms
+  Solved 117726  Cold   105167  Active 3950  Quiet  530692
+   all: 1003880, (245209, 117726, 640945) done 362935, 0.362 // maxPoints = 9 (tip 9)
+> Step 522
+ thr 6, starting with size 202
+  setsize 1100
+exp: 15.85ms
+rating: 54.088ms
+pruning: 50.901ms
+  Solved 118103  Cold   105511  Active 1368  Quiet  533072
+   all: 1004854, (246183, 118103, 640568) done 364286, 0.363 // maxPoints = 9 (tip 9)
+> Step 523
+ thr 5, starting with size 222
+  setsize 1385
+exp: 17.023ms
+rating: 57.604ms
+pruning: 48.478ms
+  Solved 118356  Cold   105511  Active 1020  Quiet  533198
+   all: 1006208, (247537, 118356, 640315) done 365893, 0.364 // maxPoints = 9 (tip 9)
+> Step 524
+ thr 4, starting with size 154
+  setsize 1015
+exp: 11.982ms
+rating: 57.152ms
+pruning: 49.757ms
+  Solved 118510  Cold   105511  Active 866  Quiet  533974
+   all: 1007173, (247726, 118510, 640937) done 366236, 0.364 // maxPoints = 9 (tip 9)
+> Step 525
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.036ms
+-------------------- Nothing found!
+rating: 54.516ms
+pruning: 53.087ms
+  Solved 118510  Cold   105511  Active 866  Quiet  533974
+   all: 1007173, (247726, 118510, 640937) done 366236, 0.364 // maxPoints = 9 (tip 9)
+> Step 526
+ thr 3, starting with size 648
+  setsize 4387
+exp: 51.062ms
+rating: 56.101ms
+pruning: 49.817ms
+  Solved 118773  Cold   105714  Active 2323  Quiet  535772
+   all: 1011347, (247997, 118773, 644577) done 366770, 0.363 // maxPoints = 9 (tip 9)
+> Step 527
+ thr 4, starting with size 581
+  setsize 3594
+exp: 43.158ms
+-------------------- Nothing found!
+rating: 55.089ms
+pruning: 49.791ms
+  Solved 118773  Cold   105714  Active 5336  Quiet  535772
+   all: 1014941, (247997, 118773, 648171) done 366770, 0.361 // maxPoints = 9 (tip 9)
+> Step 528
+ thr 7, starting with size 82
+  setsize 421
+exp: 6.508ms
+rating: 58.983ms
+pruning: 55.139ms
+  Solved 118903  Cold   105714  Active 5021  Quiet  536005
+   all: 1015362, (248418, 118903, 648041) done 367321, 0.362 // maxPoints = 9 (tip 9)
+> Step 529
+ thr 6, starting with size 546
+  setsize 2411
+exp: 37.862ms
+rating: 57.147ms
+pruning: 46.648ms
+  Solved 119769  Cold   105714  Active 2823  Quiet  537657
+   all: 1017773, (250829, 119769, 647175) done 370598, 0.364 // maxPoints = 9 (tip 9)
+> Step 530
+ thr 5, starting with size 104
+  setsize 707
+exp: 8.216ms
+rating: 62.897ms
+pruning: 54.238ms
+  Solved 119878  Cold   105714  Active 2692  Quiet  537684
+   all: 1018480, (251536, 119878, 647066) done 371414, 0.365 // maxPoints = 9 (tip 9)
+> Step 531
+ thr 4, starting with size 950
+  setsize 5648
+exp: 72.22ms
+rating: 68.342ms
+pruning: 49.005ms
+  Solved 120780  Cold   105733  Active 2250  Quiet  541240
+   all: 1024128, (253120, 120780, 650228) done 373900, 0.365 // maxPoints = 9 (tip 9)
+> Step 532
+ thr 4, starting with size 736
+  setsize 2839
+exp: 49.86ms
+-------------------- Nothing found!
+rating: 56.153ms
+pruning: 54.356ms
+  Solved 120780  Cold   105733  Active 4353  Quiet  541240
+   all: 1026967, (253120, 120780, 653067) done 373900, 0.364 // maxPoints = 9 (tip 9)
+> Step 533
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.597ms
+rating: 58.553ms
+pruning: 56.972ms
+  Solved 120836  Cold   105810  Active 4069  Quiet  541500
+   all: 1027042, (253195, 120836, 653011) done 374031, 0.364 // maxPoints = 9 (tip 9)
+> Step 534
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.995ms
+rating: 71.214ms
+pruning: 56.409ms
+  Solved 121136  Cold   106199  Active 2634  Quiet  542772
+   all: 1027576, (253729, 121136, 652711) done 374865, 0.365 // maxPoints = 9 (tip 9)
+> Step 535
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.185ms
+rating: 56.5ms
+pruning: 52.201ms
+  Solved 121150  Cold   106199  Active 2620  Quiet  542772
+   all: 1027684, (253837, 121150, 652697) done 374987, 0.365 // maxPoints = 9 (tip 9)
+> Step 536
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 69.817ms
+rating: 61.042ms
+pruning: 51.131ms
+  Solved 121555  Cold   107283  Active 1514  Quiet  546130
+   all: 1031614, (254409, 121555, 655650) done 375964, 0.364 // maxPoints = 9 (tip 9)
+> Step 537
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.027ms
+-------------------- Nothing found!
+rating: 62.836ms
+pruning: 52.209ms
+  Solved 121555  Cold   107283  Active 1514  Quiet  546130
+   all: 1031614, (254409, 121555, 655650) done 375964, 0.364 // maxPoints = 9 (tip 9)
+> Step 538
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 98.3ms
+-------------------- Nothing found!
+rating: 63.542ms
+pruning: 58.054ms
+  Solved 121555  Cold   107283  Active 8196  Quiet  546130
+   all: 1039592, (254409, 121555, 663628) done 375964, 0.362 // maxPoints = 9 (tip 9)
+> Step 539
+ thr 7, starting with size 199
+  setsize 1157
+exp: 14.575ms
+rating: 57.559ms
+pruning: 50.603ms
+  Solved 122029  Cold   107881  Active 3950  Quiet  550177
+   all: 1040541, (255358, 122029, 663154) done 377387, 0.363 // maxPoints = 9 (tip 9)
+> Step 540
+ thr 6, starting with size 202
+  setsize 1100
+exp: 15.427ms
+rating: 65.515ms
+pruning: 56.311ms
+  Solved 122406  Cold   108225  Active 1368  Quiet  552557
+   all: 1041515, (256332, 122406, 662777) done 378738, 0.364 // maxPoints = 9 (tip 9)
+> Step 541
+ thr 5, starting with size 222
+  setsize 1385
+exp: 18.165ms
+rating: 58.131ms
+pruning: 55.955ms
+  Solved 122659  Cold   108225  Active 1020  Quiet  552683
+   all: 1042869, (257686, 122659, 662524) done 380345, 0.365 // maxPoints = 9 (tip 9)
+> Step 542
+ thr 4, starting with size 154
+  setsize 1015
+exp: 12.228ms
+rating: 59.455ms
+pruning: 53.352ms
+  Solved 122813  Cold   108225  Active 866  Quiet  553459
+   all: 1043834, (257875, 122813, 663146) done 380688, 0.365 // maxPoints = 9 (tip 9)
+> Step 543
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.035ms
+-------------------- Nothing found!
+rating: 56.738ms
+pruning: 49.257ms
+  Solved 122813  Cold   108225  Active 866  Quiet  553459
+   all: 1043834, (257875, 122813, 663146) done 380688, 0.365 // maxPoints = 9 (tip 9)
+> Step 544
+ thr 3, starting with size 648
+  setsize 4387
+exp: 52.59ms
+rating: 60.193ms
+pruning: 46.88ms
+  Solved 123076  Cold   108428  Active 2323  Quiet  555257
+   all: 1048008, (258146, 123076, 666786) done 381222, 0.364 // maxPoints = 9 (tip 9)
+> Step 545
+ thr 4, starting with size 581
+  setsize 3594
+exp: 146.571ms
+-------------------- Nothing found!
+rating: 66.593ms
+pruning: 53.623ms
+  Solved 123076  Cold   108428  Active 5336  Quiet  555257
+   all: 1051602, (258146, 123076, 670380) done 381222, 0.363 // maxPoints = 9 (tip 9)
+> Step 546
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.543ms
+rating: 62.078ms
+pruning: 54.371ms
+  Solved 123206  Cold   108428  Active 5021  Quiet  555490
+   all: 1052023, (258567, 123206, 670250) done 381773, 0.363 // maxPoints = 9 (tip 9)
+> Step 547
+ thr 6, starting with size 546
+  setsize 2411
+exp: 34.562ms
+rating: 57.745ms
+pruning: 48.4ms
+  Solved 124072  Cold   108428  Active 2823  Quiet  557142
+   all: 1054434, (260978, 124072, 669384) done 385050, 0.365 // maxPoints = 9 (tip 9)
+> Step 548
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.932ms
+rating: 65.378ms
+pruning: 48.63ms
+  Solved 124181  Cold   108428  Active 2692  Quiet  557169
+   all: 1055141, (261685, 124181, 669275) done 385866, 0.366 // maxPoints = 9 (tip 9)
+> Step 549
+ thr 4, starting with size 950
+  setsize 5648
+exp: 65.096ms
+rating: 61.288ms
+pruning: 48.273ms
+  Solved 125083  Cold   108447  Active 2250  Quiet  560725
+   all: 1060789, (263269, 125083, 672437) done 388352, 0.366 // maxPoints = 9 (tip 9)
+> Step 550
+ thr 4, starting with size 736
+  setsize 2839
+exp: 48.674ms
+-------------------- Nothing found!
+rating: 57.665ms
+pruning: 49.607ms
+  Solved 125083  Cold   108447  Active 4353  Quiet  560725
+   all: 1063628, (263269, 125083, 675276) done 388352, 0.365 // maxPoints = 9 (tip 9)
+> Step 551
+ thr 7, starting with size 24
+  setsize 75
+exp: 2.009ms
+rating: 66.471ms
+pruning: 57.701ms
+  Solved 125139  Cold   108524  Active 4069  Quiet  560985
+   all: 1063703, (263344, 125139, 675220) done 388483, 0.365 // maxPoints = 9 (tip 9)
+> Step 552
+ thr 6, starting with size 163
+  setsize 534
+exp: 11.124ms
+rating: 54.92ms
+pruning: 54.509ms
+  Solved 125439  Cold   108913  Active 2634  Quiet  562257
+   all: 1064237, (263878, 125439, 674920) done 389317, 0.366 // maxPoints = 9 (tip 9)
+> Step 553
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.109ms
+rating: 61.583ms
+pruning: 53.295ms
+  Solved 125453  Cold   108913  Active 2620  Quiet  562257
+   all: 1064345, (263986, 125453, 674906) done 389439, 0.366 // maxPoints = 9 (tip 9)
+> Step 554
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 77.509ms
+rating: 67.632ms
+pruning: 51.024ms
+  Solved 125858  Cold   109997  Active 1514  Quiet  565615
+   all: 1068275, (264558, 125858, 677859) done 390416, 0.365 // maxPoints = 9 (tip 9)
+> Step 555
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.038ms
+-------------------- Nothing found!
+rating: 64.428ms
+pruning: 51.221ms
+  Solved 125858  Cold   109997  Active 1514  Quiet  565615
+   all: 1068275, (264558, 125858, 677859) done 390416, 0.365 // maxPoints = 9 (tip 9)
+> Step 556
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 99.058ms
+-------------------- Nothing found!
+rating: 58.223ms
+pruning: 56.134ms
+  Solved 125858  Cold   109997  Active 8196  Quiet  565615
+   all: 1076253, (264558, 125858, 685837) done 390416, 0.363 // maxPoints = 9 (tip 9)
+> Step 557
+ thr 7, starting with size 199
+  setsize 1157
+exp: 14.275ms
+rating: 59.166ms
+pruning: 52.646ms
+  Solved 126332  Cold   110595  Active 3950  Quiet  569662
+   all: 1077202, (265507, 126332, 685363) done 391839, 0.364 // maxPoints = 9 (tip 9)
+> Step 558
+ thr 6, starting with size 202
+  setsize 1100
+exp: 15.983ms
+rating: 57.039ms
+pruning: 51.321ms
+  Solved 126709  Cold   110939  Active 1368  Quiet  572042
+   all: 1078176, (266481, 126709, 684986) done 393190, 0.365 // maxPoints = 9 (tip 9)
+> Step 559
+ thr 5, starting with size 222
+  setsize 1385
+exp: 16.68ms
+rating: 63.306ms
+pruning: 53.801ms
+  Solved 126962  Cold   110939  Active 1020  Quiet  572168
+   all: 1079530, (267835, 126962, 684733) done 394797, 0.366 // maxPoints = 9 (tip 9)
+> Step 560
+ thr 4, starting with size 154
+  setsize 1015
+exp: 11.484ms
+rating: 68.566ms
+pruning: 57.022ms
+  Solved 127116  Cold   110939  Active 866  Quiet  572944
+   all: 1080495, (268024, 127116, 685355) done 395140, 0.366 // maxPoints = 9 (tip 9)
+> Step 561
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.028ms
+-------------------- Nothing found!
+rating: 64.879ms
+pruning: 54.673ms
+  Solved 127116  Cold   110939  Active 866  Quiet  572944
+   all: 1080495, (268024, 127116, 685355) done 395140, 0.366 // maxPoints = 9 (tip 9)
+> Step 562
+ thr 3, starting with size 648
+  setsize 4387
+exp: 47.166ms
+rating: 59.92ms
+pruning: 67.232ms
+  Solved 127379  Cold   111142  Active 2323  Quiet  574742
+   all: 1084669, (268295, 127379, 688995) done 395674, 0.365 // maxPoints = 9 (tip 9)
+> Step 563
+ thr 4, starting with size 581
+  setsize 3594
+exp: 43.453ms
+-------------------- Nothing found!
+rating: 59.949ms
+pruning: 52.236ms
+  Solved 127379  Cold   111142  Active 5336  Quiet  574742
+   all: 1088263, (268295, 127379, 692589) done 395674, 0.364 // maxPoints = 9 (tip 9)
+> Step 564
+ thr 7, starting with size 82
+  setsize 421
+exp: 5.681ms
+rating: 57.923ms
+pruning: 52.087ms
+  Solved 127509  Cold   111142  Active 5021  Quiet  574975
+   all: 1088684, (268716, 127509, 692459) done 396225, 0.364 // maxPoints = 9 (tip 9)
+> Step 565
+ thr 6, starting with size 546
+  setsize 2411
+exp: 38.316ms
+rating: 74.39ms
+pruning: 59.076ms
+  Solved 128375  Cold   111142  Active 2823  Quiet  576627
+   all: 1091095, (271127, 128375, 691593) done 399502, 0.366 // maxPoints = 9 (tip 9)
+> Step 566
+ thr 5, starting with size 104
+  setsize 707
+exp: 8.171ms
+rating: 60.899ms
+pruning: 53.286ms
+  Solved 128484  Cold   111142  Active 2692  Quiet  576654
+   all: 1091802, (271834, 128484, 691484) done 400318, 0.367 // maxPoints = 9 (tip 9)
+> Step 567
+ thr 4, starting with size 950
+  setsize 5648
+exp: 65.716ms
+rating: 57.767ms
+pruning: 50.507ms
+  Solved 129386  Cold   111161  Active 2250  Quiet  580210
+   all: 1097450, (273418, 129386, 694646) done 402804, 0.367 // maxPoints = 9 (tip 9)
+> Step 568
+ thr 4, starting with size 736
+  setsize 2839
+exp: 48.297ms
+-------------------- Nothing found!
+rating: 62.3ms
+pruning: 54.706ms
+  Solved 129386  Cold   111161  Active 4353  Quiet  580210
+   all: 1100289, (273418, 129386, 697485) done 402804, 0.366 // maxPoints = 9 (tip 9)
+> Step 569
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.515ms
+rating: 73.991ms
+pruning: 61.229ms
+  Solved 129442  Cold   111238  Active 4069  Quiet  580470
+   all: 1100364, (273493, 129442, 697429) done 402935, 0.366 // maxPoints = 9 (tip 9)
+> Step 570
+ thr 6, starting with size 163
+  setsize 534
+exp: 10.188ms
+rating: 62.465ms
+pruning: 49.679ms
+  Solved 129742  Cold   111627  Active 2634  Quiet  581742
+   all: 1100898, (274027, 129742, 697129) done 403769, 0.367 // maxPoints = 9 (tip 9)
+> Step 571
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.23ms
+rating: 61.566ms
+pruning: 47.937ms
+  Solved 129756  Cold   111627  Active 2620  Quiet  581742
+   all: 1101006, (274135, 129756, 697115) done 403891, 0.367 // maxPoints = 9 (tip 9)
+> Step 572
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 72.353ms
+rating: 66.222ms
+pruning: 62.445ms
+  Solved 130161  Cold   112711  Active 1514  Quiet  585100
+   all: 1104936, (274707, 130161, 700068) done 404868, 0.366 // maxPoints = 9 (tip 9)
+> Step 573
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.037ms
+-------------------- Nothing found!
+rating: 64.885ms
+pruning: 55.153ms
+  Solved 130161  Cold   112711  Active 1514  Quiet  585100
+   all: 1104936, (274707, 130161, 700068) done 404868, 0.366 // maxPoints = 9 (tip 9)
+> Step 574
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 94.675ms
+-------------------- Nothing found!
+rating: 64.411ms
+pruning: 61.859ms
+  Solved 130161  Cold   112711  Active 8196  Quiet  585100
+   all: 1112914, (274707, 130161, 708046) done 404868, 0.364 // maxPoints = 9 (tip 9)
+> Step 575
+ thr 7, starting with size 199
+  setsize 1157
+exp: 15.894ms
+rating: 67.687ms
+pruning: 55.631ms
+  Solved 130635  Cold   113309  Active 3950  Quiet  589147
+   all: 1113863, (275656, 130635, 707572) done 406291, 0.365 // maxPoints = 9 (tip 9)
+> Step 576
+ thr 6, starting with size 202
+  setsize 1100
+exp: 16.117ms
+rating: 69.672ms
+pruning: 61.788ms
+  Solved 131012  Cold   113653  Active 1368  Quiet  591527
+   all: 1114837, (276630, 131012, 707195) done 407642, 0.366 // maxPoints = 9 (tip 9)
+> Step 577
+ thr 5, starting with size 222
+  setsize 1385
+exp: 26.992ms
+rating: 70.146ms
+pruning: 72.033ms
+  Solved 131265  Cold   113653  Active 1020  Quiet  591653
+   all: 1116191, (277984, 131265, 706942) done 409249, 0.367 // maxPoints = 9 (tip 9)
+> Step 578
+ thr 4, starting with size 154
+  setsize 1015
+exp: 12.511ms
+rating: 78.493ms
+pruning: 57.372ms
+  Solved 131419  Cold   113653  Active 866  Quiet  592429
+   all: 1117156, (278173, 131419, 707564) done 409592, 0.367 // maxPoints = 9 (tip 9)
+> Step 579
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.025ms
+-------------------- Nothing found!
+rating: 64.482ms
+pruning: 52.648ms
+  Solved 131419  Cold   113653  Active 866  Quiet  592429
+   all: 1117156, (278173, 131419, 707564) done 409592, 0.367 // maxPoints = 9 (tip 9)
+> Step 580
+ thr 3, starting with size 648
+  setsize 4387
+exp: 51.898ms
+rating: 70.89ms
+pruning: 61.605ms
+  Solved 131682  Cold   113856  Active 2323  Quiet  594227
+   all: 1121330, (278444, 131682, 711204) done 410126, 0.366 // maxPoints = 9 (tip 9)
+> Step 581
+ thr 4, starting with size 581
+  setsize 3594
+exp: 49.522ms
+-------------------- Nothing found!
+rating: 59.109ms
+pruning: 55.109ms
+  Solved 131682  Cold   113856  Active 5336  Quiet  594227
+   all: 1124924, (278444, 131682, 714798) done 410126, 0.365 // maxPoints = 9 (tip 9)
+> Step 582
+ thr 7, starting with size 82
+  setsize 421
+exp: 6.195ms
+rating: 77.899ms
+pruning: 74.292ms
+  Solved 131812  Cold   113856  Active 5021  Quiet  594460
+   all: 1125345, (278865, 131812, 714668) done 410677, 0.365 // maxPoints = 9 (tip 9)
+> Step 583
+ thr 6, starting with size 546
+  setsize 2411
+exp: 38.313ms
+rating: 67.434ms
+pruning: 64.136ms
+  Solved 132678  Cold   113856  Active 2823  Quiet  596112
+   all: 1127756, (281276, 132678, 713802) done 413954, 0.367 // maxPoints = 9 (tip 9)
+> Step 584
+ thr 5, starting with size 104
+  setsize 707
+exp: 7.181ms
+rating: 64.963ms
+pruning: 60.734ms
+  Solved 132787  Cold   113856  Active 2692  Quiet  596139
+   all: 1128463, (281983, 132787, 713693) done 414770, 0.368 // maxPoints = 9 (tip 9)
+> Step 585
+ thr 4, starting with size 950
+  setsize 5648
+exp: 69.23ms
+rating: 59.736ms
+pruning: 52.504ms
+  Solved 133689  Cold   113875  Active 2250  Quiet  599695
+   all: 1134111, (283567, 133689, 716855) done 417256, 0.368 // maxPoints = 9 (tip 9)
+> Step 586
+ thr 4, starting with size 736
+  setsize 2839
+exp: 48.056ms
+-------------------- Nothing found!
+rating: 61.955ms
+pruning: 52.693ms
+  Solved 133689  Cold   113875  Active 4353  Quiet  599695
+   all: 1136950, (283567, 133689, 719694) done 417256, 0.367 // maxPoints = 9 (tip 9)
+> Step 587
+ thr 7, starting with size 24
+  setsize 75
+exp: 1.543ms
+rating: 68.399ms
+pruning: 56.236ms
+  Solved 133745  Cold   113952  Active 4069  Quiet  599955
+   all: 1137025, (283642, 133745, 719638) done 417387, 0.367 // maxPoints = 9 (tip 9)
+> Step 588
+ thr 6, starting with size 163
+  setsize 534
+exp: 9.852ms
+rating: 66.906ms
+pruning: 51.787ms
+  Solved 134045  Cold   114341  Active 2634  Quiet  601227
+   all: 1137559, (284176, 134045, 719338) done 418221, 0.368 // maxPoints = 9 (tip 9)
+> Step 589
+ thr 5, starting with size 14
+  setsize 108
+exp: 1.265ms
+rating: 63.679ms
+pruning: 56.225ms
+  Solved 134059  Cold   114341  Active 2620  Quiet  601227
+   all: 1137667, (284284, 134059, 719324) done 418343, 0.368 // maxPoints = 9 (tip 9)
+> Step 590
+ thr 4, starting with size 1106
+  setsize 3930
+exp: 77.839ms
+rating: 74.096ms
+pruning: 56.52ms
+  Solved 134464  Cold   115425  Active 1514  Quiet  604585
+   all: 1141597, (284856, 134464, 722277) done 419320, 0.367 // maxPoints = 9 (tip 9)
+> Step 591
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.032ms
+-------------------- Nothing found!
+rating: 66.124ms
+pruning: 61.427ms
+  Solved 134464  Cold   115425  Active 1514  Quiet  604585
+   all: 1141597, (284856, 134464, 722277) done 419320, 0.367 // maxPoints = 9 (tip 9)
+> Step 592
+ thr 3, starting with size 1296
+  setsize 7978
+exp: 94.558ms
+-------------------- Nothing found!
+rating: 62.741ms
+pruning: 52.756ms
+  Solved 134464  Cold   115425  Active 8196  Quiet  604585
+   all: 1149575, (284856, 134464, 730255) done 419320, 0.365 // maxPoints = 9 (tip 9)
+> Step 593
+ thr 7, starting with size 199
+  setsize 1157
+exp: 14.618ms
+rating: 63.643ms
+pruning: 55.756ms
+  Solved 134938  Cold   116023  Active 3950  Quiet  608632
+   all: 1150524, (285805, 134938, 729781) done 420743, 0.366 // maxPoints = 9 (tip 9)
+> Step 594
+ thr 6, starting with size 202
+  setsize 1100
+exp: 14.266ms
+rating: 59.981ms
+pruning: 57.116ms
+  Solved 135315  Cold   116367  Active 1368  Quiet  611012
+   all: 1151498, (286779, 135315, 729404) done 422094, 0.367 // maxPoints = 9 (tip 9)
+> Step 595
+ thr 5, starting with size 222
+  setsize 1385
+exp: 17.442ms
+rating: 60.242ms
+pruning: 50.663ms
+  Solved 135568  Cold   116367  Active 1020  Quiet  611138
+   all: 1152852, (288133, 135568, 729151) done 423701, 0.368 // maxPoints = 9 (tip 9)
+> Step 596
+ thr 4, starting with size 154
+  setsize 1015
+exp: 12.296ms
+rating: 61.938ms
+pruning: 53.913ms
+  Solved 135722  Cold   116367  Active 866  Quiet  611914
+   all: 1153817, (288322, 135722, 729773) done 424044, 0.368 // maxPoints = 9 (tip 9)
+> Step 597
+
+
+EXHAUSTED
+
+
+ thr 4, starting with size 0
+  setsize 0
+exp: 0.029ms
+-------------------- Nothing found!
+rating: 60.831ms
+pruning: 58.355ms
+  Solved 135722  Cold   116367  Active 866  Quiet  611914
+   all: 1153817, (288322, 135722, 729773) done 424044, 0.368 // maxPoints = 9 (tip 9)
+> Step 598
+ thr 3, starting with size 648
+  setsize 4387
+exp: 50.262ms
+rating: 62.322ms
+pruning: 54.448ms
+  Solved 135985  Cold   116570  Active 2323  Quiet  613712
+   all: 1157991, (288593, 135985, 733413) done 424578, 0.367 // maxPoints = 9 (tip 9)
+> Step 599
+ thr 4, starting with size 581
+  setsize 3594
+exp: 39.527ms
+-------------------- Nothing found!
+rating: 59.832ms
+pruning: 52.89ms
+  Solved 135985  Cold   116570  Active 5336  Quiet  613712
+   all: 1161585, (288593, 135985, 737007) done 424578, 0.366 // maxPoints = 9 (tip 9)
+main: 2:35.054 (m:ss.mmm)
+{
+  rss: 1696636928,
+  heapTotal: 1607888896,
+  heapUsed: 1482017888,
+  external: 7979273,
+  arrayBuffers: 5195695
+}
+0:	 1;  	 F	 0,  	 S	 0,  	 V	 1,  	 C	 0,  	 A	 0,  	 Q	 0
+1:	 1;  	 F	 0,  	 S	 0,  	 V	 1,  	 C	 0,  	 A	 0,  	 Q	 0
+2:	 1;  	 F	 0,  	 S	 0,  	 V	 1,  	 C	 0,  	 A	 0,  	 Q	 0
+3:	 1;  	 F	 0,  	 S	 0,  	 V	 1,  	 C	 0,  	 A	 0,  	 Q	 0
+4:	 1;  	 F	 0,  	 S	 0,  	 V	 1,  	 C	 0,  	 A	 0,  	 Q	 0
+5:	 5;  	 F	 0,  	 S	 0,  	 V	 1,  	 C	 0,  	 A	 4,  	 Q	 0
+6:	 5;  	 F	 0,  	 S	 0,  	 V	 5,  	 C	 0,  	 A	 0,  	 Q	 0
+7:	 5;  	 F	 0,  	 S	 0,  	 V	 5,  	 C	 0,  	 A	 0,  	 Q	 0
+8:	 7;  	 F	 0,  	 S	 0,  	 V	 1,  	 C	 0,  	 A	 6,  	 Q	 0
+9:	 5;  	 F	 0,  	 S	 4,  	 V	 1,  	 C	 0,  	 A	 0,  	 Q	 0
+10:	 5;  	 F	 0,  	 S	 4,  	 V	 1,  	 C	 0,  	 A	 0,  	 Q	 0
+11:	 7;  	 F	 0,  	 S	 6,  	 V	 1,  	 C	 0,  	 A	 0,  	 Q	 0
+12:	 42;  	 F	 0,  	 S	 11,  	 V	 2,  	 C	 4,  	 A	 0,  	 Q	 25
+13:	 66;  	 F	 0,  	 S	 36,  	 V	 2,  	 C	 28,  	 A	 0,  	 Q	 0
+14:	 87;  	 F	 0,  	 S	 31,  	 V	 2,  	 C	 0,  	 A	 0,  	 Q	 54
+15:	 97;  	 F	 0,  	 S	 74,  	 V	 5,  	 C	 12,  	 A	 0,  	 Q	 6
+16:	 436;  	 F	 6,  	 S	 111,  	 V	 18,  	 C	 274,  	 A	 0,  	 Q	 27
+17:	 941;  	 F	 0,  	 S	 211,  	 V	 29,  	 C	 585,  	 A	 0,  	 Q	 116
+18:	 2121;  	 F	 285,  	 S	 135,  	 V	 67,  	 C	 15,  	 A	 0,  	 Q	 1619
+19:	 685;  	 F	 0,  	 S	 200,  	 V	 2,  	 C	 22,  	 A	 208,  	 Q	 253
+20:	 663;  	 F	 188,  	 S	 220,  	 V	 2,  	 C	 62,  	 A	 0,  	 Q	 191
+21:	 998;  	 F	 0,  	 S	 240,  	 V	 2,  	 C	 69,  	 A	 0,  	 Q	 687
+22:	 916;  	 F	 451,  	 S	 113,  	 V	 2,  	 C	 83,  	 A	 0,  	 Q	 267
+23:	 608;  	 F	 0,  	 S	 183,  	 V	 2,  	 C	 374,  	 A	 0,  	 Q	 49
+24:	 1556;  	 F	 85,  	 S	 375,  	 V	 2,  	 C	 634,  	 A	 0,  	 Q	 460
+25:	 2721;  	 F	 0,  	 S	 565,  	 V	 2,  	 C	 423,  	 A	 0,  	 Q	 1731
+26:	 3003;  	 F	 562,  	 S	 706,  	 V	 2,  	 C	 1041,  	 A	 0,  	 Q	 692
+27:	 5494;  	 F	 0,  	 S	 1271,  	 V	 3,  	 C	 1218,  	 A	 0,  	 Q	 3002
+28:	 9192;  	 F	 2697,  	 S	 612,  	 V	 5,  	 C	 880,  	 A	 0,  	 Q	 4998
+29:	 4902;  	 F	 0,  	 S	 1609,  	 V	 6,  	 C	 1771,  	 A	 0,  	 Q	 1516
+30:	 12524;  	 F	 3104,  	 S	 1952,  	 V	 8,  	 C	 3982,  	 A	 0,  	 Q	 3478
+31:	 21153;  	 F	 0,  	 S	 4007,  	 V	 5,  	 C	 1741,  	 A	 0,  	 Q	 15400
+32:	 22691;  	 F	 8789,  	 S	 2664,  	 V	 5,  	 C	 2422,  	 A	 0,  	 Q	 8811
+33:	 19248;  	 F	 0,  	 S	 6160,  	 V	 5,  	 C	 4795,  	 A	 0,  	 Q	 8288
+34:	 42236;  	 F	 14634,  	 S	 3473,  	 V	 5,  	 C	 5533,  	 A	 0,  	 Q	 18591
+35:	 37166;  	 F	 0,  	 S	 7964,  	 V	 5,  	 C	 5613,  	 A	 0,  	 Q	 23584
+36:	 53621;  	 F	 21762,  	 S	 2883,  	 V	 5,  	 C	 5068,  	 A	 0,  	 Q	 23903
+37:	 33475;  	 F	 0,  	 S	 7344,  	 V	 5,  	 C	 6439,  	 A	 0,  	 Q	 19687
+38:	 55597;  	 F	 19762,  	 S	 2854,  	 V	 5,  	 C	 6079,  	 A	 0,  	 Q	 26897
+39:	 38661;  	 F	 0,  	 S	 7650,  	 V	 5,  	 C	 6898,  	 A	 0,  	 Q	 24108
+40:	 59273;  	 F	 21553,  	 S	 2147,  	 V	 5,  	 C	 5903,  	 A	 0,  	 Q	 29665
+41:	 36672;  	 F	 0,  	 S	 5810,  	 V	 5,  	 C	 4868,  	 A	 0,  	 Q	 25989
+42:	 46943;  	 F	 18715,  	 S	 1401,  	 V	 5,  	 C	 2840,  	 A	 0,  	 Q	 23982
+43:	 21580;  	 F	 0,  	 S	 3578,  	 V	 5,  	 C	 2079,  	 A	 0,  	 Q	 15918
+44:	 27352;  	 F	 12030,  	 S	 1270,  	 V	 5,  	 C	 1542,  	 A	 0,  	 Q	 12505
+45:	 15279;  	 F	 0,  	 S	 3138,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 10788
+46:	 22547;  	 F	 10446,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+47:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+48:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+49:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+50:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+51:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+52:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+53:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+54:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+55:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+56:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+57:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+58:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+59:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+60:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+61:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+62:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+63:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+64:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+65:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+66:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+67:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+68:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+69:	 14411;  	 F	 0,  	 S	 3061,  	 V	 5,  	 C	 1348,  	 A	 0,  	 Q	 9997
+70:	 22250;  	 F	 10149,  	 S	 1242,  	 V	 5,  	 C	 1366,  	 A	 0,  	 Q	 9488
+71:	 14411;  	 F	 0,  	 S	 3060,  	 V	 6,  	 C	 1348,  	 A	 0,  	 Q	 9997
+72:	 22250;  	 F	 10149,  	 S	 1239,  	 V	 8,  	 C	 1366,  	 A	 0,  	 Q	 9488
+73:	 14411;  	 F	 0,  	 S	 3050,  	 V	 22,  	 C	 1342,  	 A	 0,  	 Q	 9997
+74:	 22250;  	 F	 10149,  	 S	 1193,  	 V	 75,  	 C	 1345,  	 A	 0,  	 Q	 9488
+75:	 14411;  	 F	 0,  	 S	 2927,  	 V	 314,  	 C	 1173,  	 A	 0,  	 Q	 9997
+76:	 22250;  	 F	 10149,  	 S	 184,  	 V	 581,  	 C	 552,  	 A	 1524,  	 Q	 9260
+77:	 6433;  	 F	 0,  	 S	 442,  	 V	 0,  	 C	 865,  	 A	 3594,  	 Q	 1532
+78:	 4647;  	 F	 1289,  	 S	 0,  	 V	 0,  	 C	 0,  	 A	 0,  	 Q	 3358
+  steps: 600, nothing 181

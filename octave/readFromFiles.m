@@ -1,4 +1,4 @@
-function [followerMat, valueVector, stringMat, rowBase] = readFromFiles(prefix)
+function [followerMat, valueVector, stringMat, rowBase, categs] = readFromFiles(prefix)
 
 fh = fopen([prefix, 'followers']);
 followerData = fread(fh, 'float32');
@@ -12,10 +12,14 @@ stringVector = fread(fhs, 'uint16');
     fhrs = fopen([prefix, 'rstrings']);
     rstringVector = fread(fhrs, 'uint16');
 
+    fc = fopen([prefix, 'categs.txt']);
+    categs = char(fread(fc));
+
 fclose(fh);
 fclose(fhv);
 fclose(fhs);
 fclose(fhrs);
+fclose(fc);
 
 followerMat = single(reshape(followerData, 13, []));
 valueVectorJS = reshape(valueVectorJS, 1, []);
@@ -30,6 +34,7 @@ clear followerData stringVector
 followerMat(:,1) = []; % remove column 0 to make column 1 appear at index 1 (no big loss)
 valueVectorJS(1) = [];
 stringMat(:,1) = [];
+categs(1) = [];
 % So, state 0 is absent here
 
 followerMat(followerMat < 1) = nan;

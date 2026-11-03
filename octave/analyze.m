@@ -4,12 +4,12 @@
 prefix = '../saved_9/';
 prefix = '../saved_2/';
 
-[followerMat, valueVector, stringMat, rowBase] = readFromFiles(prefix);
+[followerMat, valueVector, stringMat, rowBase, categs] = readFromFiles(prefix);
 
 nStates = width(followerMat);
 
 
-[moves, points0, points1, rows, toks0, toks1] = parsePoints(stringMat);
+[moves, steps, points0, points1, rows, toks0, toks1] = parsePoints(stringMat);
 
 stateInfos.moves = moves;
 stateInfos.rows = rows;
@@ -20,7 +20,7 @@ clear stringMat
 
 buys = getBuyMatrix(followerMat, rows, rowBase);
 
-stepValues = countSteps(followerMat);
+stepValues = steps; %countSteps(followerMat);
 
 [edgesFrom, edgesTo] = getEdges(followerMat);
 edgesByStep = getEdgesByStep(followerMat, stepValues);
@@ -59,6 +59,7 @@ mainTable.value = valueVector';
 mainTable.p0 = points0';
 mainTable.p1 = points1';
 mainTable.label = LABELS';
+mainTable.categ = categs;
 
 mainTable.final = finals';
 mainTable.tip = tips';

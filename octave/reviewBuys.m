@@ -49,7 +49,7 @@ function outputs = reviewBuys(mainTable, followerMat, buys, stateInfos)
                 effPrice = max(0, price - toks);
     
                 overLimit = max(0, effPrice - MAX_COLOR);
-                surpluses = max(0, effPrice - nTakes); % number of times we had to take 2 (limiting total number)
+                surpluses = max(0, effPrice - double(nTakes)); % number of times we had to take 2 (limiting total number)
                 
                 effSum = sum(effPrice + surpluses);
     
