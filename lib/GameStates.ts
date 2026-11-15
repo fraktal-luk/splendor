@@ -1088,6 +1088,17 @@ export namespace GameStates {
 
 
 			save(): void {
+
+				const ZZZ =	[629453, 629458, 629568, 629582, 630616, 640897, 640921, 640925, 641270, 641350];
+				//const ZZZ =	[1,100,1000];
+
+				ZZZ.forEach( i =>
+						console.log(
+							`${i}: ${CardState.fromKeyString(this.stateBase.strings[i]).niceString()}`
+						)
+				);
+					return;
+
 				const saveDir = FILE_PREFIX;//"saved_1";
 
 				const nStr = this.stateBase.strings.length;

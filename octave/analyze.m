@@ -16,7 +16,7 @@ stateInfos.rows = rows;
 stateInfos.toks0 = toks0;
 stateInfos.toks1 = toks1;
 
-clear stringMat
+%clear stringMat
 
 buys = getBuyMatrix(followerMat, rows, rowBase);
 
