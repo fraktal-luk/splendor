@@ -42,6 +42,9 @@ step53 = find(mainTable.step == 53);
 step54 = find(mainTable.step == 54);
 step55 = find(mainTable.step == 55);
 
+step58 = find(mainTable.step == 58);
+
+
 v47 = step47(mainTable.categ(step47) == 'V');
 v48 = step48(mainTable.categ(step48) == 'V');
 v49 = step49(mainTable.categ(step49) == 'V');
@@ -51,6 +54,10 @@ v52 = step52(mainTable.categ(step52) == 'V');
 v53 = step53(mainTable.categ(step53) == 'V');
 v54 = step54(mainTable.categ(step54) == 'V');
 v55 = step55(mainTable.categ(step55) == 'V');
+
+v58 = step58(mainTable.categ(step58) == 'V');
+
+
 
 vComb = [v47; v48; v49; v50; v51;   v52; v53; v54; v55]';
 
@@ -80,3 +87,44 @@ vFork = vComb(forking);
 [indexN(followerMat(2:8, vComb)', valueVector)]
 
 [vComb', mainTable.p0(vComb), mainTable.p1(vComb)]
+
+
+%
+
+sg = subgraphFrom(v47, followerMat);
+sgCategs = mainTable.categ(sg);
+
+%% Find some route to game end:
+current = followerMat(2, v47(1));
+
+while 1
+    current;
+    currentVal = valueVector(current);
+        fprintf('%d: %d\n', current, currentVal)
+
+
+    if (mainTable.categ(current) == 'F')
+        disp Found
+        break
+    end
+
+    next = followerMat(:, current);
+    nextVals = indexN(next, valueVector);
+
+    chosen = find(nextVals == valueVector(current), 1);
+    if isempty(chosen)
+        break
+    end
+    
+    chosenState = next(chosen);
+
+
+
+    current = chosenState;
+end
+
+% sequence found above
+seq = [v47(1), 640898, 645970, 649759];
+seqFollowers = followerMat(:, seq);
+seqBuys = buys(:, seq);
+seqCategs = char(indexN(seqFollowers, mainTable.categ));
